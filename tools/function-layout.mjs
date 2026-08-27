@@ -57,7 +57,9 @@ export function functionId(path) {
 }
 
 export function publicTag(name) {
+  if (!Object.hasOwn(PUBLIC_FUNCTION_PATHS, name)) {
+    throw new Error(`Unknown public function: ${name}`);
+  }
   const implementationPath = PUBLIC_FUNCTION_PATHS[name];
-  if (!implementationPath) throw new Error(`Unknown public function: ${name}`);
   return { values: [functionId(implementationPath)] };
 }

@@ -24,3 +24,7 @@ test("function layout assigns representative owned and common helpers", () => {
   assert.equal(FUNCTION_PATHS.logNormalizeScaleDown, ".common/log/4.normalize_scale_down");
   assert.equal(functionId(FUNCTION_PATHS.sinEvaluate), "math:.common/sin/1.evaluate");
 });
+
+test("public tags reject inherited names", () => {
+  assert.throws(() => publicTag("toString"), /Unknown public function: toString/);
+});
