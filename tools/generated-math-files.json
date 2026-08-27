@@ -136,7 +136,7 @@
     "Math/data/math/number_provider/log/normalize/u/00.json",
     "Math/data/math/number_provider/log/polynomial/00.json",
     "Math/data/math/number_provider/power/classify/delta/00.json",
-    "Math/data/math/number_provider/power/classify/finite_exponent/00.json",
+    "Math/data/math/number_provider/power/classify/evaluation_exponent/00.json",
     "Math/data/math/number_provider/power/classify/log/high/00.json",
     "Math/data/math/number_provider/power/classify/log/low/00.json",
     "Math/data/math/number_provider/power/classify/log/renormalize/high/00.json",

@@ -392,13 +392,16 @@ emit("power/positive/00", product(x, y));
 emit("power/classify/normalize/difference/00", sum(z, -1));
 emit("power/classify/polynomial/initial/00", Math.fround(-1 / 32));
 for (let degree = 31; degree >= 1; degree -= 1) {
-  const coefficient = Math.fround((degree % 2 === 0 ? -1 : 1) / degree);
+  const exactCoefficient = (degree % 2 === 0 ? -1 : 1) / degree;
+  const coefficient = Math.fround(exactCoefficient);
+  const coefficientLow = Math.fround(exactCoefficient - coefficient);
   const stage = degree.toString().padStart(2, "0");
   const productHigh = product(x, z);
   emit(`power/classify/polynomial/${stage}/low/00`, sum(
     twoSumLow(productHigh, coefficient),
     twoProductLow(x, z),
     product(y, z),
+    coefficientLow,
   ));
   emit(`power/classify/polynomial/${stage}/high/00`, sum(productHigh, coefficient));
 }
@@ -429,7 +432,10 @@ emit("power/classify/delta/00", sum(
   subtractExpression(w, powerOverflowThresholdHigh),
   subtractExpression(z, powerOverflowThresholdLow),
 ));
-emit("power/classify/finite_exponent/00", maximumFiniteExpInput);
+emit("power/classify/evaluation_exponent/00", minimum(
+  sum(w, z),
+  maximumFiniteExpInput,
+));
 
 for (const name of ["a", "b", "min", "max", "t"]) emitPredicate(`finite/${name}`, finitePredicate(name));
 emitPredicate("range/min_greater_than_max", {
@@ -816,7 +822,7 @@ function powerBoundaryLines(negativeResult) {
     "execute if predicate math:internal/power/classifier_overflow run data remove storage math: ans",
     "execute if predicate math:internal/power/classifier_overflow run data modify storage math: error set value \"result_out_of_range\"",
     "execute if predicate math:internal/power/classifier_overflow run return fail",
-    "data modify storage math:internal x set compute default math:power/classify/finite_exponent/00",
+    "data modify storage math:internal x set compute default math:power/classify/evaluation_exponent/00",
     ...finalPowerResultLines(negativeResult),
   ];
 }

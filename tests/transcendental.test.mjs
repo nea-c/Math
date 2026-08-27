@@ -421,6 +421,64 @@ test("power distinguishes adjacent finite and overflowing results on both base s
   }
 });
 
+test("power preserves accuracy across the overflow ambiguity band", (t) => {
+  const cases = [];
+  for (const [base, target] of [
+    [2, 88.7],
+    [2, Math.fround(127.97) * Math.LN2],
+    [10, Math.fround(38.53) * Math.log(10)],
+    [2, powerOverflowLogThreshold],
+    [10, powerOverflowLogThreshold],
+  ]) {
+    const exponent = Math.fround(target / Math.log(base));
+    for (const candidate of [
+      previousPositiveFloat(exponent),
+      exponent,
+      nextPositiveFloat(exponent),
+    ]) {
+      if (Number.isFinite(Math.fround(Math.pow(base, candidate)))) cases.push([base, candidate]);
+    }
+  }
+
+  for (const [exponent, target] of [
+    [3, 88.7],
+    [3, 88.71],
+    [3, powerOverflowLogThreshold],
+    [4, 88.7],
+    [4, 88.71],
+    [4, powerOverflowLogThreshold],
+  ]) {
+    const magnitude = Math.fround(Math.exp(target / exponent));
+    for (const candidate of [
+      previousPositiveFloat(magnitude),
+      magnitude,
+      nextPositiveFloat(magnitude),
+    ]) {
+      const base = -candidate;
+      if (Number.isFinite(Math.fround(Math.pow(base, exponent)))) cases.push([base, exponent]);
+    }
+  }
+
+  let maximumError = 0;
+  let worstCase;
+  for (const [a, b] of cases) {
+    const error = assertPower(a, b);
+    if (error > maximumError) [maximumError, worstCase] = [error, [a, b]];
+  }
+
+  for (const base of [2, 10]) {
+    const exponent = Math.fround(88.75 / Math.log(base));
+    for (const candidate of [previousPositiveFloat(exponent), exponent, nextPositiveFloat(exponent)]) {
+      const result = runFunction("power", { a: base, b: candidate, ans: 91, error: "stale_error" });
+      assert.equal(result.returned, 0, `power(${base}, ${candidate}) at upper ambiguity-band edge`);
+      assert.equal(result.storage["math:"].ans, undefined);
+      assert.equal(result.storage["math:"].error, "result_out_of_range");
+    }
+  }
+
+  t.diagnostic(`${cases.length} finite ambiguity-band cases; maximum error ${maximumError} at ${worstCase}`);
+});
+
 test("power representability matches 750 adversarial cases around the overflow boundary", (t) => {
   let state = 0x452821e6;
   let falseRejects = 0;
@@ -450,6 +508,32 @@ test("power representability matches 750 adversarial cases around the overflow b
   }
 
   t.diagnostic(`${checked} boundary cases: ${falseRejects} false rejects, ${falseAccepts} false accepts`);
+  assert.equal(falseRejects, 0);
+  assert.equal(falseAccepts, 0);
+});
+
+test("power representability matches an independent 750-case base-adjacent sweep", (t) => {
+  let falseRejects = 0;
+  let falseAccepts = 0;
+  let checked = 0;
+
+  for (let exponent = 1; exponent <= 250; exponent += 1) {
+    const boundaryBase = Math.fround(Math.exp(powerOverflowLogThreshold / exponent));
+    for (const magnitude of [
+      previousPositiveFloat(boundaryBase),
+      boundaryBase,
+      nextPositiveFloat(boundaryBase),
+    ]) {
+      const base = exponent % 2 === 0 ? -magnitude : magnitude;
+      const expectedFinite = Number.isFinite(Math.fround(Math.pow(base, exponent)));
+      const result = runFunction("power", { a: base, b: exponent, ans: 91, error: "stale_error" });
+      if (expectedFinite && result.returned !== 1) falseRejects += 1;
+      if (!expectedFinite && result.returned !== 0) falseAccepts += 1;
+      checked += 1;
+    }
+  }
+
+  t.diagnostic(`${checked} independent boundary cases: ${falseRejects} false rejects, ${falseAccepts} false accepts`);
   assert.equal(falseRejects, 0);
   assert.equal(falseAccepts, 0);
 });
