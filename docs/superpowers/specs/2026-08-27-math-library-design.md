@@ -197,7 +197,7 @@ The revised wrapper and graph add:
 
 ## Generation and repository contents
 
-Large provider graphs are deterministic generated artifacts. A dependency-free generator checked into the repository owns constants, polynomial coefficients, range partitions, file splitting, and provider references. Generated files state that they are generated and identify the generator command.
+Large provider graphs are deterministic generated artifacts. A dependency-free generator checked into the repository owns constants, polynomial coefficients, range partitions, file splitting, and provider references. A checked-in generated-file manifest identifies every generated asset and the generator command; provider JSON itself contains only fields accepted by Minecraft's registry codec.
 
 The repository contains:
 
