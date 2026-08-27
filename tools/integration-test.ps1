@@ -169,6 +169,10 @@ try {
         'data modify storage math: a set value 7.0f'
         'data modify storage math: b set value -2.0f'
     )
+    Add-SuccessCase -Case 'signed_zero_divide' -Function 'divide' -ExpectedAnswer '-0.0f' -Setup @(
+        'data modify storage math: a set value 0.0f'
+        'data modify storage math: b set value -2.0f'
+    )
     Add-SuccessCase -Case 'small_reciprocal' -Function 'reciprocal' -ExpectedAnswer '16384.0f' -Setup @(
         'data modify storage math: a set value 0.00006103515625f'
     )

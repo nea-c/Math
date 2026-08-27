@@ -106,6 +106,22 @@ test("reciprocal and divide reject zero without mutating public inputs", () => {
   }
 });
 
+test("divide zero numerator uses IEEE sign xor for every finite denominator sign", () => {
+  for (const [a, b, expected] of [
+    [0, 2, 0],
+    [0, -2, -0],
+    [-0, 2, -0],
+    [-0, -2, 0],
+  ]) {
+    const result = runFunction("divide", { a, b, ans: 91, error: "stale_error" });
+    assert.equal(result.returned, 1, `divide(${Object.is(a, -0) ? "-0" : "+0"}, ${b}) must succeed`);
+    assert.ok(Object.is(result.storage["math:"].ans, expected), `divide(${Object.is(a, -0) ? "-0" : "+0"}, ${b}) sign`);
+    assert.equal(result.storage["math:"].error, undefined);
+    assert.ok(Object.is(result.storage["math:"].a, a), "public numerator must be preserved");
+    assert.equal(result.storage["math:"].b, b, "public denominator must be preserved");
+  }
+});
+
 test("reciprocal and divide distinguish small nonzero divisors from zero", () => {
   const reciprocal = runFunction("reciprocal", { a: Math.fround(2 ** -14), error: "stale_error" });
   assert.equal(reciprocal.returned, 1);

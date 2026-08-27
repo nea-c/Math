@@ -25,6 +25,191 @@ function repositorySnapshot(root) {
   return [...snapshot].sort(([left], [right]) => left.localeCompare(right));
 }
 
+function validatePackGraph(packRoot) {
+  const issues = [];
+  const dataRoot = path.join(packRoot, "data");
+  const resourceLocation = /^(#?)([a-z0-9_.-]+):([a-z0-9_./-]+)$/;
+  const relativeSource = (file) => path.relative(packRoot, file).replaceAll("\\", "/");
+
+  const registryPath = (registry, id) => {
+    const match = resourceLocation.exec(id);
+    if (!match) return undefined;
+    const [, tag, namespace, resourcePath] = match;
+    if (namespace === "minecraft") return null;
+    if (registry === "function" && tag) {
+      return path.join(dataRoot, namespace, "tags", "function", `${resourcePath}.json`);
+    }
+    if (tag) return undefined;
+    const extension = registry === "function" ? ".mcfunction" : ".json";
+    return path.join(dataRoot, namespace, registry, `${resourcePath}${extension}`);
+  };
+
+  const checkReference = (registry, id, source, location) => {
+    const target = registryPath(registry, id);
+    const sourceLocation = location.startsWith(".")
+      ? `${relativeSource(source)}:${location.slice(1)}`
+      : `${relativeSource(source)}${location}`;
+    const prefix = `${sourceLocation}:`;
+    if (target === undefined) {
+      issues.push(`${prefix} invalid ${registry} reference ${id}`);
+    } else if (target !== null && !fs.existsSync(target)) {
+      issues.push(`${prefix} dangling ${registry} ${id}`);
+    }
+  };
+
+  const walkProvider = (provider, source, location) => {
+    if (typeof provider === "number") return;
+    if (typeof provider === "string") {
+      checkReference("number_provider", provider, source, location);
+      return;
+    }
+    assert.ok(provider && typeof provider === "object" && !Array.isArray(provider), `${relativeSource(source)}${location}: invalid number provider`);
+    switch (provider.type) {
+      case "minecraft:storage":
+        return;
+      case "minecraft:sum":
+      case "minecraft:product":
+      case "minecraft:maximum":
+      case "minecraft:minimum":
+        assert.ok(Array.isArray(provider.operands), `${relativeSource(source)}${location}: operands must be an array`);
+        provider.operands.forEach((operand, index) => walkProvider(operand, source, `${location}.operands[${index}]`));
+        return;
+      case "minecraft:number_dispatcher":
+        assert.ok(Array.isArray(provider.cases), `${relativeSource(source)}${location}: cases must be an array`);
+        provider.cases.forEach((entry, index) => {
+          walkPredicate(entry.condition, source, `${location}.cases[${index}].condition`);
+          walkProvider(entry.number_provider, source, `${location}.cases[${index}].number_provider`);
+        });
+        walkProvider(provider.default, source, `${location}.default`);
+        return;
+      case "minecraft:conditional":
+        walkPredicate(provider.condition, source, `${location}.condition`);
+        walkProvider(provider.on_true, source, `${location}.on_true`);
+        walkProvider(provider.on_false, source, `${location}.on_false`);
+        return;
+      default:
+        assert.fail(`${relativeSource(source)}${location}: unsupported number provider type ${provider.type}`);
+    }
+  };
+
+  const walkPredicate = (predicate, source, location) => {
+    if (typeof predicate === "string") {
+      checkReference("predicate", predicate, source, location);
+      return;
+    }
+    assert.ok(predicate && typeof predicate === "object" && !Array.isArray(predicate), `${relativeSource(source)}${location}: invalid predicate`);
+    switch (predicate.type) {
+      case "minecraft:value_check":
+        walkProvider(predicate.value, source, `${location}.value`);
+        if (Object.hasOwn(predicate.range, "min")) walkProvider(predicate.range.min, source, `${location}.range.min`);
+        if (Object.hasOwn(predicate.range, "max")) walkProvider(predicate.range.max, source, `${location}.range.max`);
+        return;
+      case "minecraft:all_of":
+      case "minecraft:any_of":
+        assert.ok(Array.isArray(predicate.terms), `${relativeSource(source)}${location}: terms must be an array`);
+        predicate.terms.forEach((term, index) => walkPredicate(term, source, `${location}.terms[${index}]`));
+        return;
+      case "minecraft:inverted":
+        walkPredicate(predicate.term ?? predicate.condition, source, `${location}.${Object.hasOwn(predicate, "term") ? "term" : "condition"}`);
+        return;
+      default:
+        assert.fail(`${relativeSource(source)}${location}: unsupported predicate type ${predicate.type}`);
+    }
+  };
+
+  const visitFiles = (root, extension, visitor) => {
+    if (!fs.existsSync(root)) return;
+    for (const entry of fs.readdirSync(root, { recursive: true, withFileTypes: true })) {
+      if (!entry.isFile() || !entry.name.endsWith(extension)) continue;
+      visitor(path.join(entry.parentPath, entry.name));
+    }
+  };
+
+  if (fs.existsSync(dataRoot)) {
+    for (const namespace of fs.readdirSync(dataRoot, { withFileTypes: true })) {
+      if (!namespace.isDirectory()) continue;
+      const namespaceRoot = path.join(dataRoot, namespace.name);
+      visitFiles(path.join(namespaceRoot, "number_provider"), ".json", (file) => {
+        walkProvider(JSON.parse(fs.readFileSync(file, "utf8")), file, "");
+      });
+      visitFiles(path.join(namespaceRoot, "predicate"), ".json", (file) => {
+        walkPredicate(JSON.parse(fs.readFileSync(file, "utf8")), file, "");
+      });
+      visitFiles(path.join(namespaceRoot, "function"), ".mcfunction", (file) => {
+        const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
+        lines.forEach((rawLine, index) => {
+          const line = rawLine.trim();
+          if (!line || line.startsWith("#")) return;
+          const location = `:${index + 1}`;
+          for (const match of line.matchAll(/\bfunction\s+(#?[a-z0-9_.-]+:[a-z0-9_./-]+)(?=\s|$)/g)) {
+            checkReference("function", match[1], file, location);
+          }
+          for (const match of line.matchAll(/\b(?:if|unless)\s+predicate\s+(#?[a-z0-9_.-]+:[a-z0-9_./-]+)(?=\s|$)/g)) {
+            checkReference("predicate", match[1], file, location);
+          }
+          for (const match of line.matchAll(/\bcompute\s+default\s+([a-z0-9_.-]+:[a-z0-9_./-]+)(?=\s|$)/g)) {
+            checkReference("number_provider", match[1], file, location);
+          }
+        });
+      });
+    }
+  }
+  return issues.sort();
+}
+
+test("pack graph validator detects controlled dangling registry references", () => {
+  const packRoot = fs.mkdtempSync(path.join(os.tmpdir(), "math-pack-graph-"));
+  try {
+    const write = (relative, value) => {
+      const file = path.join(packRoot, relative);
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, typeof value === "string" ? value : `${JSON.stringify(value, null, 2)}\n`);
+    };
+    write("data/math/number_provider/fixture/root.json", {
+      type: "minecraft:sum",
+      operands: ["math:missing/provider", 1],
+    });
+    write("data/math/predicate/fixture/root.json", {
+      type: "minecraft:all_of",
+      terms: ["math:missing/predicate"],
+    });
+    write("data/math/number_provider/fixture/conditional.json", {
+      type: "minecraft:conditional",
+      condition: {
+        type: "minecraft:value_check",
+        value: 0,
+        range: { min: "math:missing/range_bound" },
+      },
+      on_true: "math:missing/on_true",
+      on_false: 0,
+    });
+    write("data/math/function/fixture/root.mcfunction", [
+      "function math:missing/function",
+      "execute run compute default math:missing/computed",
+      "return run function math:missing/returned_function",
+      "execute if score #x fixture matches 1 run function math:missing/executed_function",
+      "",
+    ].join("\n"));
+
+    assert.deepEqual(validatePackGraph(packRoot), [
+      "data/math/function/fixture/root.mcfunction:1: dangling function math:missing/function",
+      "data/math/function/fixture/root.mcfunction:2: dangling number_provider math:missing/computed",
+      "data/math/function/fixture/root.mcfunction:3: dangling function math:missing/returned_function",
+      "data/math/function/fixture/root.mcfunction:4: dangling function math:missing/executed_function",
+      "data/math/number_provider/fixture/conditional.json:condition.range.min: dangling number_provider math:missing/range_bound",
+      "data/math/number_provider/fixture/conditional.json:on_true: dangling number_provider math:missing/on_true",
+      "data/math/number_provider/fixture/root.json:operands[0]: dangling number_provider math:missing/provider",
+      "data/math/predicate/fixture/root.json:terms[0]: dangling predicate math:missing/predicate",
+    ]);
+  } finally {
+    fs.rmSync(packRoot, { recursive: true, force: true });
+  }
+});
+
+test("all pack registry references resolve", () => {
+  assert.deepEqual(validatePackGraph("Math"), []);
+});
+
 test("pack targets data pack format 118", () => {
   const meta = JSON.parse(fs.readFileSync("Math/pack.mcmeta", "utf8"));
   assert.equal(meta.pack.min_format, 118);

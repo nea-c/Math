@@ -1119,7 +1119,8 @@ emitFunction("internal/power_negative", [
   lines.push("execute if predicate math:internal/divide/exact_equal run data modify storage math: ans set value 1.0f");
   lines.push("execute if predicate math:internal/divide/exact_equal run return 1");
   lines.push("data modify storage math:internal x set from storage math: a");
-  lines.push("execute if data storage math:internal {x:0.0f} run data modify storage math: ans set from storage math: a");
+  lines.push("execute if data storage math:internal {x:0.0f} run data modify storage math:internal y set from storage math: b");
+  lines.push("execute if data storage math:internal {x:0.0f} run data modify storage math: ans set compute default math:common/arithmetic/multiply");
   lines.push("execute if data storage math:internal {x:0.0f} run return 1");
   lines.push("data modify storage math:internal w_divide_sign set value 1.0f");
   lines.push(...stagePredicate("divide/a_negative"));

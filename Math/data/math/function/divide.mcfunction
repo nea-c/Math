@@ -11,7 +11,8 @@ data modify storage math:internal w_comparison.predicate.divide_exact_equal.valu
 execute if predicate math:internal/divide/exact_equal run data modify storage math: ans set value 1.0f
 execute if predicate math:internal/divide/exact_equal run return 1
 data modify storage math:internal x set from storage math: a
-execute if data storage math:internal {x:0.0f} run data modify storage math: ans set from storage math: a
+execute if data storage math:internal {x:0.0f} run data modify storage math:internal y set from storage math: b
+execute if data storage math:internal {x:0.0f} run data modify storage math: ans set compute default math:common/arithmetic/multiply
 execute if data storage math:internal {x:0.0f} run return 1
 data modify storage math:internal w_divide_sign set value 1.0f
 data modify storage math:internal w_comparison.predicate.divide_a_negative.maximum set compute default math:internal/comparison/predicate/divide/a_negative/maximum
