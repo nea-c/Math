@@ -5,29 +5,12 @@
       "condition": {
         "type": "minecraft:value_check",
         "value": {
-          "type": "minecraft:sum",
-          "operands": [
-            {
-              "type": "minecraft:storage",
-              "storage": "math:internal",
-              "path": "x"
-            },
-            {
-              "type": "minecraft:product",
-              "operands": [
-                -0.5,
-                {
-                  "type": "minecraft:storage",
-                  "storage": "math:internal",
-                  "path": "y"
-                }
-              ]
-            }
-          ]
+          "type": "minecraft:storage",
+          "storage": "math:comparison",
+          "path": "period_half"
         },
         "range": {
-          "min": 0,
-          "max": 3.4028234663852886e+38
+          "min": 0
         }
       },
       "number_provider": {

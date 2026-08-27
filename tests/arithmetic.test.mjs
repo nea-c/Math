@@ -25,6 +25,12 @@ function run(id, internal) {
   return evaluateProvider(id, providers, new Map([["math:internal", internal]]));
 }
 
+function runStagedReciprocal(input) {
+  const result = runInternalFunction("reciprocal_x", { x: input, y: 1 });
+  assert.equal(result.returned, 1, `reciprocal_x(${input}) must return success`);
+  return result.storage["math:internal"].x;
+}
+
 function floatMagnitudeParts(value) {
   const bytes = new ArrayBuffer(4);
   const view = new DataView(bytes);
@@ -88,22 +94,20 @@ test("common exact providers evaluate hand-checked arithmetic and conversions", 
   }
 });
 
-test("power-of-two normalization covers the reciprocal exponent range", () => {
+test("staged reciprocal normalization covers the binary32 exponent range", () => {
   const cases = [
-    [smallestFiniteReciprocalInput, 2 ** 127, -128, 0.5, 1],
-    [Math.fround(2 ** -127), 2 ** 127, -127, 1, 2],
-    [0.75, 2, -1, 1, 2],
-    [1, 1, 0, 1, 2],
-    [finiteLimit, 2 ** -127, 127, 1, 2],
+    smallestFiniteReciprocalInput,
+    Math.fround(2 ** -127),
+    0.75,
+    1,
+    finiteLimit,
   ];
 
-  for (const [input, expectedScale, expectedExponent, minimumMantissa, maximumMantissa] of cases) {
-    const scale = run("math:common/normalize/power_of_two/scale", { x: input });
-    const exponent = run("math:common/normalize/power_of_two/exponent", { x: input });
-    const mantissa = Math.fround(Math.abs(input) * scale);
-    assert.equal(scale, Math.fround(expectedScale), `scale for ${input}`);
-    assert.equal(exponent, Math.fround(expectedExponent), `exponent for ${input}`);
-    assert.ok(mantissa >= minimumMantissa && mantissa < maximumMantissa, `mantissa ${mantissa} for ${input}`);
+  for (const input of cases) {
+    const expected = Math.fround(1 / input);
+    const actual = runStagedReciprocal(input);
+    const relativeError = Math.abs((actual - expected) / expected);
+    assert.ok(relativeError <= 0.00001, `reciprocal(${input}) produced ${actual}, expected ${expected}`);
   }
 });
 
@@ -126,7 +130,7 @@ test("common reciprocal supports signed values across the finite float range", (
 
   for (const input of cases) {
     const expected = Math.fround(1 / input);
-    const actual = run("math:common/reciprocal/00", { x: input });
+    const actual = runStagedReciprocal(input);
     const relativeError = Math.abs((actual - expected) / expected);
     assert.ok(relativeError <= 0.00001, `reciprocal(${input}) produced ${actual}, expected ${expected}, relative error ${relativeError}`);
   }
@@ -147,7 +151,7 @@ test("common reciprocal stays within tolerance for 20,000 deterministic finite f
     if (!Number.isFinite(input) || input === 0 || Math.abs(input) < smallestFiniteReciprocalInput) continue;
 
     const expected = Math.fround(1 / input);
-    const actual = run("math:common/reciprocal/00", { x: input });
+    const actual = runStagedReciprocal(input);
     const relativeError = Math.abs((actual - expected) / expected);
     if (relativeError > maximumRelativeError) {
       maximumRelativeError = relativeError;

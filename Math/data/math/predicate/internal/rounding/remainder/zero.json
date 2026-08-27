@@ -2,8 +2,8 @@
   "type": "minecraft:value_check",
   "value": {
     "type": "minecraft:storage",
-    "storage": "math:internal",
-    "path": "z"
+    "storage": "math:comparison",
+    "path": "predicate.rounding_remainder_zero.value"
   },
   "range": {
     "min": 0,

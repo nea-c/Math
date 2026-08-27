@@ -1,27 +1,11 @@
 {
   "type": "minecraft:value_check",
   "value": {
-    "type": "minecraft:maximum",
-    "operands": [
-      {
-        "type": "minecraft:storage",
-        "storage": "math:internal",
-        "path": "x"
-      },
-      {
-        "type": "minecraft:product",
-        "operands": [
-          -1,
-          {
-            "type": "minecraft:storage",
-            "storage": "math:internal",
-            "path": "x"
-          }
-        ]
-      }
-    ]
+    "type": "minecraft:storage",
+    "storage": "math:comparison",
+    "path": "predicate.rounding_safe_command_result.maximum"
   },
   "range": {
-    "max": 16777215
+    "max": 0
   }
 }

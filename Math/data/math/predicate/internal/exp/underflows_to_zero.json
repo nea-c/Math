@@ -2,10 +2,10 @@
   "type": "minecraft:value_check",
   "value": {
     "type": "minecraft:storage",
-    "storage": "math:internal",
-    "path": "x"
+    "storage": "math:comparison",
+    "path": "predicate.exp_underflows_to_zero.maximum"
   },
   "range": {
-    "max": -103.97208404541016
+    "max": 0
   }
 }

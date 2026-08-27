@@ -13,6 +13,12 @@ const maximumZeroExpInput = Math.fround(-103.97208404541016);
 const minimumNonzeroExpInput = Math.fround(-103.97207641601562);
 const powerOverflowLogThreshold = Math.log((2 - 2 ** -24) * 2 ** 127);
 
+function evaluateTangentGuard(variant, input) {
+  const publicInput = { a: Math.fround(input) };
+  const tanDomain = evaluateGeneratedProvider(`math:tan/guard/${variant}/compare_domain`, publicInput);
+  return evaluateGeneratedProvider(`math:tan/guard/${variant}/00`, publicInput, {}, { tan_domain: tanDomain });
+}
+
 function floatFromBits(bits) {
   const bytes = new ArrayBuffer(4);
   const view = new DataView(bytes);
@@ -102,8 +108,10 @@ function assertPower(a, b) {
 test("square root generated graph uses responsibility subdirectories", () => {
   for (const provider of [
     "square_root/00.json",
-    "square_root/normalize/mantissa/00.json",
-    "square_root/normalize/scale/00.json",
+    "square_root/normalize/compare_below_one/00.json",
+    "square_root/normalize/compare_at_least_four/00.json",
+    "square_root/normalize/quadruple_mantissa/00.json",
+    "square_root/normalize/half_scale/00.json",
     "square_root/approximate/00.json",
     "square_root/newton/00/00.json",
     "square_root/newton/01/00.json",
@@ -111,7 +119,6 @@ test("square root generated graph uses responsibility subdirectories", () => {
   ]) {
     assert.ok(fs.existsSync(path.join("Math/data/math/number_provider", provider)), `missing ${provider}`);
   }
-  assert.ok(fs.existsSync("Math/data/math/predicate/internal/square_root/zero.json"));
   assert.ok(fs.existsSync("Math/data/math/predicate/internal/square_root/result_finite.json"));
 });
 
@@ -182,8 +189,9 @@ test("square root stays within tolerance for 10,000 deterministic positive binar
 test("log exp and power generated graphs use responsibility subdirectories", () => {
   for (const provider of [
     "log/00.json",
-    "log/normalize/prescale/00.json",
-    "log/normalize/mantissa/00.json",
+    "log/normalize/compare_below_one/00.json",
+    "log/normalize/compare_at_least_two/00.json",
+    "log/normalize/compare_center/00.json",
     "log/polynomial/00.json",
     "exp/00.json",
     "exp/reduce/quotient/00.json",
@@ -195,13 +203,12 @@ test("log exp and power generated graphs use responsibility subdirectories", () 
     assert.ok(fs.existsSync(path.join("Math/data/math/number_provider", provider)), `missing ${provider}`);
   }
   for (const predicate of [
-    "log/zero.json",
     "exp/input_finite.json",
     "exp/input_in_range.json",
     "exp/underflows_to_zero.json",
     "power/exponent_integer.json",
     "power/exponent_large_even.json",
-    "power/exponent_odd.json",
+    "power/classifier_overflow.json",
   ]) {
     assert.ok(fs.existsSync(path.join("Math/data/math/predicate/internal", predicate)), `missing ${predicate}`);
   }
@@ -591,10 +598,13 @@ test("trigonometric generated graphs use shared-kernel responsibility directorie
     "sin/polynomial/00.json",
     "cos/00.json",
     "tan/00.json",
+    "tan/guard/radians/compare_domain.json",
+    "tan/guard/degrees/compare_domain.json",
   ]) {
     assert.ok(fs.existsSync(path.join("Math/data/math/number_provider", provider)), `missing ${provider}`);
   }
-  assert.ok(fs.existsSync("Math/data/math/predicate/internal/tan/undefined.json"));
+  assert.ok(fs.existsSync("Math/data/math/predicate/internal/tan/undefined_radians.json"));
+  assert.ok(fs.existsSync("Math/data/math/predicate/internal/tan/undefined_degrees.json"));
 });
 
 test("sine and cosine snap exact axes and preserve signed zero", () => {
@@ -861,15 +871,15 @@ test("tangent uncertainty guards round upward from independent phase-error bound
     + radFloat * unitRoundoff
     + radFloat * (1 + unitRoundoff) * tauErrorRatio;
 
-  assert.equal(evaluateGeneratedProvider("math:tan/guard/radians/00", { a: 100 }), Math.fround(0.00002));
-  assert.equal(evaluateGeneratedProvider("math:tan/guard/degrees/00", { a: 5000 }), Math.fround(0.00002));
+  assert.equal(evaluateTangentGuard("radians", 100), Math.fround(0.00002));
+  assert.equal(evaluateTangentGuard("degrees", 5000), Math.fround(0.00002));
 
   for (const [provider, domain, coefficient, inputs] of [
     ["math:tan/guard/radians/00", 100, radCoefficient, [nextPositiveFloat(100), 278.03094482421875, 1_000_000, 35_000_000]],
     ["math:tan/guard/degrees/00", 5000, degreeCoefficient, [nextPositiveFloat(5000), 15210, 1_000_170, 500_000_000]],
   ]) {
     for (const input of inputs.map(Math.fround)) {
-      const actual = evaluateGeneratedProvider(provider, { a: input });
+      const actual = evaluateTangentGuard(provider.includes("radians") ? "radians" : "degrees", input);
       const independentLowerBound = 0.00002 + (Math.abs(input) - domain) * coefficient;
       assert.ok(actual >= independentLowerBound || actual >= 1, `${provider}(${input}) ${actual} must not underestimate ${independentLowerBound}`);
       assert.ok(Number.isFinite(actual));
@@ -887,7 +897,7 @@ test("tangent uncertainty guards round upward from independent phase-error bound
     ["tan", "math:tan/guard/radians/00", 35_935_120],
     ["tan_degrees", "math:tan/guard/degrees/00", 601_976_832],
   ]) {
-    const guard = evaluateGeneratedProvider(provider, { a: Math.fround(input) });
+    const guard = evaluateTangentGuard(provider.includes("radians") ? "radians" : "degrees", input);
     assert.ok(guard >= 1.000004, `${provider} reaches the complete cosine-output range at ${input}`);
     const result = runFunction(name, { a: Math.fround(input), ans: 91, error: "stale_error" });
     assert.equal(result.returned, 0, `${name}(${input}) uncertified phase must reject`);
@@ -904,7 +914,7 @@ test("radian tangent guard covers nextUp and nextDown at centered quotient trans
   const transition = Math.fround(16.5 * tauFloat);
 
   for (const input of [previousPositiveFloat(transition), transition, nextPositiveFloat(transition)]) {
-    const actual = evaluateGeneratedProvider("math:tan/guard/radians/00", { a: input });
+    const actual = evaluateTangentGuard("radians", input);
     const additionalPeriods = centeredPeriodCount(input) - domainPeriodCount;
     const independentLowerBound = 0.00002 + additionalPeriods * tauAbsoluteError;
     assert.ok(actual >= independentLowerBound, `radian transition guard(${input}) ${actual} must cover ${independentLowerBound}`);
@@ -926,7 +936,7 @@ test("degree tangent guard adds quotient steps to conversion and product uncerta
     const additionalPeriods = centeredPeriodCount(converted) - domainPeriodCount;
     const conversionIncrement = (input - 5000) * conversionCoefficient;
     const independentLowerBound = 0.00002 + conversionIncrement + additionalPeriods * tauAbsoluteError;
-    const actual = evaluateGeneratedProvider("math:tan/guard/degrees/00", { a: input });
+    const actual = evaluateTangentGuard("degrees", input);
     assert.ok(actual >= independentLowerBound, `degree transition guard(${input}) ${actual} must cover ${independentLowerBound}`);
   }
 });

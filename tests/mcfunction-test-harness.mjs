@@ -66,13 +66,26 @@ function runWithStorage(name, publicInput, internalInput) {
   function predicateMatches(id) {
     const predicate = predicates.get(id);
     if (!predicate) throw new Error(`Unknown predicate: ${id}`);
+    return inlinePredicateMatches(predicate);
+  }
+
+  function inlinePredicateMatches(predicate) {
+    if (predicate.type === "minecraft:all_of") {
+      return predicate.terms.every(inlinePredicateMatches);
+    }
     if (predicate.type !== "minecraft:value_check") throw new Error(`Unsupported predicate type: ${predicate.type}`);
+    const asJavaInt = value => {
+      if (Number.isNaN(value)) return 0;
+      if (value >= 2_147_483_647) return 2_147_483_647;
+      if (value <= -2_147_483_648) return -2_147_483_648;
+      return Math.trunc(value);
+    };
     const values = new Map(Object.entries(storage));
-    const value = evaluateProvider(predicate.value, providers, values);
-    const minimum = predicate.range?.min;
-    const maximum = predicate.range?.max;
-    return (minimum === undefined || value >= Math.fround(minimum))
-      && (maximum === undefined || value <= Math.fround(maximum));
+    const value = asJavaInt(evaluateProvider(predicate.value, providers, values));
+    const minimum = predicate.range?.min === undefined ? undefined : asJavaInt(Math.fround(predicate.range.min));
+    const maximum = predicate.range?.max === undefined ? undefined : asJavaInt(Math.fround(predicate.range.max));
+    return (minimum === undefined || value >= minimum)
+      && (maximum === undefined || value <= maximum);
   }
 
   function functionPath(id) {
@@ -143,6 +156,15 @@ function runWithStorage(name, publicInput, internalInput) {
       const matches = predicateMatches(match[2]);
       return (match[1] === "if" ? matches : !matches) ? execute(match[3]) : undefined;
     }
+    match = command.match(/^execute (if|unless) data storage (\S+) \{([A-Za-z0-9_]+):(-?(?:\d+(?:\.\d+)?|Infinity)|NaN)f\} run (.+)$/);
+    if (match) {
+      const expected = Number(match[4]);
+      const actual = getPath(storage[match[2]], match[3]);
+      const matches = (Number.isNaN(expected) && Number.isNaN(actual))
+        || Object.is(Math.fround(actual), Math.fround(expected))
+        || (expected === 0 && actual === 0);
+      return (match[1] === "if" ? matches : !matches) ? execute(match[5]) : undefined;
+    }
     match = command.match(/^return run function (\S+)$/);
     if (match) {
       return runCommands(functionPath(match[1])) ?? 0;
@@ -173,9 +195,10 @@ export function runInternalFunction(name, internalInput) {
   return runWithStorage(`internal/${name}`, {}, internalInput);
 }
 
-export function evaluateGeneratedProvider(id, publicInput = {}, internalInput = {}) {
+export function evaluateGeneratedProvider(id, publicInput = {}, internalInput = {}, comparisonInput = {}) {
   return evaluateProvider(id, providers, new Map([
     ["math:", clone(publicInput)],
     ["math:internal", clone(internalInput)],
+    ["math:comparison", clone(comparisonInput)],
   ]));
 }

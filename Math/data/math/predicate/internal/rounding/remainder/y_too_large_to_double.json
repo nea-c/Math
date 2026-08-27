@@ -2,10 +2,10 @@
   "type": "minecraft:value_check",
   "value": {
     "type": "minecraft:storage",
-    "storage": "math:internal",
-    "path": "y"
+    "storage": "math:comparison",
+    "path": "predicate.rounding_remainder_y_too_large_to_double.minimum"
   },
   "range": {
-    "min": 1.7014118346046923e+38
+    "min": 0
   }
 }

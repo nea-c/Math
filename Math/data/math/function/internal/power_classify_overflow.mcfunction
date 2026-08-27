@@ -1,10 +1,6 @@
 data modify storage math:internal x set from storage math: a
 data modify storage math:internal x set compute default math:common/comparison/absolute
-data modify storage math:internal w set compute default math:log/normalize/subnormal_exponent/00
-data modify storage math:internal x set compute default math:log/normalize/prescale/00
-data modify storage math:internal z set compute default math:common/normalize/power_of_two/exponent
-data modify storage math:internal w set compute default math:log/normalize/exponent/00
-data modify storage math:internal z set compute default math:log/normalize/mantissa/00
+function math:internal/log_prepare
 data modify storage math:internal z set compute default math:power/classify/normalize/difference/00
 data modify storage math:internal x set compute default math:power/classify/polynomial/initial/00
 data modify storage math:internal y set value 0.0f

@@ -6,12 +6,11 @@
         "type": "minecraft:value_check",
         "value": {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "z"
+          "storage": "math:comparison",
+          "path": "sin_fold_lower"
         },
         "range": {
-          "min": -3.4028234663852886e+38,
-          "max": -1.5707963705062866
+          "max": 0
         }
       },
       "number_provider": {
@@ -37,12 +36,11 @@
         "type": "minecraft:value_check",
         "value": {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "z"
+          "storage": "math:comparison",
+          "path": "sin_fold_upper"
         },
         "range": {
-          "min": 1.5707963705062866,
-          "max": 3.4028234663852886e+38
+          "min": 0
         }
       },
       "number_provider": {

@@ -2,10 +2,10 @@
   "type": "minecraft:value_check",
   "value": {
     "type": "minecraft:storage",
-    "storage": "math:internal",
-    "path": "z"
+    "storage": "math:comparison",
+    "path": "period_original"
   },
   "range": {
-    "max": -1.401298464324817e-45
+    "max": -1
   }
 }

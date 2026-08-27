@@ -1,37 +1,9 @@
 {
   "type": "minecraft:value_check",
   "value": {
-    "type": "minecraft:sum",
-    "operands": [
-      {
-        "type": "minecraft:maximum",
-        "operands": [
-          {
-            "type": "minecraft:storage",
-            "storage": "math:internal",
-            "path": "x"
-          },
-          {
-            "type": "minecraft:product",
-            "operands": [
-              -1,
-              {
-                "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "x"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "minecraft:product",
-        "operands": [
-          -1,
-          "math:tan/guard/degrees/00"
-        ]
-      }
-    ]
+    "type": "minecraft:storage",
+    "storage": "math:comparison",
+    "path": "predicate.tan_undefined_degrees.maximum"
   },
   "range": {
     "max": 0

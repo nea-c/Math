@@ -1,7 +1,11 @@
 {
   "type": "minecraft:product",
   "operands": [
-    "math:square_root/normalize/scale/00",
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w"
+    },
     {
       "type": "minecraft:storage",
       "storage": "math:internal",

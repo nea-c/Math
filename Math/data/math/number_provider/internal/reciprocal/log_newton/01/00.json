@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    "math:internal/reciprocal/log_newton/00/00",
+    {
+      "type": "minecraft:sum",
+      "operands": [
+        2,
+        {
+          "type": "minecraft:product",
+          "operands": [
+            -1,
+            {
+              "type": "minecraft:product",
+              "operands": [
+                0.25,
+                {
+                  "type": "minecraft:storage",
+                  "storage": "math:internal",
+                  "path": "x"
+                }
+              ]
+            },
+            "math:internal/reciprocal/log_newton/00/00"
+          ]
+        }
+      ]
+    }
+  ]
+}

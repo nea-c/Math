@@ -1,25 +1,9 @@
 {
   "type": "minecraft:value_check",
   "value": {
-    "type": "minecraft:sum",
-    "operands": [
-      {
-        "type": "minecraft:storage",
-        "storage": "math:internal",
-        "path": "x"
-      },
-      {
-        "type": "minecraft:product",
-        "operands": [
-          -1,
-          {
-            "type": "minecraft:storage",
-            "storage": "math:internal",
-            "path": "y"
-          }
-        ]
-      }
-    ]
+    "type": "minecraft:storage",
+    "storage": "math:comparison",
+    "path": "predicate.rounding_remainder_can_subtract_y.minimum"
   },
   "range": {
     "min": 0

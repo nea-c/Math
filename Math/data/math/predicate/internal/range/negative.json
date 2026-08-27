@@ -2,10 +2,10 @@
   "type": "minecraft:value_check",
   "value": {
     "type": "minecraft:storage",
-    "storage": "math:internal",
-    "path": "x"
+    "storage": "math:comparison",
+    "path": "x_sign"
   },
   "range": {
-    "max": -1.401298464324817e-45
+    "max": -1
   }
 }

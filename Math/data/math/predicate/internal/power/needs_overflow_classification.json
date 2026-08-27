@@ -1,12 +1,27 @@
 {
-  "type": "minecraft:value_check",
-  "value": {
-    "type": "minecraft:storage",
-    "storage": "math:internal",
-    "path": "x"
-  },
-  "range": {
-    "min": 88.7,
-    "max": 88.75
-  }
+  "type": "minecraft:all_of",
+  "terms": [
+    {
+      "type": "minecraft:value_check",
+      "value": {
+        "type": "minecraft:storage",
+        "storage": "math:comparison",
+        "path": "predicate.power_needs_overflow_classification.minimum"
+      },
+      "range": {
+        "min": 0
+      }
+    },
+    {
+      "type": "minecraft:value_check",
+      "value": {
+        "type": "minecraft:storage",
+        "storage": "math:comparison",
+        "path": "predicate.power_needs_overflow_classification.maximum"
+      },
+      "range": {
+        "max": 0
+      }
+    }
+  ]
 }

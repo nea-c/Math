@@ -3,31 +3,61 @@
   "cases": [
     {
       "condition": {
-        "type": "minecraft:value_check",
-        "value": {
-          "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "x"
-        },
-        "range": {
-          "min": 1.570796251296997,
-          "max": 1.5707964897155762
-        }
+        "type": "minecraft:all_of",
+        "terms": [
+          {
+            "type": "minecraft:value_check",
+            "value": {
+              "type": "minecraft:storage",
+              "storage": "math:comparison",
+              "path": "sin_positive_lower"
+            },
+            "range": {
+              "min": 0
+            }
+          },
+          {
+            "type": "minecraft:value_check",
+            "value": {
+              "type": "minecraft:storage",
+              "storage": "math:comparison",
+              "path": "sin_positive_upper"
+            },
+            "range": {
+              "max": 0
+            }
+          }
+        ]
       },
       "number_provider": 1
     },
     {
       "condition": {
-        "type": "minecraft:value_check",
-        "value": {
-          "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "x"
-        },
-        "range": {
-          "min": -1.5707964897155762,
-          "max": -1.570796251296997
-        }
+        "type": "minecraft:all_of",
+        "terms": [
+          {
+            "type": "minecraft:value_check",
+            "value": {
+              "type": "minecraft:storage",
+              "storage": "math:comparison",
+              "path": "sin_negative_lower"
+            },
+            "range": {
+              "min": 0
+            }
+          },
+          {
+            "type": "minecraft:value_check",
+            "value": {
+              "type": "minecraft:storage",
+              "storage": "math:comparison",
+              "path": "sin_negative_upper"
+            },
+            "range": {
+              "max": 0
+            }
+          }
+        ]
       },
       "number_provider": -1
     }

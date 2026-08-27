@@ -76,6 +76,18 @@ test("reciprocal and divide reject zero without mutating public inputs", () => {
   }
 });
 
+test("reciprocal and divide distinguish small nonzero divisors from zero", () => {
+  const reciprocal = runFunction("reciprocal", { a: Math.fround(2 ** -14), error: "stale_error" });
+  assert.equal(reciprocal.returned, 1);
+  assert.equal(reciprocal.storage["math:"].ans, 16384);
+  assert.equal(reciprocal.storage["math:"].error, undefined);
+
+  const divide = runFunction("divide", { a: 1, b: Math.fround(2 ** -14), error: "stale_error" });
+  assert.equal(divide.returned, 1);
+  assert.equal(divide.storage["math:"].ans, 16384);
+  assert.equal(divide.storage["math:"].error, undefined);
+});
+
 test("square root rejects invalid and negative inputs with stale-output cleanup", () => {
   const invalidNumber = runFunction("square_root", { a: Infinity, ans: 91, error: "stale_error" });
   assert.equal(invalidNumber.returned, 0);
