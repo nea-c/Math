@@ -39,11 +39,10 @@ function finitePredicate(pathName) {
 
 const x = storage("math:internal", "x");
 const y = storage("math:internal", "y");
-const min = storage("math:internal", "min");
-const max = storage("math:internal", "max");
-const t = storage("math:internal", "t");
+const z = storage("math:internal", "z");
+const w = storage("math:internal", "w");
 
-for (const [name, provider] of Object.entries({ x, y, min, max, t })) emit(`common/input/${name}`, provider);
+for (const [name, provider] of Object.entries({ x, y, z, w })) emit(`common/input/${name}`, provider);
 
 emit("common/constant/pi", Math.fround(Math.PI));
 emit("common/constant/tau", Math.fround(Math.PI * 2));
@@ -53,18 +52,18 @@ emit("common/arithmetic/subtract", sum(x, product(-1, y)));
 emit("common/arithmetic/multiply", product(x, y));
 emit("common/arithmetic/square", product(x, x));
 emit("common/arithmetic/cube", product(x, x, x));
-emit("common/arithmetic/lerp", sum(x, product(t, sum(y, product(-1, x)))));
+emit("common/arithmetic/lerp", sum(x, product(z, sum(y, product(-1, x)))));
 emit("common/comparison/absolute", maximum(x, product(-1, x)));
 emit("common/comparison/minimum", minimum(x, y));
 emit("common/comparison/maximum", maximum(x, y));
-emit("common/comparison/clamp", maximum(minimum(x, max), min));
+emit("common/comparison/clamp", maximum(minimum(x, w), z));
 emit("common/conversion/rad", product(x, Math.fround(Math.PI / 180)));
 emit("common/conversion/deg", product(x, Math.fround(180 / Math.PI)));
 
 for (const name of ["a", "b", "min", "max", "t"]) emitPredicate(`finite/${name}`, finitePredicate(name));
 emitPredicate("range/min_greater_than_max", {
   condition: "minecraft:value_check",
-  value: sum(max, product(-1, min)),
+  value: sum(w, product(-1, z)),
   range: { max: smallestNegativeFloat },
 });
 emitPredicate("range/negative", {
@@ -108,15 +107,15 @@ wrapper("square", ["a"], "math:common/arithmetic/square", { x: "a" });
 wrapper("cube", ["a"], "math:common/arithmetic/cube", { x: "a" });
 wrapper("rad", ["a"], "math:common/conversion/rad", { x: "a" });
 wrapper("deg", ["a"], "math:common/conversion/deg", { x: "a" });
-wrapper("lerp", ["a", "b", "t"], "math:common/arithmetic/lerp", { x: "a", y: "b", t: "t" });
+wrapper("lerp", ["a", "b", "t"], "math:common/arithmetic/lerp", { x: "a", y: "b", z: "t" });
 for (const name of ["pi", "tau", "e"]) wrapper(name, [], `math:common/constant/${name}`, {});
 
 {
   const lines = validationLines(["a"]);
   lines.push("data modify storage math:internal x set from storage math: a");
-  lines.push("data modify storage math: ans set value 0.0");
-  lines.push("execute if predicate math:internal/range/negative run data modify storage math: ans set value -1.0");
-  lines.push("execute if predicate math:internal/range/positive run data modify storage math: ans set value 1.0");
+  lines.push("data modify storage math: ans set value 0.0f");
+  lines.push("execute if predicate math:internal/range/negative run data modify storage math: ans set value -1.0f");
+  lines.push("execute if predicate math:internal/range/positive run data modify storage math: ans set value 1.0f");
   lines.push("return 1");
   emitFunction("sign", lines);
 }
@@ -124,8 +123,8 @@ for (const name of ["pi", "tau", "e"]) wrapper(name, [], `math:common/constant/$
 {
   const lines = validationLines(["a", "min", "max"]);
   lines.push("data modify storage math:internal x set from storage math: a");
-  lines.push("data modify storage math:internal min set from storage math: min");
-  lines.push("data modify storage math:internal max set from storage math: max");
+  lines.push("data modify storage math:internal z set from storage math: min");
+  lines.push("data modify storage math:internal w set from storage math: max");
   lines.push("execute if predicate math:internal/range/min_greater_than_max run data remove storage math: ans");
   lines.push("execute if predicate math:internal/range/min_greater_than_max run data modify storage math: error set value \"invalid_clamp_range\"");
   lines.push("execute if predicate math:internal/range/min_greater_than_max run return fail");

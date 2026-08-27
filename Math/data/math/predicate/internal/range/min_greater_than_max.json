@@ -6,7 +6,7 @@
       {
         "type": "minecraft:storage",
         "storage": "math:internal",
-        "path": "max"
+        "path": "w"
       },
       {
         "type": "minecraft:product",
@@ -15,7 +15,7 @@
           {
             "type": "minecraft:storage",
             "storage": "math:internal",
-            "path": "min"
+            "path": "z"
           }
         ]
       }

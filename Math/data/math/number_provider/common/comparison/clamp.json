@@ -12,14 +12,14 @@
         {
           "type": "minecraft:storage",
           "storage": "math:internal",
-          "path": "max"
+          "path": "w"
         }
       ]
     },
     {
       "type": "minecraft:storage",
       "storage": "math:internal",
-      "path": "min"
+      "path": "z"
     }
   ]
 }

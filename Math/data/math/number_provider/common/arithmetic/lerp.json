@@ -12,7 +12,7 @@
         {
           "type": "minecraft:storage",
           "storage": "math:internal",
-          "path": "t"
+          "path": "z"
         },
         {
           "type": "minecraft:sum",

@@ -40,6 +40,10 @@ function removePath(root, pathText) {
   if (target) delete target[segments.at(-1)];
 }
 
+function storageFieldKey(storageId, pathText) {
+  return `${storageId}|${pathText}`;
+}
+
 function isFiniteInput(value) {
   return typeof value === "number" && Number.isFinite(value) && value >= -finiteLimit && value <= finiteLimit;
 }
@@ -48,6 +52,7 @@ function isFiniteInput(value) {
 // and evaluates provider expressions through the real provider evaluator.
 function runFunction(name, publicInput) {
   const storage = { "math:": clone(publicInput), "math:internal": {} };
+  const numericTags = new Map();
   const commands = fs.readFileSync(path.join(functionRoot, `${name}.mcfunction`), "utf8")
     .split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
   const providers = providerRegistry();
@@ -57,16 +62,20 @@ function runFunction(name, publicInput) {
     let match = command.match(/^data remove storage (\S+) (\S+)$/);
     if (match) {
       removePath(storage[match[1]] ??= {}, match[2]);
+      numericTags.delete(storageFieldKey(match[1], match[2]));
       return undefined;
     }
     match = command.match(/^data modify storage (\S+) (\S+) set from storage (\S+) (\S+)$/);
     if (match) {
       setPath(storage[match[1]] ??= {}, match[2], getPath(storage[match[3]], match[4]));
+      const sourceType = numericTags.get(storageFieldKey(match[3], match[4]));
+      if (sourceType) numericTags.set(storageFieldKey(match[1], match[2]), sourceType);
       return undefined;
     }
     match = command.match(/^data modify storage (\S+) (\S+) set compute default (\S+)$/);
     if (match) {
       setPath(storage[match[1]] ??= {}, match[2], evaluateProvider(match[3], providers, new Map(Object.entries(storage))));
+      numericTags.set(storageFieldKey(match[1], match[2]), "float");
       return undefined;
     }
     match = command.match(/^data modify storage (\S+) (\S+) set value "([^"]*)"$/);
@@ -74,9 +83,10 @@ function runFunction(name, publicInput) {
       setPath(storage[match[1]] ??= {}, match[2], match[3]);
       return undefined;
     }
-    match = command.match(/^data modify storage (\S+) (\S+) set value (-?\d+(?:\.\d+)?)$/);
+    match = command.match(/^data modify storage (\S+) (\S+) set value (-?\d+(?:\.\d+)?)([fFdD]?)$/);
     if (match) {
       setPath(storage[match[1]] ??= {}, match[2], Number(match[3]));
+      numericTags.set(storageFieldKey(match[1], match[2]), match[4].toLowerCase() === "f" ? "float" : "double");
       return undefined;
     }
     match = command.match(/^execute unless predicate math:internal\/finite\/(\w+) run (.+)$/);
@@ -108,7 +118,7 @@ function runFunction(name, publicInput) {
       break;
     }
   }
-  return { storage, returned };
+  return { storage, numericTags, returned };
 }
 
 const wrappers = [
@@ -133,7 +143,7 @@ const wrappers = [
 test("public wrappers execute providers, clear stale errors, return success, and preserve public inputs", () => {
   for (const [name, inputs, expected] of wrappers) {
     const publicInput = { ...inputs, error: "stale_error" };
-    const { storage, returned } = runFunction(name, publicInput);
+    const { storage, numericTags, returned } = runFunction(name, publicInput);
     assert.equal(returned, 1, `${name} must return success`);
     assert.equal(storage["math:"].ans, Math.fround(expected), `${name} must write ans`);
     assert.equal(storage["math:"].error, undefined, `${name} must clear stale errors`);
@@ -141,6 +151,18 @@ test("public wrappers execute providers, clear stale errors, return success, and
       assert.deepEqual(storage["math:"][field], publicInput[field], `${name} must not mutate public ${field}`);
     }
   }
+});
+
+test("public wrappers confine scratch state to x/y/z/w fields", () => {
+  for (const [name, inputs] of wrappers) {
+    const { storage } = runFunction(name, inputs);
+    assert.ok(Object.keys(storage["math:internal"]).every((field) => /^[xyzw]/.test(field)), `${name} must use x/y/z/w scratch fields only`);
+  }
+});
+
+test("sign writes its result as an SNBT float", () => {
+  const { numericTags } = runFunction("sign", { a: -3.5 });
+  assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float");
 });
 
 test("public wrappers reject non-finite inputs and clamp rejects inverted bounds", () => {
