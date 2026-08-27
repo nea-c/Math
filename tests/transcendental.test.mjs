@@ -11,6 +11,7 @@ const maximumFiniteExpInput = Math.fround(88.72283172607422);
 const firstOverflowingExpInput = Math.fround(88.72283935546875);
 const maximumZeroExpInput = Math.fround(-103.97208404541016);
 const minimumNonzeroExpInput = Math.fround(-103.97207641601562);
+const powerOverflowLogThreshold = Math.log((2 - 2 ** -24) * 2 ** 127);
 
 function floatFromBits(bits) {
   const bytes = new ArrayBuffer(4);
@@ -382,4 +383,90 @@ test("real power stays within tolerance for deterministic finite positive-base s
     count += 1;
   }
   t.diagnostic(`maximum power error ${maximumError} at ${worstCase}`);
+});
+
+test("power preserves exact exponent-one identities at the finite limit", () => {
+  for (const base of [finiteLimit, -finiteLimit]) {
+    const result = runFunction("power", { a: base, b: 1, error: "stale_error" });
+    assert.equal(result.returned, 1, `power(${base}, 1) must succeed`);
+    assert.equal(result.storage["math:"].ans, base);
+    assert.equal(result.storage["math:"].error, undefined);
+    assert.equal(result.storage["math:"].a, base);
+    assert.equal(result.storage["math:"].b, 1);
+  }
+});
+
+test("power distinguishes adjacent finite and overflowing results on both base signs", () => {
+  const cases = [
+    [Math.fround(10), Math.fround(38.531837), true],
+    [Math.fround(913734592), Math.fround(4.300035), false],
+    [Math.fround(6981463572480), 3, true],
+    [Math.fround(6981464096768), 3, false],
+    [Math.fround(-6981463572480), 3, true],
+    [Math.fround(-6981464096768), 3, false],
+  ];
+
+  for (const [a, b, finite] of cases) {
+    const result = runFunction("power", { a, b, ans: 91, error: "stale_error" });
+    assert.equal(result.returned, finite ? 1 : 0, `power(${a}, ${b}) classification`);
+    assert.equal(Number.isFinite(result.storage["math:"].ans), finite, `power(${a}, ${b}) ans`);
+    assert.equal(result.storage["math:"].error, finite ? undefined : "result_out_of_range");
+    assert.equal(result.storage["math:"].a, a);
+    assert.equal(result.storage["math:"].b, b);
+    if (finite) {
+      const expected = Math.fround(Math.pow(a, b));
+      const relativeError = Math.abs((result.storage["math:"].ans - expected) / expected);
+      assert.ok(relativeError <= 0.00005, `power(${a}, ${b}) relative error ${relativeError}`);
+    }
+  }
+});
+
+test("power representability matches 750 adversarial cases around the overflow boundary", (t) => {
+  let state = 0x452821e6;
+  let falseRejects = 0;
+  let falseAccepts = 0;
+  let checked = 0;
+
+  for (let index = 0; index < 250; index += 1) {
+    state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;
+    const exponent = (state >>> 8) / 0x0100_0000;
+    const base = index < 125
+      ? Math.fround(1 + exponent * 1023)
+      : floatFromBits(0x3f800001 + (state % (0x7f7fffff - 0x3f800001)));
+    if (!Number.isFinite(base) || base <= 1) throw new Error(`invalid adversarial base ${base}`);
+
+    const boundaryExponent = Math.fround(powerOverflowLogThreshold / Math.log(base));
+    for (const candidate of [
+      previousPositiveFloat(boundaryExponent),
+      boundaryExponent,
+      nextPositiveFloat(boundaryExponent),
+    ]) {
+      const expectedFinite = Number.isFinite(Math.fround(Math.pow(base, candidate)));
+      const result = runFunction("power", { a: base, b: candidate, ans: 91, error: "stale_error" });
+      if (expectedFinite && result.returned !== 1) falseRejects += 1;
+      if (!expectedFinite && result.returned !== 0) falseAccepts += 1;
+      checked += 1;
+    }
+  }
+
+  t.diagnostic(`${checked} boundary cases: ${falseRejects} false rejects, ${falseAccepts} false accepts`);
+  assert.equal(falseRejects, 0);
+  assert.equal(falseAccepts, 0);
+});
+
+test("negative-infinity power intermediates underflow to correctly signed zero", () => {
+  for (const [a, b, negativeZero] of [
+    [finiteLimit, -finiteLimit, false],
+    [smallestFloat, finiteLimit, false],
+    [-finiteLimit, -16_777_215, true],
+    [-smallestFloat, 16_777_215, true],
+  ]) {
+    const result = runFunction("power", { a, b, ans: 91, error: "stale_error" });
+    assert.equal(result.returned, 1, `power(${a}, ${b}) must underflow`);
+    assert.ok(result.storage["math:"].ans === 0);
+    assert.equal(Object.is(result.storage["math:"].ans, -0), negativeZero);
+    assert.equal(result.storage["math:"].error, undefined);
+    assert.equal(result.storage["math:"].a, a);
+    assert.equal(result.storage["math:"].b, b);
+  }
 });

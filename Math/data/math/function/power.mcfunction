@@ -8,5 +8,7 @@ execute unless predicate math:internal/finite/b run return fail
 data modify storage math:internal x set from storage math: a
 data modify storage math:internal y set from storage math: b
 execute if predicate math:internal/power/base_zero run return run function math:internal/power_zero
+execute if predicate math:internal/power/exponent_one run data modify storage math: ans set compute default math:common/input/x
+execute if predicate math:internal/power/exponent_one run return 1
 execute if predicate math:internal/range/negative run return run function math:internal/power_negative
 return run function math:internal/power_positive
