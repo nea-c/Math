@@ -117,6 +117,133 @@ function validatePackGraph(packRoot) {
     }
   };
 
+  const tokenizeCommand = (rawLine) => {
+    if (!rawLine.trim() || rawLine.trimStart().startsWith("#")) return [];
+    const tokens = [];
+    let token = "";
+    let quote;
+    let escaped = false;
+    const finishToken = () => {
+      if (!token) return;
+      tokens.push(token);
+      token = "";
+    };
+    for (const character of rawLine.trim()) {
+      if (quote) {
+        if (escaped) {
+          escaped = false;
+        } else if (character === "\\") {
+          escaped = true;
+        } else if (character === quote) {
+          quote = undefined;
+        }
+        continue;
+      }
+      if (character === '"' || character === "'") {
+        quote = character;
+        token += "<quoted>";
+      } else if (/\s/.test(character)) {
+        finishToken();
+      } else {
+        token += character;
+      }
+    }
+    finishToken();
+    return tokens;
+  };
+
+  const scanCommand = (tokens, start, source, location) => {
+    const checkAt = (registry, index) => {
+      if (index < tokens.length) checkReference(registry, tokens[index], source, location);
+    };
+    const scanDataModify = () => {
+      if (tokens[start + 1] !== "modify") return;
+      const targetType = tokens[start + 2];
+      const operationIndex = targetType === "block" ? start + 7 : start + 5;
+      const operation = tokens[operationIndex];
+      if (!["append", "insert", "merge", "prepend", "set"].includes(operation)) return;
+      const sourceIndex = operationIndex + (operation === "insert" ? 2 : 1);
+      if (tokens[sourceIndex] === "compute" && tokens[sourceIndex + 1] === "default") {
+        checkAt("number_provider", sourceIndex + 2);
+      }
+    };
+    const scanExecute = () => {
+      let cursor = start + 1;
+      while (cursor < tokens.length) {
+        if (tokens[cursor] === "run") {
+          scanCommand(tokens, cursor + 1, source, location);
+          return;
+        }
+        if (["if", "unless"].includes(tokens[cursor])) {
+          const condition = tokens[cursor + 1];
+          if (condition === "predicate") {
+            checkAt("predicate", cursor + 2);
+            cursor += 3;
+          } else if (condition === "score") {
+            cursor += tokens[cursor + 4] === "matches" ? 6 : 7;
+          } else if (condition === "data") {
+            cursor += tokens[cursor + 2] === "block" ? 7 : 5;
+          } else if (condition === "block") {
+            cursor += 8;
+          } else if (condition === "blocks") {
+            cursor += 12;
+          } else if (condition === "entity") {
+            cursor += 3;
+          } else if (condition === "loaded") {
+            cursor += 5;
+          } else {
+            return;
+          }
+          continue;
+        }
+        if (tokens[cursor] === "store") {
+          const destination = tokens[cursor + 2];
+          cursor += destination === "score" || destination === "bossbar"
+            ? 5
+            : destination === "block" ? 9 : 7;
+          continue;
+        }
+        if (["as", "at", "on", "align", "anchored", "in", "summon"].includes(tokens[cursor])) {
+          cursor += 2;
+          continue;
+        }
+        if (["positioned", "rotated"].includes(tokens[cursor])) {
+          cursor += tokens[cursor + 1] === "as" || tokens[cursor + 1] === "over" ? 3 : 4;
+          continue;
+        }
+        if (tokens[cursor] === "facing") {
+          cursor += tokens[cursor + 1] === "entity" ? 4 : 4;
+          continue;
+        }
+        return;
+      }
+    };
+
+    switch (tokens[start]) {
+      case "function":
+        checkAt("function", start + 1);
+        return;
+      case "compute":
+        if (tokens[start + 1] === "default") checkAt("number_provider", start + 2);
+        return;
+      case "data":
+        scanDataModify();
+        return;
+      case "execute":
+        scanExecute();
+        return;
+      case "return":
+        if (tokens[start + 1] === "run") {
+          scanCommand(tokens, start + 2, source, location);
+        } else if (["if", "unless"].includes(tokens[start + 1]) && tokens[start + 2] === "predicate") {
+          checkAt("predicate", start + 3);
+        }
+        return;
+      default:
+        return;
+    }
+  };
+
   const visitFiles = (root, extension, visitor) => {
     if (!fs.existsSync(root)) return;
     for (const entry of fs.readdirSync(root, { recursive: true, withFileTypes: true })) {
@@ -138,18 +265,7 @@ function validatePackGraph(packRoot) {
       visitFiles(path.join(namespaceRoot, "function"), ".mcfunction", (file) => {
         const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
         lines.forEach((rawLine, index) => {
-          const line = rawLine.trim();
-          if (!line || line.startsWith("#")) return;
-          const location = `:${index + 1}`;
-          for (const match of line.matchAll(/\bfunction\s+(#?[a-z0-9_.-]+:[a-z0-9_./-]+)(?=\s|$)/g)) {
-            checkReference("function", match[1], file, location);
-          }
-          for (const match of line.matchAll(/\b(?:if|unless)\s+predicate\s+(#?[a-z0-9_.-]+:[a-z0-9_./-]+)(?=\s|$)/g)) {
-            checkReference("predicate", match[1], file, location);
-          }
-          for (const match of line.matchAll(/\bcompute\s+default\s+([a-z0-9_.-]+:[a-z0-9_./-]+)(?=\s|$)/g)) {
-            checkReference("number_provider", match[1], file, location);
-          }
+          scanCommand(tokenizeCommand(rawLine), 0, file, `:${index + 1}`);
         });
       });
     }
@@ -165,42 +281,91 @@ test("pack graph validator detects controlled dangling registry references", () 
       fs.mkdirSync(path.dirname(file), { recursive: true });
       fs.writeFileSync(file, typeof value === "string" ? value : `${JSON.stringify(value, null, 2)}\n`);
     };
-    write("data/math/number_provider/fixture/root.json", {
+    write("data/math/number_provider/fixture/aggregate.json", {
       type: "minecraft:sum",
-      operands: ["math:missing/provider", 1],
+      operands: ["math:missing/operand", 1],
     });
-    write("data/math/predicate/fixture/root.json", {
+    write("data/math/number_provider/fixture/dispatcher.json", {
+      type: "minecraft:number_dispatcher",
+      cases: [{
+        condition: "math:missing/case_condition",
+        number_provider: "math:missing/case_provider",
+      }],
+      default: "math:missing/default_provider",
+    });
+    write("data/math/predicate/fixture/nesting.json", {
       type: "minecraft:all_of",
-      terms: ["math:missing/predicate"],
+      terms: [
+        "math:missing/term",
+        { type: "minecraft:inverted", term: "math:missing/inverted" },
+        { type: "minecraft:any_of", terms: ["math:missing/any_of"] },
+      ],
+    });
+    write("data/math/predicate/fixture/value_check.json", {
+      type: "minecraft:value_check",
+      value: "math:missing/value",
+      range: {
+        min: "math:missing/range_min",
+        max: "math:missing/range_max",
+      },
     });
     write("data/math/number_provider/fixture/conditional.json", {
       type: "minecraft:conditional",
-      condition: {
-        type: "minecraft:value_check",
-        value: 0,
-        range: { min: "math:missing/range_bound" },
-      },
+      condition: "math:missing/conditional_condition",
       on_true: "math:missing/on_true",
-      on_false: 0,
+      on_false: "math:missing/on_false",
     });
     write("data/math/function/fixture/root.mcfunction", [
-      "function math:missing/function",
-      "execute run compute default math:missing/computed",
+      "function math:missing/direct_function",
       "return run function math:missing/returned_function",
       "execute if score #x fixture matches 1 run function math:missing/executed_function",
+      "execute if predicate math:missing/if_predicate run return 1",
+      "execute unless predicate math:missing/unless_predicate run return 1",
+      "return if predicate math:missing/return_if_predicate",
+      "return unless predicate math:missing/return_unless_predicate",
+      "compute default math:missing/direct_compute",
+      "execute if score #x fixture matches 1 run compute default math:missing/executed_compute",
+      "data modify storage math:internal x append compute default math:missing/data_append",
+      "data modify storage math:internal x insert 0 compute default math:missing/data_insert",
+      "data modify storage math:internal x merge compute default math:missing/data_merge",
+      "data modify storage math:internal x prepend compute default math:missing/data_prepend",
+      "data modify storage math:internal x set compute default math:missing/data_set",
+      'tellraw @a {"text":"function math:missing/literal is prose"}',
+      "say function math:missing/chat",
+      'tellraw @a {"text":"escaped \\\" quote; function math:missing/escaped is prose"}',
+      "# function math:missing/comment",
       "",
     ].join("\n"));
 
-    assert.deepEqual(validatePackGraph(packRoot), [
-      "data/math/function/fixture/root.mcfunction:1: dangling function math:missing/function",
-      "data/math/function/fixture/root.mcfunction:2: dangling number_provider math:missing/computed",
-      "data/math/function/fixture/root.mcfunction:3: dangling function math:missing/returned_function",
-      "data/math/function/fixture/root.mcfunction:4: dangling function math:missing/executed_function",
-      "data/math/number_provider/fixture/conditional.json:condition.range.min: dangling number_provider math:missing/range_bound",
+    assert.deepEqual(new Set(validatePackGraph(packRoot)), new Set([
+      "data/math/function/fixture/root.mcfunction:1: dangling function math:missing/direct_function",
+      "data/math/function/fixture/root.mcfunction:2: dangling function math:missing/returned_function",
+      "data/math/function/fixture/root.mcfunction:3: dangling function math:missing/executed_function",
+      "data/math/function/fixture/root.mcfunction:4: dangling predicate math:missing/if_predicate",
+      "data/math/function/fixture/root.mcfunction:5: dangling predicate math:missing/unless_predicate",
+      "data/math/function/fixture/root.mcfunction:6: dangling predicate math:missing/return_if_predicate",
+      "data/math/function/fixture/root.mcfunction:7: dangling predicate math:missing/return_unless_predicate",
+      "data/math/function/fixture/root.mcfunction:8: dangling number_provider math:missing/direct_compute",
+      "data/math/function/fixture/root.mcfunction:9: dangling number_provider math:missing/executed_compute",
+      "data/math/function/fixture/root.mcfunction:10: dangling number_provider math:missing/data_append",
+      "data/math/function/fixture/root.mcfunction:11: dangling number_provider math:missing/data_insert",
+      "data/math/function/fixture/root.mcfunction:12: dangling number_provider math:missing/data_merge",
+      "data/math/function/fixture/root.mcfunction:13: dangling number_provider math:missing/data_prepend",
+      "data/math/function/fixture/root.mcfunction:14: dangling number_provider math:missing/data_set",
+      "data/math/number_provider/fixture/aggregate.json:operands[0]: dangling number_provider math:missing/operand",
+      "data/math/number_provider/fixture/conditional.json:condition: dangling predicate math:missing/conditional_condition",
+      "data/math/number_provider/fixture/conditional.json:on_false: dangling number_provider math:missing/on_false",
       "data/math/number_provider/fixture/conditional.json:on_true: dangling number_provider math:missing/on_true",
-      "data/math/number_provider/fixture/root.json:operands[0]: dangling number_provider math:missing/provider",
-      "data/math/predicate/fixture/root.json:terms[0]: dangling predicate math:missing/predicate",
-    ]);
+      "data/math/number_provider/fixture/dispatcher.json:cases[0].condition: dangling predicate math:missing/case_condition",
+      "data/math/number_provider/fixture/dispatcher.json:cases[0].number_provider: dangling number_provider math:missing/case_provider",
+      "data/math/number_provider/fixture/dispatcher.json:default: dangling number_provider math:missing/default_provider",
+      "data/math/predicate/fixture/nesting.json:terms[0]: dangling predicate math:missing/term",
+      "data/math/predicate/fixture/nesting.json:terms[1].term: dangling predicate math:missing/inverted",
+      "data/math/predicate/fixture/nesting.json:terms[2].terms[0]: dangling predicate math:missing/any_of",
+      "data/math/predicate/fixture/value_check.json:range.max: dangling number_provider math:missing/range_max",
+      "data/math/predicate/fixture/value_check.json:range.min: dangling number_provider math:missing/range_min",
+      "data/math/predicate/fixture/value_check.json:value: dangling number_provider math:missing/value",
+    ]));
   } finally {
     fs.rmSync(packRoot, { recursive: true, force: true });
   }
