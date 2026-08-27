@@ -10,7 +10,7 @@ Minecraft Java Edition 26.3 Snapshot 10 向けの、依存関係なしで動く 
 
 呼び出し側は必要な値を `storage math:` に書き、`function #math:<name>` を実行します。公開関数だけが同名の function tag に登録されているため、`function #math:` の補完を公開 API 一覧として使用できます。数値は有限な float 値として毎回設定してください。
 
-互換性のため `function math:<name>` でも直接呼び出せますが、通常はタグ経由の呼び出しを推奨します。`math:internal/*` はタグへ登録されておらず、内部実装なので直接呼び出さないでください。
+`Math/data/math/function` 以下の実装 ID は非公開で不安定です。サポート対象のエントリーポイントは `function #math:<name>` のみです。`math:internal/*` はタグへ登録されておらず、内部実装なので直接呼び出さないでください。
 
 | フィールド | 用途 |
 |---|---|

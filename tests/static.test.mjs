@@ -392,6 +392,16 @@ test("pack targets data pack format 118", () => {
   assert.equal(meta.pack.max_format, 118);
 });
 
+test("public documentation uses function tags", () => {
+  const readme = fs.readFileSync("README.md", "utf8");
+  const integrationHarness = fs.readFileSync("tools/integration-test.ps1", "utf8");
+  const prose = readme.replace(/```[\s\S]*?```/g, "");
+  assert.doesNotMatch(prose, /function math:(?!internal)/);
+  assert.doesNotMatch(integrationHarness, /run function math:(?!internal)/);
+  assert.match(readme, /function #math:divide/);
+  assert.match(integrationHarness, /run function #math:add/);
+});
+
 test("release pack excludes prototype debug functions", () => {
   const debugRoot = "Math/data/math/function/debug";
   const debugFunctions = fs.existsSync(debugRoot)
