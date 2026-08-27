@@ -32,7 +32,7 @@ function emitFunction(name, lines) {
 
 function finitePredicate(pathName) {
   return {
-    condition: "minecraft:value_check",
+    type: "minecraft:value_check",
     value: storage("math:", pathName),
     range: { min: -finiteLimit, max: finiteLimit },
   };
@@ -45,7 +45,7 @@ const w = storage("math:internal", "w");
 
 function inlineValueCheck(value, min, max) {
   return {
-    condition: "minecraft:value_check",
+    type: "minecraft:value_check",
     value,
     range: { min, max },
   };
@@ -178,22 +178,22 @@ emit("common/reciprocal/00", product(
 
 for (const name of ["a", "b", "min", "max", "t"]) emitPredicate(`finite/${name}`, finitePredicate(name));
 emitPredicate("range/min_greater_than_max", {
-  condition: "minecraft:value_check",
+  type: "minecraft:value_check",
   value: sum(w, product(-1, z)),
   range: { max: smallestNegativeFloat },
 });
 emitPredicate("range/negative", {
-  condition: "minecraft:value_check",
+  type: "minecraft:value_check",
   value: x,
   range: { max: smallestNegativeFloat },
 });
 emitPredicate("range/positive", {
-  condition: "minecraft:value_check",
+  type: "minecraft:value_check",
   value: x,
   range: { min: -smallestNegativeFloat },
 });
 emitPredicate("reciprocal/zero", {
-  condition: "minecraft:value_check",
+  type: "minecraft:value_check",
   value: x,
   range: { min: 0, max: 0 },
 });

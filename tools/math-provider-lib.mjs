@@ -95,9 +95,9 @@ function evaluateInlinePredicate(predicate, registry, storageValues) {
   if (!predicate || typeof predicate !== "object") {
     throw new TypeError("Inline predicate must be a predicate object");
   }
-  const condition = normalizeType(predicate.condition);
+  const condition = normalizeType(predicate.type);
   if (condition !== "value_check") {
-    throw new Error(`Unsupported inline predicate condition: ${predicate.condition}`);
+    throw new Error(`Unsupported inline predicate type: ${predicate.type}`);
   }
   const value = evaluateProvider(predicate.value, registry, storageValues);
   const range = predicate.range ?? {};

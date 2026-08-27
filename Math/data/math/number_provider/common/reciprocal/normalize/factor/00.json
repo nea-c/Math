@@ -3,7 +3,7 @@
   "cases": [
     {
       "condition": {
-        "condition": "minecraft:value_check",
+        "type": "minecraft:value_check",
         "value": "math:common/reciprocal/normalize/absolute/00",
         "range": {
           "min": 2.938737278354183e-39,

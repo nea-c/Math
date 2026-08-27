@@ -16,6 +16,27 @@ test("generated providers are current", () => {
   });
 });
 
+test("generated value-check predicates use the format 118 type discriminator", () => {
+  const predicateRoot = path.join("Math/data/math/predicate/internal");
+  for (const entry of fs.readdirSync(predicateRoot, { recursive: true, withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
+    const predicate = JSON.parse(fs.readFileSync(path.join(entry.parentPath, entry.name), "utf8"));
+    assert.equal(predicate.type, "minecraft:value_check", path.join(entry.parentPath, entry.name));
+    assert.equal(predicate.condition, undefined, path.join(entry.parentPath, entry.name));
+  }
+
+  const providerRoot = path.join("Math/data/math/number_provider");
+  for (const entry of fs.readdirSync(providerRoot, { recursive: true, withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
+    const provider = JSON.parse(fs.readFileSync(path.join(entry.parentPath, entry.name), "utf8"));
+    if (provider.type !== "minecraft:number_dispatcher") continue;
+    for (const dispatcherCase of provider.cases) {
+      assert.equal(dispatcherCase.condition.type, "minecraft:value_check", path.join(entry.parentPath, entry.name));
+      assert.equal(dispatcherCase.condition.condition, undefined, path.join(entry.parentPath, entry.name));
+    }
+  }
+});
+
 test("normalization dispatchers are chunked with inline non-overlapping value checks", () => {
   assert.equal(fs.existsSync("Math/data/math/number_provider/reciprocal"), false);
   assert.equal(fs.existsSync("Math/data/math/number_provider/divide.json"), false);
@@ -31,7 +52,7 @@ test("normalization dispatchers are chunked with inline non-overlapping value ch
       assert.ok(dispatcher.cases.length <= 32, `${responsibility}/${chunkFile} exceeds 32 cases`);
       assert.equal(dispatcher.default, 0);
       for (const dispatcherCase of dispatcher.cases) {
-        assert.equal(dispatcherCase.condition.condition, "minecraft:value_check");
+        assert.equal(dispatcherCase.condition.type, "minecraft:value_check");
         assert.ok(dispatcherCase.condition.range.min > previousMaximum, `${responsibility} cases overlap`);
         previousMaximum = dispatcherCase.condition.range.max;
       }

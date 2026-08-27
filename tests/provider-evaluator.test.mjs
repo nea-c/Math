@@ -47,7 +47,7 @@ test("provider evaluator selects the first matching inline value-check dispatche
     cases: [
       {
         condition: {
-          condition: "minecraft:value_check",
+          type: "minecraft:value_check",
           value: storage("math:internal", "x"),
           range: { min: -10, max: -1 },
         },
@@ -55,7 +55,7 @@ test("provider evaluator selects the first matching inline value-check dispatche
       },
       {
         condition: {
-          condition: "minecraft:value_check",
+          type: "minecraft:value_check",
           value: storage("math:internal", "x"),
           range: { min: 0, max: 10 },
         },
