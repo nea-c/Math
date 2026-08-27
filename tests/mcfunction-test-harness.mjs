@@ -208,10 +208,6 @@ export function runImplementation(path, publicInput = {}, internalInput = {}) {
   return runWithStorage(path, publicInput, internalInput);
 }
 
-export function runInternalFunction(name, internalInput) {
-  return runWithStorage(`internal/${name}`, {}, internalInput);
-}
-
 export function evaluateGeneratedProvider(id, publicInput = {}, internalInput = {}) {
   return evaluateProvider(id, providers, new Map([
     ["math:", clone(publicInput)],

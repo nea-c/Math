@@ -1,0 +1,25 @@
+data modify storage math:internal x set from storage math:internal y
+function math:.common/truncate/0.start
+data modify storage math:internal w_comparison.predicate.power_exponent_integer.value set compute default math:internal/comparison/predicate/power/exponent_integer/value
+execute unless predicate math:internal/power/exponent_integer run data remove storage math: ans
+execute unless predicate math:internal/power/exponent_integer run data modify storage math: error set value "non_real_result"
+execute unless predicate math:internal/power/exponent_integer run return fail
+data modify storage math:internal x set from storage math: a
+data modify storage math:internal x set compute default math:common/comparison/absolute
+data modify storage math:internal y set from storage math: b
+data modify storage math:internal w_comparison.predicate.power_exponent_large_even.minimum set compute default math:internal/comparison/predicate/power/exponent_large_even/minimum
+execute if predicate math:internal/power/exponent_large_even run return run function math:power/3.positive
+data modify storage math:internal x set from storage math:internal y
+data modify storage math:internal y set value 0.5f
+data modify storage math:internal w set compute default math:common/arithmetic/multiply
+data modify storage math:internal x set from storage math:internal w
+function math:.common/truncate/0.start
+data modify storage math:internal x set from storage math:internal w
+data modify storage math:internal y set from storage math:internal z
+data modify storage math:internal z set compute default math:common/arithmetic/subtract
+data modify storage math:internal x set from storage math: a
+data modify storage math:internal x set compute default math:common/comparison/absolute
+data modify storage math:internal y set from storage math: b
+execute if data storage math:internal {z:0.5f} run return run function math:power/4.negative_odd
+execute if data storage math:internal {z:-0.5f} run return run function math:power/4.negative_odd
+return run function math:power/3.positive

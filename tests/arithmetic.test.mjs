@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { evaluateProvider } from "../tools/math-provider-lib.mjs";
-import { runFunction, runInternalFunction, storageFieldKey } from "./mcfunction-test-harness.mjs";
+import { runFunction, runImplementation, storageFieldKey } from "./mcfunction-test-harness.mjs";
 
 const providerRoot = path.resolve("Math/data/math/number_provider");
 const finiteLimit = Math.fround(3.4028234663852886e38);
@@ -26,7 +26,7 @@ function run(id, internal) {
 }
 
 function runStagedReciprocal(input) {
-  const result = runInternalFunction("reciprocal_x", { x: input, y: 1 });
+  const result = runImplementation(".common/reciprocal/0.start", {}, { x: input, y: 1 });
   assert.equal(result.returned, 1, `reciprocal_x(${input}) must return success`);
   return result.storage["math:internal"].x;
 }
@@ -454,7 +454,7 @@ test("period normalization reduces with a round-to-nearest quotient", () => {
     [{ x: -2, y: 4 }, -2],
   ];
   for (const [internal, expected] of cases) {
-    const { storage, numericTags, returned } = runInternalFunction("normalize_period", internal);
+    const { storage, numericTags, returned } = runImplementation(".common/normalize_period/0.start", {}, internal);
     assert.equal(returned, 1);
     assert.equal(storage["math:internal"].z, Math.fround(expected), `normalize ${internal.x} by ${internal.y}`);
     assert.equal(numericTags.get(storageFieldKey("math:internal", "z")), "float");
@@ -473,7 +473,7 @@ test("period normalization stays exact and finite across the binary32 range", ()
     -finiteLimit,
   ]) {
     const expected = exactCenteredRemainderReference(input, tau);
-    const result = runInternalFunction("normalize_period", { x: input, y: tau });
+    const result = runImplementation(".common/normalize_period/0.start", {}, { x: input, y: tau });
     assert.equal(result.returned, 1, `normalize_period(${input}) success`);
     assert.equal(result.storage["math:internal"].z, expected, `normalize_period(${input}) exact centered remainder`);
     assert.ok(Number.isFinite(result.storage["math:internal"].z), `normalize_period(${input}) finite result`);

@@ -11,6 +11,12 @@ import {
   sum,
   writeGeneratedJson,
 } from "./math-provider-lib.mjs";
+import {
+  FUNCTION_PATHS,
+  PUBLIC_FUNCTION_PATHS,
+  functionId,
+  publicTag,
+} from "./function-layout.mjs";
 
 const command = "node tools/generate-math-providers.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -37,8 +43,21 @@ function emitPredicate(relativePath, value) {
   generatedFiles.push({ kind: "json", relativePath: `Math/data/math/predicate/internal/${relativePath}.json`, value });
 }
 
-function emitFunction(name, lines) {
-  generatedFiles.push({ kind: "function", relativePath: `Math/data/math/function/${name}.mcfunction`, text: `${lines.join("\n")}\n` });
+function emitFunction(path, lines) {
+  generatedFiles.push({ kind: "function", relativePath: `Math/data/math/function/${path}.mcfunction`, text: `${lines.join("\n")}\n` });
+}
+
+function emitFunctionTag(name, value) {
+  generatedFiles.push({
+    kind: "json",
+    relativePath: `Math/data/math/tags/function/${name}.json`,
+    value,
+  });
+}
+
+function emitPublicFunction(name, lines) {
+  emitFunction(PUBLIC_FUNCTION_PATHS[name], lines);
+  emitFunctionTag(name, publicTag(name));
 }
 
 const x = storage("math:internal", "x");
@@ -624,18 +643,18 @@ function validationLines(inputs) {
   const lines = ["data remove storage math: error"];
   for (const input of inputs) {
     lines.push(`data modify storage math:internal w_validation_${input} set compute default math:internal/comparison/finite/${input}`);
-    lines.push(`execute unless data storage math:internal {w_validation_${input}:0.0f} run return run function math:internal/invalid_number`);
+    lines.push(`execute unless data storage math:internal {w_validation_${input}:0.0f} run return run function ${functionId(FUNCTION_PATHS.invalidNumber)}`);
   }
   return lines;
 }
 
-emitFunction("internal/invalid_number", [
+emitFunction(FUNCTION_PATHS.invalidNumber, [
   "data remove storage math: ans",
   "data modify storage math: error set value \"invalid_number\"",
   "return fail",
 ]);
 
-emitFunction("internal/result_out_of_range", [
+emitFunction(FUNCTION_PATHS.resultOutOfRange, [
   "data remove storage math: ans",
   "data modify storage math: error set value \"result_out_of_range\"",
   "return fail",
@@ -649,10 +668,10 @@ function wrapper(name, inputs, provider, inputMap) {
   lines.push(`data modify storage math: ans set compute default ${provider}`);
   if (["add", "subtract", "multiply", "square", "cube", "deg", "lerp"].includes(name)) {
     lines.push("data modify storage math:internal w_validation_ans set compute default math:internal/comparison/finite/ans");
-    lines.push("execute unless data storage math:internal {w_validation_ans:0.0f} run return run function math:internal/result_out_of_range");
+    lines.push(`execute unless data storage math:internal {w_validation_ans:0.0f} run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`);
   }
   lines.push("return 1");
-  emitFunction(name, lines);
+  emitPublicFunction(name, lines);
 }
 
 wrapper("add", ["a", "b"], "math:common/arithmetic/add", { x: "a", y: "b" });
@@ -668,7 +687,7 @@ wrapper("deg", ["a"], "math:common/conversion/deg", { x: "a" });
 wrapper("lerp", ["a", "b", "t"], "math:common/arithmetic/lerp", { x: "a", y: "b", z: "t" });
 for (const name of ["pi", "tau", "e"]) wrapper(name, [], `math:common/constant/${name}`, {});
 
-emitFunction("internal/floor_x", [
+emitFunction(FUNCTION_PATHS.floor, [
   "data modify storage math:internal z set compute default math:common/input/x",
   ...stagePredicate("rounding/safe_command_result"),
   "execute unless predicate math:internal/rounding/safe_command_result run return 1",
@@ -676,11 +695,11 @@ emitFunction("internal/floor_x", [
   "return 1",
 ]);
 
-emitFunction("internal/truncate_x", [
+emitFunction(FUNCTION_PATHS.truncate, [
   "data modify storage math:internal w_comparison.x_sign set compute default math:internal/comparison/x_zero",
-  "execute unless predicate math:internal/range/negative run return run function math:internal/floor_x",
+  `execute unless predicate math:internal/range/negative run return run function ${functionId(FUNCTION_PATHS.floor)}`,
   "data modify storage math:internal x set compute default math:common/rounding/negate",
-  "function math:internal/floor_x",
+  `function ${functionId(FUNCTION_PATHS.floor)}`,
   "data modify storage math:internal x set from storage math:internal z",
   "data modify storage math:internal z set compute default math:common/rounding/negate",
   "return 1",
@@ -689,21 +708,21 @@ emitFunction("internal/truncate_x", [
 {
   const lines = validationLines(["a"]);
   lines.push("data modify storage math:internal x set from storage math: a");
-  lines.push("function math:internal/floor_x");
+  lines.push(`function ${functionId(FUNCTION_PATHS.floor)}`);
   lines.push("data modify storage math: ans set compute default math:common/input/z");
   lines.push("return 1");
-  emitFunction("floor", lines);
+  emitPublicFunction("floor", lines);
 }
 
 {
   const lines = validationLines(["a"]);
   lines.push("data modify storage math:internal x set from storage math: a");
   lines.push("data modify storage math:internal x set compute default math:common/rounding/negate");
-  lines.push("function math:internal/floor_x");
+  lines.push(`function ${functionId(FUNCTION_PATHS.floor)}`);
   lines.push("data modify storage math:internal x set from storage math:internal z");
   lines.push("data modify storage math: ans set compute default math:common/rounding/negate");
   lines.push("return 1");
-  emitFunction("ceil", lines);
+  emitPublicFunction("ceil", lines);
 }
 
 {
@@ -713,19 +732,19 @@ emitFunction("internal/truncate_x", [
   lines.push("execute if predicate math:internal/rounding/integer_input run data modify storage math: ans set compute default math:common/input/x");
   lines.push("execute if predicate math:internal/rounding/integer_input run return 1");
   lines.push("data modify storage math:internal x set compute default math:common/rounding/add_half");
-  lines.push("function math:internal/floor_x");
+  lines.push(`function ${functionId(FUNCTION_PATHS.floor)}`);
   lines.push("data modify storage math: ans set compute default math:common/input/z");
   lines.push("return 1");
-  emitFunction("round", lines);
+  emitPublicFunction("round", lines);
 }
 
 {
   const lines = validationLines(["a"]);
   lines.push("data modify storage math:internal x set from storage math: a");
-  lines.push("function math:internal/truncate_x");
+  lines.push(`function ${functionId(FUNCTION_PATHS.truncate)}`);
   lines.push("data modify storage math: ans set compute default math:common/input/z");
   lines.push("return 1");
-  emitFunction("truncate", lines);
+  emitPublicFunction("truncate", lines);
 }
 
 function divisionByZeroLines() {
@@ -736,83 +755,83 @@ function divisionByZeroLines() {
   ];
 }
 
-emitFunction("internal/reciprocal_scale_up", [
+emitFunction(FUNCTION_PATHS.reciprocalScaleUp, [
   "data modify storage math:internal w set compute default math:internal/reciprocal/compare/scale_at_limit",
-  "execute unless predicate math:internal/comparison/negative_integer run return run function math:internal/reciprocal_finish_at_scale_limit",
+  `execute unless predicate math:internal/comparison/negative_integer run return run function ${functionId(FUNCTION_PATHS.reciprocalFinishAtScaleLimit)}`,
   "data modify storage math:internal x set compute default math:internal/reciprocal/double_x",
   "data modify storage math:internal y set compute default math:internal/reciprocal/double_y",
-  "return run function math:internal/reciprocal_x",
+  `return run function ${functionId(FUNCTION_PATHS.reciprocal)}`,
 ]);
 
-emitFunction("internal/reciprocal_finish", [
+emitFunction(FUNCTION_PATHS.reciprocalFinish, [
   "data modify storage math:internal x set compute default math:internal/reciprocal/normalized",
   "data modify storage math:internal x set compute default math:common/arithmetic/multiply",
   "return 1",
 ]);
 
-emitFunction("internal/reciprocal_finish_at_scale_limit", [
+emitFunction(FUNCTION_PATHS.reciprocalFinishAtScaleLimit, [
   "data modify storage math:internal x set compute default math:internal/reciprocal/normalized_at_scale_limit",
   "data modify storage math:internal x set compute default math:common/arithmetic/multiply",
   "return 1",
 ]);
 
-emitFunction("internal/reciprocal_scale_down", [
+emitFunction(FUNCTION_PATHS.reciprocalScaleDown, [
   "data modify storage math:internal x set compute default math:internal/reciprocal/half_x",
   "data modify storage math:internal y set compute default math:internal/reciprocal/half_y",
-  "return run function math:internal/reciprocal_x",
+  `return run function ${functionId(FUNCTION_PATHS.reciprocal)}`,
 ]);
 
-emitFunction("internal/reciprocal_x", [
+emitFunction(FUNCTION_PATHS.reciprocal, [
   "data modify storage math:internal w set compute default math:internal/reciprocal/compare/below_one",
-  "execute if predicate math:internal/comparison/negative_integer run return run function math:internal/reciprocal_scale_up",
+  `execute if predicate math:internal/comparison/negative_integer run return run function ${functionId(FUNCTION_PATHS.reciprocalScaleUp)}`,
   "data modify storage math:internal w set compute default math:internal/reciprocal/compare/at_least_two",
-  "execute unless predicate math:internal/comparison/negative_integer run return run function math:internal/reciprocal_scale_down",
-  "return run function math:internal/reciprocal_finish",
+  `execute unless predicate math:internal/comparison/negative_integer run return run function ${functionId(FUNCTION_PATHS.reciprocalScaleDown)}`,
+  `return run function ${functionId(FUNCTION_PATHS.reciprocalFinish)}`,
 ]);
 
-emitFunction("internal/divide_normalize_scale_up", [
+emitFunction(FUNCTION_PATHS.divideNormalizeScaleUp, [
   "data modify storage math:internal x set compute default math:internal/reciprocal/double_x",
   "data modify storage math:internal y set compute default math:internal/divide/normalize/decrement_exponent",
-  "return run function math:internal/divide_normalize",
+  `return run function ${functionId(FUNCTION_PATHS.divideNormalize)}`,
 ]);
 
-emitFunction("internal/divide_normalize_scale_down", [
+emitFunction(FUNCTION_PATHS.divideNormalizeScaleDown, [
   "data modify storage math:internal x set compute default math:internal/reciprocal/half_x",
   "data modify storage math:internal y set compute default math:internal/divide/normalize/increment_exponent",
-  "return run function math:internal/divide_normalize",
+  `return run function ${functionId(FUNCTION_PATHS.divideNormalize)}`,
 ]);
 
-emitFunction("internal/divide_normalize", [
+emitFunction(FUNCTION_PATHS.divideNormalize, [
   "data modify storage math:internal w set compute default math:internal/reciprocal/compare/below_one",
-  "execute if predicate math:internal/comparison/negative_integer run return run function math:internal/divide_normalize_scale_up",
+  `execute if predicate math:internal/comparison/negative_integer run return run function ${functionId(FUNCTION_PATHS.divideNormalizeScaleUp)}`,
   "data modify storage math:internal w set compute default math:internal/reciprocal/compare/at_least_two",
-  "execute unless predicate math:internal/comparison/negative_integer run return run function math:internal/divide_normalize_scale_down",
+  `execute unless predicate math:internal/comparison/negative_integer run return run function ${functionId(FUNCTION_PATHS.divideNormalizeScaleDown)}`,
   "return 1",
 ]);
 
-emitFunction("internal/divide_underflow", [
+emitFunction(FUNCTION_PATHS.divideUnderflow, [
   "data modify storage math: ans set value 0.0f",
   "execute if data storage math:internal {w_divide_sign:-1.0f} run data modify storage math: ans set value -0.0f",
   "return 1",
 ]);
 
-emitFunction("internal/square_root_scale_up", [
+emitFunction(FUNCTION_PATHS.squareRootNormalizeScaleUp, [
   "data modify storage math:internal z set compute default math:square_root/normalize/quadruple_mantissa/00",
   "data modify storage math:internal w set compute default math:square_root/normalize/half_scale/00",
-  "return run function math:internal/square_root_normalize",
+  `return run function ${functionId(FUNCTION_PATHS.squareRootNormalize)}`,
 ]);
 
-emitFunction("internal/square_root_scale_down", [
+emitFunction(FUNCTION_PATHS.squareRootNormalizeScaleDown, [
   "data modify storage math:internal z set compute default math:square_root/normalize/quarter_mantissa/00",
   "data modify storage math:internal w set compute default math:square_root/normalize/double_scale/00",
-  "return run function math:internal/square_root_normalize",
+  `return run function ${functionId(FUNCTION_PATHS.squareRootNormalize)}`,
 ]);
 
-emitFunction("internal/square_root_normalize", [
+emitFunction(FUNCTION_PATHS.squareRootNormalize, [
   "data modify storage math:internal x set compute default math:square_root/normalize/compare_below_one/00",
-  "execute if predicate math:internal/comparison/x_negative_integer run return run function math:internal/square_root_scale_up",
+  `execute if predicate math:internal/comparison/x_negative_integer run return run function ${functionId(FUNCTION_PATHS.squareRootNormalizeScaleUp)}`,
   "data modify storage math:internal x set compute default math:square_root/normalize/compare_at_least_four/00",
-  "execute unless predicate math:internal/comparison/x_negative_integer run return run function math:internal/square_root_scale_down",
+  `execute unless predicate math:internal/comparison/x_negative_integer run return run function ${functionId(FUNCTION_PATHS.squareRootNormalizeScaleDown)}`,
   "return 1",
 ]);
 
@@ -825,7 +844,7 @@ function exactRemainderLines() {
     "data modify storage math:internal x set compute default math:common/comparison/absolute",
     "data modify storage math:internal y set from storage math:internal x",
     "data modify storage math:internal x set from storage math:internal z",
-    "function math:internal/reduce_remainder",
+    `function ${functionId(FUNCTION_PATHS.reduceRemainder)}`,
     "data modify storage math:internal z set compute default math:common/input/x",
   ];
 }
@@ -836,10 +855,10 @@ function exactRemainderLines() {
   lines.push(...divisionByZeroLines());
   lines.push(...resultOutOfRangeLines("math:internal/reciprocal/input_in_range"));
   lines.push("data modify storage math:internal y set value 1.0f");
-  lines.push("function math:internal/reciprocal_x");
+  lines.push(`function ${functionId(FUNCTION_PATHS.reciprocal)}`);
   lines.push("data modify storage math: ans set compute default math:common/input/x");
   lines.push("return 1");
-  emitFunction("reciprocal", lines);
+  emitPublicFunction("reciprocal", lines);
 }
 
 {
@@ -853,7 +872,7 @@ function exactRemainderLines() {
   lines.push("execute if data storage math:internal {x:0.0f} run return 1");
   lines.push("data modify storage math:internal z set from storage math:internal x");
   lines.push("data modify storage math:internal w set value 1.0f");
-  lines.push("function math:internal/square_root_normalize");
+  lines.push(`function ${functionId(FUNCTION_PATHS.squareRootNormalize)}`);
   lines.push("data modify storage math:internal w_comparison.sqrt_scale set from storage math:internal w");
   lines.push("data modify storage math:internal w_comparison.sqrt_mantissa set from storage math:internal z");
   lines.push("data modify storage math:internal y set from storage math:internal z");
@@ -862,7 +881,7 @@ function exactRemainderLines() {
     const stageName = stage.toString().padStart(2, "0");
     lines.push("data modify storage math:internal x set from storage math:internal z");
     lines.push("data modify storage math:internal y set value 1.0f");
-    lines.push("function math:internal/reciprocal_x");
+    lines.push(`function ${functionId(FUNCTION_PATHS.reciprocal)}`);
     lines.push("data modify storage math:internal w set from storage math:internal x");
     lines.push("data modify storage math:internal y set from storage math:internal w_comparison.sqrt_mantissa");
     lines.push(`data modify storage math:internal x set compute default math:square_root/newton/${stageName}/00`);
@@ -877,41 +896,41 @@ function exactRemainderLines() {
   lines.push("execute unless predicate math:internal/square_root/result_finite run data modify storage math: error set value \"result_out_of_range\"");
   lines.push("execute unless predicate math:internal/square_root/result_finite run return fail");
   lines.push("return 1");
-  emitFunction("square_root", lines);
+  emitPublicFunction("square_root", lines);
 }
 
-emitFunction("internal/log_normalize_scale_up", [
+emitFunction(FUNCTION_PATHS.logNormalizeScaleUp, [
   "data modify storage math:internal z set compute default math:log/normalize/double_mantissa/00",
   "data modify storage math:internal w set compute default math:log/normalize/decrement_exponent/00",
-  "return run function math:internal/log_normalize",
+  `return run function ${functionId(FUNCTION_PATHS.logNormalize)}`,
 ]);
 
-emitFunction("internal/log_normalize_scale_down", [
+emitFunction(FUNCTION_PATHS.logNormalizeScaleDown, [
   "data modify storage math:internal z set compute default math:log/normalize/half_mantissa/00",
   "data modify storage math:internal w set compute default math:log/normalize/increment_exponent/00",
-  "return run function math:internal/log_normalize",
+  `return run function ${functionId(FUNCTION_PATHS.logNormalize)}`,
 ]);
 
-emitFunction("internal/log_normalize", [
+emitFunction(FUNCTION_PATHS.logNormalize, [
   "data modify storage math:internal x set compute default math:log/normalize/compare_below_one/00",
-  "execute if predicate math:internal/comparison/x_negative_integer run return run function math:internal/log_normalize_scale_up",
+  `execute if predicate math:internal/comparison/x_negative_integer run return run function ${functionId(FUNCTION_PATHS.logNormalizeScaleUp)}`,
   "data modify storage math:internal x set compute default math:log/normalize/compare_at_least_two/00",
-  "execute unless predicate math:internal/comparison/x_negative_integer run return run function math:internal/log_normalize_scale_down",
+  `execute unless predicate math:internal/comparison/x_negative_integer run return run function ${functionId(FUNCTION_PATHS.logNormalizeScaleDown)}`,
   "return 1",
 ]);
 
-emitFunction("internal/log_prepare", [
+emitFunction(FUNCTION_PATHS.logPrepare, [
   "data modify storage math:internal z set from storage math:internal x",
   "data modify storage math:internal w set value 0.0f",
-  "function math:internal/log_normalize",
+  `function ${functionId(FUNCTION_PATHS.logNormalize)}`,
   "data modify storage math:internal x set compute default math:log/normalize/compare_center/00",
   "execute unless predicate math:internal/comparison/x_negative_integer run data modify storage math:internal z set compute default math:log/normalize/half_mantissa/00",
   "execute unless predicate math:internal/comparison/x_negative_integer run data modify storage math:internal w set compute default math:log/normalize/increment_exponent/00",
   "return 1",
 ]);
 
-emitFunction("internal/log_x", [
-  "function math:internal/log_prepare",
+emitFunction(FUNCTION_PATHS.log, [
+  `function ${functionId(FUNCTION_PATHS.logPrepare)}`,
   "data modify storage math:internal z set compute default math:log/normalize/numerator/00",
   "data modify storage math:internal x set compute default math:log/normalize/denominator/00",
   "data modify storage math:internal x set compute default math:internal/reciprocal/log_denominator",
@@ -920,11 +939,11 @@ emitFunction("internal/log_x", [
   "return 1",
 ]);
 
-emitFunction("internal/exp_x", [
+emitFunction(FUNCTION_PATHS.exp, [
   "data modify storage math:internal w set from storage math:internal x",
   "data modify storage math:internal x set compute default math:exp/reduce/quotient/00",
   "data modify storage math:internal x set compute default math:common/rounding/add_half",
-  "function math:internal/floor_x",
+  `function ${functionId(FUNCTION_PATHS.floor)}`,
   "data modify storage math:internal x set compute default math:exp/reduce/remainder/00",
   "data modify storage math:internal x set compute default math:exp/00",
   "return 1",
@@ -944,7 +963,7 @@ function resultOutOfRangeLines(predicate = "math:internal/exp/input_in_range") {
   const lines = [
     "data modify storage math:internal x set from storage math: a",
     "data modify storage math:internal x set compute default math:common/comparison/absolute",
-    "function math:internal/log_prepare",
+    `function ${functionId(FUNCTION_PATHS.logPrepare)}`,
     "data modify storage math:internal z set compute default math:power/classify/normalize/difference/00",
     "data modify storage math:internal x set compute default math:power/classify/polynomial/initial/00",
     "data modify storage math:internal y set value 0.0f",
@@ -965,11 +984,11 @@ function resultOutOfRangeLines(predicate = "math:internal/exp/input_in_range") {
   lines.push("data modify storage math:internal w set compute default math:power/classify/product/high/00");
   lines.push("data modify storage math:internal x set compute default math:power/classify/delta/00");
   lines.push("return 1");
-  emitFunction("internal/power_classify_overflow", lines);
+  emitFunction(FUNCTION_PATHS.powerClassifyOverflow, lines);
 }
 
 function finalPowerResultLines(negativeResult) {
-  const lines = ["function math:internal/exp_x"];
+  const lines = [`function ${functionId(FUNCTION_PATHS.exp)}`];
   lines.push(negativeResult
     ? "data modify storage math: ans set compute default math:common/rounding/negate"
     : "data modify storage math: ans set compute default math:common/input/x");
@@ -991,7 +1010,7 @@ function powerNonfiniteLines(negativeResult) {
 
 function powerBoundaryLines(negativeResult) {
   return [
-    "function math:internal/power_classify_overflow",
+    `function ${functionId(FUNCTION_PATHS.powerClassifyOverflow)}`,
     ...stagePredicate("power/classifier_overflow"),
     "execute if predicate math:internal/power/classifier_overflow run data remove storage math: ans",
     "execute if predicate math:internal/power/classifier_overflow run data modify storage math: error set value \"result_out_of_range\"",
@@ -1003,10 +1022,10 @@ function powerBoundaryLines(negativeResult) {
 
 function powerEvaluationLines(negativeResult) {
   const lines = [
-    "function math:internal/log_x",
+    `function ${functionId(FUNCTION_PATHS.log)}`,
     "data modify storage math:internal x set compute default math:power/positive/00",
     ...stagePredicate("exp/input_finite"),
-    `execute unless predicate math:internal/exp/input_finite run return run function math:internal/power_nonfinite_${negativeResult ? "negative" : "positive"}`,
+    `execute unless predicate math:internal/exp/input_finite run return run function ${functionId(negativeResult ? FUNCTION_PATHS.powerNonfiniteNegative : FUNCTION_PATHS.powerNonfinitePositive)}`,
     ...stagePredicate("exp/underflows_to_zero"),
     `execute if predicate math:internal/exp/underflows_to_zero run data modify storage math: ans set value ${negativeResult ? "-0.0f" : "0.0f"}`,
     "execute if predicate math:internal/exp/underflows_to_zero run return 1",
@@ -1014,20 +1033,20 @@ function powerEvaluationLines(negativeResult) {
   lines.push(`execute if data storage math:internal {x:-103.97207641601562f} run data modify storage math: ans set compute default math:exp/minimum/${negativeResult ? "negative/" : ""}00`);
   lines.push("execute if data storage math:internal {x:-103.97207641601562f} run return 1");
   lines.push(...stagePredicate("power/needs_overflow_classification"));
-  lines.push(`execute if predicate math:internal/power/needs_overflow_classification run return run function math:internal/power_boundary_${negativeResult ? "negative" : "positive"}`);
+  lines.push(`execute if predicate math:internal/power/needs_overflow_classification run return run function ${functionId(negativeResult ? FUNCTION_PATHS.powerBoundaryNegative : FUNCTION_PATHS.powerBoundaryPositive)}`);
   lines.push(...resultOutOfRangeLines());
   lines.push(...finalPowerResultLines(negativeResult));
   return lines;
 }
 
-emitFunction("internal/power_nonfinite_positive", powerNonfiniteLines(false));
-emitFunction("internal/power_nonfinite_negative", powerNonfiniteLines(true));
-emitFunction("internal/power_boundary_positive", powerBoundaryLines(false));
-emitFunction("internal/power_boundary_negative", powerBoundaryLines(true));
-emitFunction("internal/power_positive", powerEvaluationLines(false));
-emitFunction("internal/power_negative_odd", powerEvaluationLines(true));
+emitFunction(FUNCTION_PATHS.powerNonfinitePositive, powerNonfiniteLines(false));
+emitFunction(FUNCTION_PATHS.powerNonfiniteNegative, powerNonfiniteLines(true));
+emitFunction(FUNCTION_PATHS.powerBoundaryPositive, powerBoundaryLines(false));
+emitFunction(FUNCTION_PATHS.powerBoundaryNegative, powerBoundaryLines(true));
+emitFunction(FUNCTION_PATHS.powerPositive, powerEvaluationLines(false));
+emitFunction(FUNCTION_PATHS.powerNegativeOdd, powerEvaluationLines(true));
 
-emitFunction("internal/power_zero", [
+emitFunction(FUNCTION_PATHS.powerZero, [
   "execute if data storage math:internal {y:0.0f} run data modify storage math: ans set value 1.0f",
   "execute if data storage math:internal {y:0.0f} run return 1",
   ...stagePredicate("power/exponent_negative"),
@@ -1038,9 +1057,9 @@ emitFunction("internal/power_zero", [
   "return 1",
 ]);
 
-emitFunction("internal/power_negative", [
+emitFunction(FUNCTION_PATHS.powerNegative, [
   "data modify storage math:internal x set from storage math:internal y",
-  "function math:internal/truncate_x",
+  `function ${functionId(FUNCTION_PATHS.truncate)}`,
   ...stagePredicate("power/exponent_integer"),
   "execute unless predicate math:internal/power/exponent_integer run data remove storage math: ans",
   "execute unless predicate math:internal/power/exponent_integer run data modify storage math: error set value \"non_real_result\"",
@@ -1049,21 +1068,21 @@ emitFunction("internal/power_negative", [
   "data modify storage math:internal x set compute default math:common/comparison/absolute",
   "data modify storage math:internal y set from storage math: b",
   ...stagePredicate("power/exponent_large_even"),
-  "execute if predicate math:internal/power/exponent_large_even run return run function math:internal/power_positive",
+  `execute if predicate math:internal/power/exponent_large_even run return run function ${functionId(FUNCTION_PATHS.powerPositive)}`,
   "data modify storage math:internal x set from storage math:internal y",
   "data modify storage math:internal y set value 0.5f",
   "data modify storage math:internal w set compute default math:common/arithmetic/multiply",
   "data modify storage math:internal x set from storage math:internal w",
-  "function math:internal/truncate_x",
+  `function ${functionId(FUNCTION_PATHS.truncate)}`,
   "data modify storage math:internal x set from storage math:internal w",
   "data modify storage math:internal y set from storage math:internal z",
   "data modify storage math:internal z set compute default math:common/arithmetic/subtract",
   "data modify storage math:internal x set from storage math: a",
   "data modify storage math:internal x set compute default math:common/comparison/absolute",
   "data modify storage math:internal y set from storage math: b",
-  "execute if data storage math:internal {z:0.5f} run return run function math:internal/power_negative_odd",
-  "execute if data storage math:internal {z:-0.5f} run return run function math:internal/power_negative_odd",
-  "return run function math:internal/power_positive",
+  `execute if data storage math:internal {z:0.5f} run return run function ${functionId(FUNCTION_PATHS.powerNegativeOdd)}`,
+  `execute if data storage math:internal {z:-0.5f} run return run function ${functionId(FUNCTION_PATHS.powerNegativeOdd)}`,
+  `return run function ${functionId(FUNCTION_PATHS.powerPositive)}`,
 ]);
 
 {
@@ -1076,10 +1095,10 @@ emitFunction("internal/power_negative", [
   lines.push("execute if data storage math:internal {x:0.0f} run data remove storage math: ans");
   lines.push("execute if data storage math:internal {x:0.0f} run data modify storage math: error set value \"non_real_result\"");
   lines.push("execute if data storage math:internal {x:0.0f} run return fail");
-  lines.push("function math:internal/log_x");
+  lines.push(`function ${functionId(FUNCTION_PATHS.log)}`);
   lines.push("data modify storage math: ans set compute default math:common/input/x");
   lines.push("return 1");
-  emitFunction("log", lines);
+  emitPublicFunction("log", lines);
 }
 
 {
@@ -1091,24 +1110,24 @@ emitFunction("internal/power_negative", [
   lines.push("execute if predicate math:internal/exp/underflows_to_zero run return 1");
   lines.push("execute if data storage math:internal {x:-103.97207641601562f} run data modify storage math: ans set compute default math:exp/minimum/00");
   lines.push("execute if data storage math:internal {x:-103.97207641601562f} run return 1");
-  lines.push("function math:internal/exp_x");
+  lines.push(`function ${functionId(FUNCTION_PATHS.exp)}`);
   lines.push("data modify storage math: ans set compute default math:common/input/x");
   lines.push(...resultOutOfRangeLines("math:internal/exp/result_finite"));
   lines.push("return 1");
-  emitFunction("exp", lines);
+  emitPublicFunction("exp", lines);
 }
 
 {
   const lines = validationLines(["a", "b"]);
   lines.push("data modify storage math:internal x set from storage math: a");
   lines.push("data modify storage math:internal y set from storage math: b");
-  lines.push("execute if data storage math:internal {x:0.0f} run return run function math:internal/power_zero");
+  lines.push(`execute if data storage math:internal {x:0.0f} run return run function ${functionId(FUNCTION_PATHS.powerZero)}`);
   lines.push("execute if data storage math:internal {y:1.0f} run data modify storage math: ans set compute default math:common/input/x");
   lines.push("execute if data storage math:internal {y:1.0f} run return 1");
   lines.push("data modify storage math:internal w_comparison.x_sign set compute default math:internal/comparison/x_zero");
-  lines.push("execute if predicate math:internal/range/negative run return run function math:internal/power_negative");
-  lines.push("return run function math:internal/power_positive");
-  emitFunction("power", lines);
+  lines.push(`execute if predicate math:internal/range/negative run return run function ${functionId(FUNCTION_PATHS.powerNegative)}`);
+  lines.push(`return run function ${functionId(FUNCTION_PATHS.powerPositive)}`);
+  emitPublicFunction("power", lines);
 }
 
 {
@@ -1129,21 +1148,21 @@ emitFunction("internal/power_negative", [
   lines.push("execute if predicate math:internal/divide/b_negative run data modify storage math:internal w_divide_sign set compute default math:internal/divide/flip_sign");
   lines.push("data modify storage math:internal x set compute default math:common/comparison/absolute");
   lines.push("data modify storage math:internal y set value 0.0f");
-  lines.push("function math:internal/divide_normalize");
+  lines.push(`function ${functionId(FUNCTION_PATHS.divideNormalize)}`);
   lines.push("data modify storage math:internal w_divide_a_mantissa set from storage math:internal x");
   lines.push("data modify storage math:internal w_divide_a_exponent set from storage math:internal y");
   lines.push("data modify storage math:internal x set from storage math: b");
   lines.push("data modify storage math:internal x set compute default math:common/comparison/absolute");
   lines.push("data modify storage math:internal y set value 0.0f");
-  lines.push("function math:internal/divide_normalize");
+  lines.push(`function ${functionId(FUNCTION_PATHS.divideNormalize)}`);
   lines.push("data modify storage math:internal w_divide_b_mantissa set from storage math:internal x");
   lines.push("data modify storage math:internal w_divide_b_exponent set from storage math:internal y");
   lines.push("data modify storage math:internal w_divide_exponent set compute default math:internal/divide/exponent_difference");
   lines.push(...stagePredicate("divide/exponent_definitely_overflows"));
-  lines.push("execute if predicate math:internal/divide/exponent_definitely_overflows run return run function math:internal/result_out_of_range");
+  lines.push(`execute if predicate math:internal/divide/exponent_definitely_overflows run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`);
   lines.push(...stagePredicate("divide/exponent_at_overflow_boundary"));
   lines.push(...stagePredicate("divide/significand_at_or_above_overflow_boundary"));
-  lines.push("execute if predicate math:internal/divide/overflow_boundary run return run function math:internal/result_out_of_range");
+  lines.push(`execute if predicate math:internal/divide/overflow_boundary run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`);
   lines.push("data modify storage math:internal x set compute default math:internal/divide/normalized_reciprocal");
   lines.push("data modify storage math:internal w_divide_reciprocal set from storage math:internal x");
   lines.push("data modify storage math:internal y set from storage math:internal w_divide_a_mantissa");
@@ -1155,16 +1174,16 @@ emitFunction("internal/power_negative", [
   lines.push("data modify storage math:internal w_divide_residual_low set compute default math:internal/divide/residual/low");
   lines.push("data modify storage math:internal x set compute default math:internal/divide/refined_quotient");
   lines.push("data modify storage math:internal y set from storage math:internal w_divide_exponent");
-  lines.push("function math:internal/divide_normalize");
+  lines.push(`function ${functionId(FUNCTION_PATHS.divideNormalize)}`);
   lines.push(...stagePredicate("divide/exponent_underflows"));
-  lines.push("execute if predicate math:internal/divide/exponent_underflows run return run function math:internal/divide_underflow");
+  lines.push(`execute if predicate math:internal/divide/exponent_underflows run return run function ${functionId(FUNCTION_PATHS.divideUnderflow)}`);
   lines.push("data modify storage math:internal z set from storage math:internal y");
   lines.push("data modify storage math: ans set compute default math:internal/divide/result");
   lines.push("return 1");
-  emitFunction("divide", lines);
+  emitPublicFunction("divide", lines);
 }
 
-emitFunction("internal/reduce_remainder", [
+emitFunction(FUNCTION_PATHS.reduceRemainder, [
   ...stagePredicate("rounding/remainder/can_subtract_y"),
   "execute unless predicate math:internal/rounding/remainder/can_subtract_y run return 1",
   ...stagePredicate("rounding/remainder/y_too_large_to_double"),
@@ -1175,7 +1194,7 @@ emitFunction("internal/reduce_remainder", [
   "execute if predicate math:internal/rounding/remainder/w_greater_than_x run data modify storage math:internal x set compute default math:common/arithmetic/subtract",
   "execute if predicate math:internal/rounding/remainder/w_greater_than_x run return 1",
   "data modify storage math:internal y set from storage math:internal w",
-  "function math:internal/reduce_remainder",
+  `function ${functionId(FUNCTION_PATHS.reduceRemainder)}`,
   "data modify storage math:internal y set compute default math:common/rounding/half_y",
   ...stagePredicate("rounding/remainder/can_subtract_y"),
   "execute if predicate math:internal/rounding/remainder/can_subtract_y run data modify storage math:internal x set compute default math:common/arithmetic/subtract",
@@ -1196,10 +1215,10 @@ emitFunction("internal/reduce_remainder", [
   lines.push("data modify storage math:internal x set from storage math:internal z");
   lines.push("data modify storage math: ans set compute default math:common/rounding/negate");
   lines.push("return 1");
-  emitFunction("remainder", lines);
+  emitPublicFunction("remainder", lines);
 }
 
-emitFunction("internal/modulo_negative_b", [
+emitFunction(FUNCTION_PATHS.moduloNegativeB, [
   "execute if predicate math:internal/rounding/public/a_negative run data modify storage math:internal x set from storage math:internal z",
   "execute if predicate math:internal/rounding/public/a_negative run data modify storage math: ans set compute default math:common/rounding/negate",
   "execute if predicate math:internal/rounding/public/a_negative run return 1",
@@ -1218,34 +1237,34 @@ emitFunction("internal/modulo_negative_b", [
   lines.push("execute if predicate math:internal/rounding/remainder/zero run return 1");
   lines.push(...stagePredicate("rounding/public/a_negative"));
   lines.push(...stagePredicate("rounding/public/b_negative"));
-  lines.push("execute if predicate math:internal/rounding/public/b_negative run return run function math:internal/modulo_negative_b");
+  lines.push(`execute if predicate math:internal/rounding/public/b_negative run return run function ${functionId(FUNCTION_PATHS.moduloNegativeB)}`);
   lines.push("execute unless predicate math:internal/rounding/public/a_negative run data modify storage math: ans set compute default math:common/input/z");
   lines.push("execute unless predicate math:internal/rounding/public/a_negative run return 1");
   lines.push("data modify storage math:internal x set from storage math:internal y");
   lines.push("data modify storage math:internal y set from storage math:internal z");
   lines.push("data modify storage math: ans set compute default math:common/arithmetic/subtract");
   lines.push("return 1");
-  emitFunction("modulo", lines);
+  emitPublicFunction("modulo", lines);
 }
 
-emitFunction("internal/normalize_period", [
+emitFunction(FUNCTION_PATHS.normalizePeriod, [
   "data modify storage math:internal z set from storage math:internal x",
   "data modify storage math:internal x set compute default math:common/comparison/absolute",
-  "function math:internal/reduce_remainder",
+  `function ${functionId(FUNCTION_PATHS.reduceRemainder)}`,
   "data modify storage math:internal w_comparison.period_half set compute default math:common/normalize/period/compare_half",
   "data modify storage math:internal w_comparison.period_original set compute default math:common/normalize/period/compare_original",
   "data modify storage math:internal w set from storage math:internal z",
-  "execute if predicate math:internal/normalize_period/original_negative run return run function math:internal/normalize_period_negative",
+  `execute if predicate math:internal/normalize_period/original_negative run return run function ${functionId(FUNCTION_PATHS.normalizePeriodNegative)}`,
   "data modify storage math:internal z set compute default math:common/normalize/period/positive/00",
   "return 1",
 ]);
 
-emitFunction("internal/normalize_period_negative", [
+emitFunction(FUNCTION_PATHS.normalizePeriodNegative, [
   "data modify storage math:internal z set compute default math:common/normalize/period/negative/00",
   "return 1",
 ]);
 
-emitFunction("internal/sin_evaluate", [
+emitFunction(FUNCTION_PATHS.sinEvaluate, [
   "data modify storage math:internal w_comparison.sin_fold_lower set compute default math:sin/fold/compare_lower",
   "data modify storage math:internal w_comparison.sin_fold_upper set compute default math:sin/fold/compare_upper",
   "data modify storage math:internal x set compute default math:sin/fold/00",
@@ -1257,28 +1276,28 @@ emitFunction("internal/sin_evaluate", [
   "return 1",
 ]);
 
-emitFunction("internal/sin_x", [
+emitFunction(FUNCTION_PATHS.sin, [
   "data modify storage math:internal y set compute default math:common/constant/tau",
-  "function math:internal/normalize_period",
-  "function math:internal/sin_evaluate",
+  `function ${functionId(FUNCTION_PATHS.normalizePeriod)}`,
+  `function ${functionId(FUNCTION_PATHS.sinEvaluate)}`,
   "return 1",
 ]);
 
-emitFunction("internal/cos_x", [
+emitFunction(FUNCTION_PATHS.cos, [
   "data modify storage math:internal y set compute default math:common/constant/tau",
-  "function math:internal/normalize_period",
+  `function ${functionId(FUNCTION_PATHS.normalizePeriod)}`,
   "data modify storage math:internal x set from storage math:internal z",
   "data modify storage math:internal x set compute default math:cos/00",
   "data modify storage math:internal z set from storage math:internal x",
-  "function math:internal/sin_evaluate",
+  `function ${functionId(FUNCTION_PATHS.sinEvaluate)}`,
   "return 1",
 ]);
 
-emitFunction("internal/tan_x", [
-  "function math:internal/sin_x",
+emitFunction(FUNCTION_PATHS.tan, [
+  `function ${functionId(FUNCTION_PATHS.sin)}`,
   "data modify storage math: ans set compute default math:common/input/x",
   "data modify storage math:internal x set from storage math:internal w",
-  "function math:internal/cos_x",
+  `function ${functionId(FUNCTION_PATHS.cos)}`,
   "return 1",
 ]);
 
@@ -1290,36 +1309,36 @@ function tangentResultLines(predicate, variant) {
     `execute if predicate ${predicate} run data modify storage math: error set value "undefined_tangent"`,
     `execute if predicate ${predicate} run return fail`,
     "data modify storage math:internal y set value 1.0f",
-    "function math:internal/reciprocal_x",
+    `function ${functionId(FUNCTION_PATHS.reciprocal)}`,
     "data modify storage math:internal z set compute default math:common/input/x",
     "data modify storage math: ans set compute default math:tan/00",
     "return 1",
   ];
 }
 
-function trigWrapper(name, kernel, degrees, zeroResult) {
+function trigWrapper(name, kernelPath, isTangent, degrees, zeroResult) {
   const lines = validationLines(["a"]);
   lines.push("data modify storage math:internal x set from storage math: a");
   if (degrees) lines.push("data modify storage math:internal x set compute default math:common/conversion/rad");
   lines.push(`execute if data storage math:internal {x:0.0f} run data modify storage math: ans set ${zeroResult}`);
   lines.push("execute if data storage math:internal {x:0.0f} run return 1");
-  if (kernel === "tan_x") {
-    lines.push("function math:internal/tan_x");
+  if (isTangent) {
+    lines.push(`function ${functionId(kernelPath)}`);
     const variant = degrees ? "degrees" : "radians";
     lines.push(...tangentResultLines(`math:internal/tan/undefined_${variant}`, variant));
   } else {
-    lines.push(`function math:internal/${kernel}`);
+    lines.push(`function ${functionId(kernelPath)}`);
     lines.push("data modify storage math: ans set compute default math:common/input/x");
     lines.push("return 1");
   }
-  emitFunction(name, lines);
+  emitPublicFunction(name, lines);
 }
 
 for (const degrees of [false, true]) {
   const suffix = degrees ? "_degrees" : "";
-  trigWrapper(`sin${suffix}`, "sin_x", degrees, "compute default math:common/input/x");
-  trigWrapper(`cos${suffix}`, "cos_x", degrees, "value 1.0f");
-  trigWrapper(`tan${suffix}`, "tan_x", degrees, "compute default math:common/input/x");
+  trigWrapper(`sin${suffix}`, FUNCTION_PATHS.sin, false, degrees, "compute default math:common/input/x");
+  trigWrapper(`cos${suffix}`, FUNCTION_PATHS.cos, false, degrees, "value 1.0f");
+  trigWrapper(`tan${suffix}`, FUNCTION_PATHS.tan, true, degrees, "compute default math:common/input/x");
 }
 
 {
@@ -1330,7 +1349,7 @@ for (const degrees of [false, true]) {
   lines.push("execute if predicate math:internal/range/negative run data modify storage math: ans set value -1.0f");
   lines.push("execute if predicate math:internal/range/positive run data modify storage math: ans set value 1.0f");
   lines.push("return 1");
-  emitFunction("sign", lines);
+  emitPublicFunction("sign", lines);
 }
 
 {
@@ -1344,7 +1363,7 @@ for (const degrees of [false, true]) {
   lines.push("execute if predicate math:internal/range/min_greater_than_max run return fail");
   lines.push("data modify storage math: ans set compute default math:common/comparison/clamp");
   lines.push("return 1");
-  emitFunction("clamp", lines);
+  emitPublicFunction("clamp", lines);
 }
 
 function generate(targetRoot) {
@@ -1365,6 +1384,8 @@ function generate(targetRoot) {
   }
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "number_provider", "reciprocal"), { recursive: true, force: true });
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "number_provider", "divide.json"), { force: true });
+  fs.rmSync(path.join(targetRoot, "Math", "data", "math", "function", "internal"), { recursive: true, force: true });
+  fs.rmSync(path.join(targetRoot, "Math", "data", "math", "function", "common"), { recursive: true, force: true });
   for (const file of generatedFiles) {
     if (file.kind === "json") {
       writeGeneratedJson(targetRoot, file.relativePath.replace(/\.json$/, ""), file.value);

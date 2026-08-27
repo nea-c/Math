@@ -5,6 +5,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { PUBLIC_FUNCTION_NAMES } from "../tools/function-layout.mjs";
 
 function repositorySnapshot(root) {
   const snapshot = new Map();
@@ -268,6 +269,14 @@ function validatePackGraph(packRoot) {
           scanCommand(tokenizeCommand(rawLine), 0, file, `:${index + 1}`);
         });
       });
+      visitFiles(path.join(namespaceRoot, "tags", "function"), ".json", (file) => {
+        const tag = JSON.parse(fs.readFileSync(file, "utf8"));
+        assert.ok(Array.isArray(tag.values), `${relativeSource(file)}: values must be an array`);
+        tag.values.forEach((value, index) => {
+          assert.equal(typeof value, "string", `${relativeSource(file)}:values[${index}] must be a string`);
+          checkReference("function", value, file, `:values[${index}]`);
+        });
+      });
     }
   }
   return issues.sort();
@@ -336,6 +345,7 @@ test("pack graph validator detects controlled dangling registry references", () 
       "# function math:missing/comment",
       "",
     ].join("\n"));
+    write("data/math/tags/function/fixture.json", { values: ["math:missing/entry"] });
 
     assert.deepEqual(new Set(validatePackGraph(packRoot)), new Set([
       "data/math/function/fixture/root.mcfunction:1: dangling function math:missing/direct_function",
@@ -365,6 +375,7 @@ test("pack graph validator detects controlled dangling registry references", () 
       "data/math/predicate/fixture/value_check.json:range.max: dangling number_provider math:missing/range_max",
       "data/math/predicate/fixture/value_check.json:range.min: dangling number_provider math:missing/range_min",
       "data/math/predicate/fixture/value_check.json:value: dangling number_provider math:missing/value",
+      "data/math/tags/function/fixture.json:values[0]: dangling function math:missing/entry",
     ]));
   } finally {
     fs.rmSync(packRoot, { recursive: true, force: true });
@@ -389,23 +400,50 @@ test("release pack excludes prototype debug functions", () => {
   assert.deepEqual(debugFunctions, []);
 });
 
-test("function tags expose every public function and exclude internal functions", () => {
+test("function tags expose every public function in the generated function layout", () => {
   const functionRoot = path.join("Math", "data", "math", "function");
   const tagRoot = path.join("Math", "data", "math", "tags", "function");
   assert.equal(fs.existsSync(tagRoot), true, "public function tag directory must exist");
-  const publicFunctions = fs.readdirSync(functionRoot, { withFileTypes: true })
-    .filter((entry) => entry.isFile() && entry.name.endsWith(".mcfunction"))
-    .map((entry) => entry.name.slice(0, -".mcfunction".length))
-    .sort();
   const tags = fs.readdirSync(tagRoot, { recursive: true, withFileTypes: true })
     .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
     .map((entry) => path.relative(tagRoot, path.join(entry.parentPath, entry.name)).replaceAll("\\", "/"))
     .sort();
 
-  assert.deepEqual(tags, publicFunctions.map((name) => `${name}.json`));
-  for (const name of publicFunctions) {
+  assert.deepEqual(tags, PUBLIC_FUNCTION_NAMES.map((name) => `${name}.json`).sort());
+  for (const name of PUBLIC_FUNCTION_NAMES) {
     const tag = JSON.parse(fs.readFileSync(path.join(tagRoot, `${name}.json`), "utf8"));
-    assert.deepEqual(tag, { values: [`math:${name}`] }, name);
+    assert.deepEqual(tag, { values: [`math:${name}/0.start`] }, name);
+  }
+
+  assert.equal(fs.existsSync(path.join(functionRoot, "internal")), false);
+  assert.equal(fs.existsSync(path.join(functionRoot, "common")), false);
+  assert.deepEqual(
+    fs.readdirSync(functionRoot, { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".mcfunction")),
+    [],
+  );
+
+  const functionDirectories = [
+    ...PUBLIC_FUNCTION_NAMES.map((name) => path.join(functionRoot, name)),
+    ...fs.readdirSync(path.join(functionRoot, ".common"), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => path.join(functionRoot, ".common", entry.name)),
+  ];
+  for (const directory of functionDirectories) {
+    const relative = path.relative(functionRoot, directory).replaceAll("\\", "/");
+    assert.ok(fs.existsSync(directory), `${relative} must exist`);
+    assert.ok(relative.split("/").length <= 2, `${relative} exceeds the permitted function directory depth`);
+    const files = fs.readdirSync(directory, { withFileTypes: true });
+    assert.deepEqual(files.filter((entry) => entry.isDirectory()), [], `${relative} must be a leaf directory`);
+    assert.ok(files.some((entry) => entry.name === "0.start.mcfunction"), `${relative} must contain 0.start.mcfunction`);
+    const numericPrefixes = new Set();
+    for (const entry of files) {
+      assert.ok(entry.isFile(), `${relative}/${entry.name} must be a function file`);
+      assert.match(entry.name, /^\d+\.[a-z0-9_]+\.mcfunction$/);
+      const prefix = entry.name.split(".", 1)[0];
+      assert.equal(numericPrefixes.has(prefix), false, `${relative} repeats numeric prefix ${prefix}`);
+      numericPrefixes.add(prefix);
+    }
   }
 });
 
