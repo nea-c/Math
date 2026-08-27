@@ -1399,9 +1399,9 @@ function check() {
       throw new Error("tools/generated-math-files.json does not match the generated provider paths");
     }
     for (const relativePath of expectedPaths) {
-      const expected = fs.readFileSync(path.join(tempRoot, ...relativePath.split("/")));
-      const actual = fs.readFileSync(path.join(root, ...relativePath.split("/")));
-      if (!actual.equals(expected)) {
+      const expected = fs.readFileSync(path.join(tempRoot, ...relativePath.split("/")), "utf8");
+      const actual = fs.readFileSync(path.join(root, ...relativePath.split("/")), "utf8");
+      if (actual.replaceAll("\r\n", "\n") !== expected.replaceAll("\r\n", "\n")) {
         throw new Error(`Generated provider differs: ${relativePath}`);
       }
     }
