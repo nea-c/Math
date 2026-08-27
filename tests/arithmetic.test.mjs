@@ -31,6 +31,13 @@ function runStagedReciprocal(input) {
   return result.storage["math:internal"].x;
 }
 
+function floatFromBits(bits) {
+  const bytes = new ArrayBuffer(4);
+  const view = new DataView(bytes);
+  view.setUint32(0, bits >>> 0);
+  return view.getFloat32(0);
+}
+
 function floatMagnitudeParts(value) {
   const bytes = new ArrayBuffer(4);
   const view = new DataView(bytes);
@@ -227,6 +234,81 @@ test("coordinated division preserves precision across deterministic binary32 ope
 
   t.diagnostic(`maximum normal relative division error ${maximumNormalRelativeError} at ${worstNormalCase}`);
   t.diagnostic(`maximum subnormal division error ${maximumSubnormalUlpError} min-subnormal ULP at ${worstSubnormalCase}`);
+});
+
+test("divide classifies top-exponent rounding overflow without using its approximate answer", () => {
+  const numerators = [0x7f7ffffd, 0x7f7ffffe, 0x7f7fffff].map(floatFromBits);
+  const divisors = [0x3f7fffff, 0x3f800000, 0x3f800001, 0x3f800002].map(floatFromBits);
+  let finiteCases = 0;
+  let overflowCases = 0;
+
+  for (const numerator of numerators) {
+    for (const divisor of divisors) {
+      for (const numeratorSign of [1, -1]) {
+        for (const divisorSign of [1, -1]) {
+          const a = Math.fround(numeratorSign * numerator);
+          const b = Math.fround(divisorSign * divisor);
+          const expected = Math.fround(a / b);
+          const result = runFunction("divide", { a, b, ans: 91, error: "stale_error" });
+          if (!Number.isFinite(expected)) {
+            overflowCases += 1;
+            assert.equal(result.returned, 0, `divide(${a}, ${b}) overflow must fail`);
+            assert.equal(result.storage["math:"].ans, undefined);
+            assert.equal(result.storage["math:"].error, "result_out_of_range");
+          } else {
+            finiteCases += 1;
+            assert.equal(result.returned, 1, `divide(${a}, ${b}) must succeed`);
+            assert.ok(Number.isFinite(result.storage["math:"].ans));
+            assert.ok(Math.abs((result.storage["math:"].ans - expected) / expected) <= 0.00001);
+            assert.equal(result.storage["math:"].error, undefined);
+          }
+          assert.equal(result.storage["math:"].a, a);
+          assert.equal(result.storage["math:"].b, b);
+        }
+      }
+    }
+  }
+
+  assert.ok(finiteCases > 0, "grid must include adjacent finite quotients");
+  assert.ok(overflowCases > 0, "grid must include adjacent overflowing quotients");
+});
+
+test("divide stays within one min-subnormal ULP on a 12,288-case boundary grid", (t) => {
+  const numerators = [0x007fffff, 0x00800000, 0x00800001].map(floatFromBits);
+  const denominatorBits = [];
+  const seen = new Set();
+  for (let index = 0; denominatorBits.length < 4096; index += 1) {
+    const mantissa = (0x5805 + Math.imul(index, 0x1f123b)) & 0x7fffff;
+    const bits = 0x3f800000 | mantissa;
+    if (seen.has(bits)) continue;
+    seen.add(bits);
+    denominatorBits.push(bits);
+  }
+
+  let cases = 0;
+  let overOneUlp = 0;
+  let maximumUlpError = 0;
+  let worstCase = "";
+  for (const a of numerators) {
+    for (const bits of denominatorBits) {
+      const b = floatFromBits(bits);
+      const expected = Math.fround(a / b);
+      const result = runFunction("divide", { a, b });
+      assert.equal(result.returned, 1, `divide(${a}, ${b}) must succeed`);
+      const actual = result.storage["math:"].ans;
+      const ulpError = Math.abs(actual - expected) / smallestFloat;
+      if (ulpError > 1) overOneUlp += 1;
+      if (ulpError > maximumUlpError) {
+        maximumUlpError = ulpError;
+        worstCase = `0x${bits.toString(16)}: ${actual} versus ${expected}`;
+      }
+      cases += 1;
+    }
+  }
+
+  assert.equal(cases, 12_288);
+  t.diagnostic(`${overOneUlp} cases exceeded one ULP; maximum ${maximumUlpError} at ${worstCase}`);
+  assert.ok(maximumUlpError <= 1, `${overOneUlp} grid cases exceeded one min-subnormal ULP; maximum ${maximumUlpError} at ${worstCase}`);
 });
 
 test("rounding wrappers honor signed half boundaries and the float integer limit", () => {

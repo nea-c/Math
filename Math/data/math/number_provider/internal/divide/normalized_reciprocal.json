@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    0.5,
+    "math:internal/reciprocal/newton/03/00"
+  ]
+}

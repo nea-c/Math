@@ -6,10 +6,11 @@
       "value": {
         "type": "minecraft:storage",
         "storage": "math:internal",
-        "path": "w_comparison.predicate.divide_result_finite.minimum"
+        "path": "w_comparison.predicate.divide_exponent_at_overflow_boundary.value"
       },
       "range": {
-        "min": 0
+        "min": 0,
+        "max": 0
       }
     },
     {
@@ -17,10 +18,10 @@
       "value": {
         "type": "minecraft:storage",
         "storage": "math:internal",
-        "path": "w_comparison.predicate.divide_result_finite.maximum"
+        "path": "w_comparison.predicate.divide_significand_at_or_above_overflow_boundary.minimum"
       },
       "range": {
-        "max": 0
+        "min": 0
       }
     }
   ]

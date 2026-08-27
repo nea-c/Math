@@ -344,10 +344,31 @@ emit("internal/reciprocal/normalized_at_scale_limit", product(
 ));
 const divideAMantissa = storage("math:internal", "w_divide_a_mantissa");
 const divideAExponent = storage("math:internal", "w_divide_a_exponent");
+const divideBMantissa = storage("math:internal", "w_divide_b_mantissa");
 const divideBExponent = storage("math:internal", "w_divide_b_exponent");
+const divideExponent = storage("math:internal", "w_divide_exponent");
 const divideSign = storage("math:internal", "w_divide_sign");
+const divideReciprocal = storage("math:internal", "w_divide_reciprocal");
+const divideQuotient = storage("math:internal", "w_divide_quotient");
+const divideProductHigh = storage("math:internal", "w_divide_product_high");
+const divideProductLow = storage("math:internal", "w_divide_product_low");
+const divideResidualHigh = storage("math:internal", "w_divide_residual_high");
+const divideResidualLow = storage("math:internal", "w_divide_residual_low");
 emit("internal/divide/normalize/increment_exponent", sum(y, 1));
 emit("internal/divide/normalize/decrement_exponent", sum(y, -1));
+emit("internal/divide/normalized_reciprocal", product(0.5, stagedReciprocalEstimate));
+emit("internal/divide/product/high", product(divideBMantissa, divideQuotient));
+emit("internal/divide/product/low", twoProductLow(divideBMantissa, divideQuotient));
+emit("internal/divide/residual/high", subtractExpression(divideAMantissa, divideProductHigh));
+emit("internal/divide/residual/low", sum(
+  twoSumLow(divideAMantissa, product(-1, divideProductHigh)),
+  product(-1, divideProductLow),
+));
+emit("internal/divide/correction", product(
+  sum(divideResidualHigh, divideResidualLow),
+  divideReciprocal,
+));
+emit("internal/divide/refined_quotient", sum(divideQuotient, "math:internal/divide/correction"));
 emit("internal/divide/exponent_difference", sum(divideAExponent, product(-1, divideBExponent)));
 emit("internal/divide/flip_sign", product(-1, divideSign));
 emit("internal/divide/result", product(
@@ -551,9 +572,17 @@ emitStagedPredicate(
 emitStagedPredicate("divide/exact_equal", sum(publicA, product(-1, publicB)), 0, 0);
 emitStagedPredicate("divide/a_negative", publicA, undefined, smallestNegativeFloat);
 emitStagedPredicate("divide/b_negative", publicB, undefined, smallestNegativeFloat);
-emitStagedPredicate("divide/exponent_in_range", y, undefined, 127);
+emitStagedPredicate("divide/exponent_definitely_overflows", divideExponent, 129, undefined);
+emitStagedPredicate("divide/exponent_at_overflow_boundary", divideExponent, 128, 128);
+emitStagedPredicate("divide/significand_at_or_above_overflow_boundary", sum(divideAMantissa, product(-1, divideBMantissa)), 0, undefined);
+emitPredicate("divide/overflow_boundary", {
+  type: "minecraft:all_of",
+  terms: [
+    inlineValueCheck(storage("math:internal", "w_comparison.predicate.divide_exponent_at_overflow_boundary.value"), 0, 0),
+    inlineValueCheck(storage("math:internal", "w_comparison.predicate.divide_significand_at_or_above_overflow_boundary.minimum"), 0, undefined),
+  ],
+});
 emitStagedPredicate("divide/exponent_underflows", y, undefined, -151);
-emitStagedPredicate("divide/result_finite", publicAnswer, -finiteLimit, finiteLimit);
 emit("internal/comparison/x_zero", floatComparison(x, 0));
 emitPredicate("range/negative", inlineValueCheck(storage("math:internal", "w_comparison.x_sign"), undefined, -1));
 emitPredicate("range/positive", inlineValueCheck(storage("math:internal", "w_comparison.x_sign"), 1, undefined));
@@ -603,6 +632,12 @@ function validationLines(inputs) {
 emitFunction("internal/invalid_number", [
   "data remove storage math: ans",
   "data modify storage math: error set value \"invalid_number\"",
+  "return fail",
+]);
+
+emitFunction("internal/result_out_of_range", [
+  "data remove storage math: ans",
+  "data modify storage math: error set value \"result_out_of_range\"",
   "return fail",
 ]);
 
@@ -1098,18 +1133,28 @@ emitFunction("internal/power_negative", [
   lines.push("function math:internal/divide_normalize");
   lines.push("data modify storage math:internal w_divide_b_mantissa set from storage math:internal x");
   lines.push("data modify storage math:internal w_divide_b_exponent set from storage math:internal y");
-  lines.push("data modify storage math:internal y set value 1.0f");
-  lines.push("function math:internal/reciprocal_x");
+  lines.push("data modify storage math:internal w_divide_exponent set compute default math:internal/divide/exponent_difference");
+  lines.push(...stagePredicate("divide/exponent_definitely_overflows"));
+  lines.push("execute if predicate math:internal/divide/exponent_definitely_overflows run return run function math:internal/result_out_of_range");
+  lines.push(...stagePredicate("divide/exponent_at_overflow_boundary"));
+  lines.push(...stagePredicate("divide/significand_at_or_above_overflow_boundary"));
+  lines.push("execute if predicate math:internal/divide/overflow_boundary run return run function math:internal/result_out_of_range");
+  lines.push("data modify storage math:internal x set compute default math:internal/divide/normalized_reciprocal");
+  lines.push("data modify storage math:internal w_divide_reciprocal set from storage math:internal x");
   lines.push("data modify storage math:internal y set from storage math:internal w_divide_a_mantissa");
   lines.push("data modify storage math:internal x set compute default math:common/arithmetic/multiply");
-  lines.push("data modify storage math:internal y set compute default math:internal/divide/exponent_difference");
+  lines.push("data modify storage math:internal w_divide_quotient set from storage math:internal x");
+  lines.push("data modify storage math:internal w_divide_product_high set compute default math:internal/divide/product/high");
+  lines.push("data modify storage math:internal w_divide_product_low set compute default math:internal/divide/product/low");
+  lines.push("data modify storage math:internal w_divide_residual_high set compute default math:internal/divide/residual/high");
+  lines.push("data modify storage math:internal w_divide_residual_low set compute default math:internal/divide/residual/low");
+  lines.push("data modify storage math:internal x set compute default math:internal/divide/refined_quotient");
+  lines.push("data modify storage math:internal y set from storage math:internal w_divide_exponent");
   lines.push("function math:internal/divide_normalize");
-  lines.push(...resultOutOfRangeLines("math:internal/divide/exponent_in_range"));
   lines.push(...stagePredicate("divide/exponent_underflows"));
   lines.push("execute if predicate math:internal/divide/exponent_underflows run return run function math:internal/divide_underflow");
   lines.push("data modify storage math:internal z set from storage math:internal y");
   lines.push("data modify storage math: ans set compute default math:internal/divide/result");
-  lines.push(...resultOutOfRangeLines("math:internal/divide/result_finite"));
   lines.push("return 1");
   emitFunction("divide", lines);
 }

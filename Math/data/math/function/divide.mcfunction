@@ -29,23 +29,26 @@ data modify storage math:internal y set value 0.0f
 function math:internal/divide_normalize
 data modify storage math:internal w_divide_b_mantissa set from storage math:internal x
 data modify storage math:internal w_divide_b_exponent set from storage math:internal y
-data modify storage math:internal y set value 1.0f
-function math:internal/reciprocal_x
+data modify storage math:internal w_divide_exponent set compute default math:internal/divide/exponent_difference
+data modify storage math:internal w_comparison.predicate.divide_exponent_definitely_overflows.minimum set compute default math:internal/comparison/predicate/divide/exponent_definitely_overflows/minimum
+execute if predicate math:internal/divide/exponent_definitely_overflows run return run function math:internal/result_out_of_range
+data modify storage math:internal w_comparison.predicate.divide_exponent_at_overflow_boundary.value set compute default math:internal/comparison/predicate/divide/exponent_at_overflow_boundary/value
+data modify storage math:internal w_comparison.predicate.divide_significand_at_or_above_overflow_boundary.minimum set compute default math:internal/comparison/predicate/divide/significand_at_or_above_overflow_boundary/minimum
+execute if predicate math:internal/divide/overflow_boundary run return run function math:internal/result_out_of_range
+data modify storage math:internal x set compute default math:internal/divide/normalized_reciprocal
+data modify storage math:internal w_divide_reciprocal set from storage math:internal x
 data modify storage math:internal y set from storage math:internal w_divide_a_mantissa
 data modify storage math:internal x set compute default math:common/arithmetic/multiply
-data modify storage math:internal y set compute default math:internal/divide/exponent_difference
+data modify storage math:internal w_divide_quotient set from storage math:internal x
+data modify storage math:internal w_divide_product_high set compute default math:internal/divide/product/high
+data modify storage math:internal w_divide_product_low set compute default math:internal/divide/product/low
+data modify storage math:internal w_divide_residual_high set compute default math:internal/divide/residual/high
+data modify storage math:internal w_divide_residual_low set compute default math:internal/divide/residual/low
+data modify storage math:internal x set compute default math:internal/divide/refined_quotient
+data modify storage math:internal y set from storage math:internal w_divide_exponent
 function math:internal/divide_normalize
-data modify storage math:internal w_comparison.predicate.divide_exponent_in_range.maximum set compute default math:internal/comparison/predicate/divide/exponent_in_range/maximum
-execute unless predicate math:internal/divide/exponent_in_range run data remove storage math: ans
-execute unless predicate math:internal/divide/exponent_in_range run data modify storage math: error set value "result_out_of_range"
-execute unless predicate math:internal/divide/exponent_in_range run return fail
 data modify storage math:internal w_comparison.predicate.divide_exponent_underflows.maximum set compute default math:internal/comparison/predicate/divide/exponent_underflows/maximum
 execute if predicate math:internal/divide/exponent_underflows run return run function math:internal/divide_underflow
 data modify storage math:internal z set from storage math:internal y
 data modify storage math: ans set compute default math:internal/divide/result
-data modify storage math:internal w_comparison.predicate.divide_result_finite.minimum set compute default math:internal/comparison/predicate/divide/result_finite/minimum
-data modify storage math:internal w_comparison.predicate.divide_result_finite.maximum set compute default math:internal/comparison/predicate/divide/result_finite/maximum
-execute unless predicate math:internal/divide/result_finite run data remove storage math: ans
-execute unless predicate math:internal/divide/result_finite run data modify storage math: error set value "result_out_of_range"
-execute unless predicate math:internal/divide/result_finite run return fail
 return 1

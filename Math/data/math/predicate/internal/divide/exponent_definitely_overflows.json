@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:value_check",
+  "value": {
+    "type": "minecraft:storage",
+    "storage": "math:internal",
+    "path": "w_comparison.predicate.divide_exponent_definitely_overflows.minimum"
+  },
+  "range": {
+    "min": 0
+  }
+}

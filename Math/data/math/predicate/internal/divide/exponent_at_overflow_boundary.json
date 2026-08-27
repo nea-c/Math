@@ -3,9 +3,10 @@
   "value": {
     "type": "minecraft:storage",
     "storage": "math:internal",
-    "path": "w_comparison.predicate.divide_exponent_in_range.maximum"
+    "path": "w_comparison.predicate.divide_exponent_at_overflow_boundary.value"
   },
   "range": {
+    "min": 0,
     "max": 0
   }
 }

@@ -172,6 +172,14 @@ try {
         'data modify storage math: a set value 1.1754943508222875E-38f'
         'data modify storage math: b set value 1.401298464324817E-45f'
     )
+    Add-SuccessCase -Case 'subnormal_divide_precision' -Function 'divide' -ExpectedAnswer '1.1723450726535639E-38f' -Setup @(
+        'data modify storage math: a set value 1.1754942106924411E-38f'
+        'data modify storage math: b set value 1.0026861429214478f'
+    )
+    Add-SuccessCase -Case 'top_finite_divide' -Function 'divide' -ExpectedAnswer '3.4028234663852886E38f' -Setup @(
+        'data modify storage math: a set value 3.4028234663852886E38f'
+        'data modify storage math: b set value 1.0f'
+    )
     Add-SuccessCase -Case 'round' -Function 'round' -ExpectedAnswer '-1.0f' -Setup @(
         'data modify storage math: a set value -1.5f'
     )
@@ -224,6 +232,15 @@ try {
     Add-Guard -Condition 'unless score #return math_test matches 0' -Case 'reciprocal_overflow_return'
     Add-Guard -Condition 'if data storage math: ans' -Case 'reciprocal_overflow_stale_answer'
     Add-Guard -Condition 'unless data storage math: {error:"result_out_of_range"}' -Case 'reciprocal_overflow_error'
+
+    $assertionCommands.Add('data modify storage math: a set value 3.4028234663852886E38f')
+    $assertionCommands.Add('data modify storage math: b set value 0.99999994039535522f')
+    $assertionCommands.Add('data modify storage math: ans set value 99.0f')
+    $assertionCommands.Add('data modify storage math: error set value "stale_error"')
+    $assertionCommands.Add('execute store result score #return math_test run function math:divide')
+    Add-Guard -Condition 'unless score #return math_test matches 0' -Case 'divide_top_overflow_return'
+    Add-Guard -Condition 'if data storage math: ans' -Case 'divide_top_overflow_stale_answer'
+    Add-Guard -Condition 'unless data storage math: {error:"result_out_of_range"}' -Case 'divide_top_overflow_error'
     $assertionCommands.Add("say $passMarker")
     Set-Content -LiteralPath (Join-Path $assertionFunctionRoot 'run.mcfunction') -Encoding utf8 -Value $assertionCommands
 
