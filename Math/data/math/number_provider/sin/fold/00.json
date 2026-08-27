@@ -1,0 +1,72 @@
+{
+  "type": "minecraft:number_dispatcher",
+  "cases": [
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "z"
+        },
+        "range": {
+          "min": -3.4028234663852886e+38,
+          "max": -1.5707963705062866
+        }
+      },
+      "number_provider": {
+        "type": "minecraft:sum",
+        "operands": [
+          -3.1415927410125732,
+          {
+            "type": "minecraft:product",
+            "operands": [
+              -1,
+              {
+                "type": "minecraft:storage",
+                "storage": "math:internal",
+                "path": "z"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "z"
+        },
+        "range": {
+          "min": 1.5707963705062866,
+          "max": 3.4028234663852886e+38
+        }
+      },
+      "number_provider": {
+        "type": "minecraft:sum",
+        "operands": [
+          3.1415927410125732,
+          {
+            "type": "minecraft:product",
+            "operands": [
+              -1,
+              {
+                "type": "minecraft:storage",
+                "storage": "math:internal",
+                "path": "z"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "default": {
+    "type": "minecraft:storage",
+    "storage": "math:internal",
+    "path": "z"
+  }
+}

@@ -554,3 +554,223 @@ test("negative-infinity power intermediates underflow to correctly signed zero",
     assert.equal(result.storage["math:"].b, b);
   }
 });
+
+function adjacentFloats(value) {
+  const rounded = Math.fround(value);
+  const bits = bitsFromFloat(rounded);
+  if (rounded > 0) return [floatFromBits(bits - 1), rounded, floatFromBits(bits + 1)];
+  if (rounded < 0) return [floatFromBits(bits + 1), rounded, floatFromBits(bits - 1)];
+  return [-smallestFloat, rounded, smallestFloat];
+}
+
+function assertTrigValue(name, input, reference, tolerance = 0.00001) {
+  const actual = assertSuccessfulUnary(name, input);
+  const expected = reference(input);
+  const absoluteError = Math.abs(actual - expected);
+  assert.ok(
+    absoluteError <= tolerance,
+    `${name}(${input}) produced ${actual}, expected ${expected}, absolute error ${absoluteError}`,
+  );
+  return absoluteError;
+}
+
+function deterministicAngles(minimum, maximum, count, seed) {
+  const values = [];
+  let state = seed >>> 0;
+  for (let index = 0; index < count; index += 1) {
+    state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;
+    values.push(Math.fround(minimum + (state / 0x1_0000_0000) * (maximum - minimum)));
+  }
+  return values;
+}
+
+test("trigonometric generated graphs use shared-kernel responsibility directories", () => {
+  for (const provider of [
+    "sin/00.json",
+    "sin/fold/00.json",
+    "sin/polynomial/00.json",
+    "cos/00.json",
+    "tan/00.json",
+  ]) {
+    assert.ok(fs.existsSync(path.join("Math/data/math/number_provider", provider)), `missing ${provider}`);
+  }
+  assert.ok(fs.existsSync("Math/data/math/predicate/internal/tan/undefined.json"));
+});
+
+test("sine and cosine snap exact axes and preserve signed zero", () => {
+  const pi = Math.fround(Math.PI);
+  for (const [name, input, expected, negativeZero = false] of [
+    ["sin", 0, 0],
+    ["sin", -0, -0, true],
+    ["sin", Math.fround(pi / 2), 1],
+    ["sin", Math.fround(-pi / 2), -1],
+    ["sin", pi, 0],
+    ["cos", 0, 1],
+    ["cos", -0, 1],
+    ["cos", Math.fround(pi / 2), 0],
+    ["cos", Math.fround(-pi / 2), 0],
+    ["cos", pi, -1],
+    ["sin_degrees", 0, 0],
+    ["sin_degrees", -0, -0, true],
+    ["sin_degrees", 90, 1],
+    ["sin_degrees", -90, -1],
+    ["sin_degrees", 180, 0],
+    ["cos_degrees", 0, 1],
+    ["cos_degrees", 90, 0],
+    ["cos_degrees", -90, 0],
+    ["cos_degrees", 180, -1],
+  ]) {
+    const actual = assertSuccessfulUnary(name, input);
+    assert.equal(actual, expected, `${name}(${input}) exact result`);
+    if (expected === 0) assert.equal(Object.is(actual, -0), negativeZero, `${name}(${input}) zero sign`);
+  }
+});
+
+test("radian sine and cosine meet the guaranteed domain including quadrant-adjacent floats", (t) => {
+  const values = new Set();
+  for (let index = 0; index <= 1600; index += 1) values.add(Math.fround(-100 + index * 0.125));
+  for (const value of deterministicAngles(-100, 100, 2_000, 0x13198a2e)) values.add(value);
+  for (let quadrant = -63; quadrant <= 63; quadrant += 1) {
+    const boundary = Math.fround(quadrant * (Math.PI / 2));
+    for (const value of adjacentFloats(boundary)) {
+      if (value >= -100 && value <= 100) values.add(value);
+    }
+  }
+
+  let maximumSinError = 0;
+  let maximumCosError = 0;
+  let worstSin;
+  let worstCos;
+  for (const value of values) {
+    const sinError = assertTrigValue("sin", value, Math.sin);
+    const cosError = assertTrigValue("cos", value, Math.cos);
+    if (sinError > maximumSinError) [maximumSinError, worstSin] = [sinError, value];
+    if (cosError > maximumCosError) [maximumCosError, worstCos] = [cosError, value];
+  }
+
+  t.diagnostic(`${values.size} radian samples; max sin error ${maximumSinError} at ${worstSin}; max cos error ${maximumCosError} at ${worstCos}`);
+});
+
+test("degree sine and cosine meet the guaranteed domain including quadrant-adjacent floats", (t) => {
+  const values = new Set();
+  for (let index = 0; index <= 2000; index += 1) values.add(Math.fround(-5000 + index * 5));
+  for (const value of deterministicAngles(-5000, 5000, 2_000, 0xa4093822)) values.add(value);
+  for (let quadrant = -55; quadrant <= 55; quadrant += 1) {
+    for (const value of adjacentFloats(Math.fround(quadrant * 90))) values.add(value);
+  }
+
+  let maximumSinError = 0;
+  let maximumCosError = 0;
+  let worstSin;
+  let worstCos;
+  for (const value of values) {
+    const radians = value * Math.PI / 180;
+    const sinError = assertTrigValue("sin_degrees", value, () => Math.sin(radians));
+    const cosError = assertTrigValue("cos_degrees", value, () => Math.cos(radians));
+    if (sinError > maximumSinError) [maximumSinError, worstSin] = [sinError, value];
+    if (cosError > maximumCosError) [maximumCosError, worstCos] = [cosError, value];
+  }
+
+  t.diagnostic(`${values.size} degree samples; max sin error ${maximumSinError} at ${worstSin}; max cos error ${maximumCosError} at ${worstCos}`);
+});
+
+test("tangent is accurate away from poles and rejects the documented cosine threshold", (t) => {
+  let checked = 0;
+  let maximumAbsoluteError = 0;
+  let maximumScaledError = 0;
+  let worstCase;
+  for (const [name, minimum, maximum, seed, degrees] of [
+    ["tan", -100, 100, 0x299f31d0, false],
+    ["tan_degrees", -5000, 5000, 0x082efa98, true],
+  ]) {
+    for (const input of deterministicAngles(minimum, maximum, 2_000, seed)) {
+      const radians = degrees ? input * Math.PI / 180 : input;
+      if (Math.abs(Math.cos(radians)) < 0.25) continue;
+      const actual = assertSuccessfulUnary(name, input);
+      const expected = Math.tan(radians);
+      const absoluteError = Math.abs(actual - expected);
+      const scaledError = absoluteError / Math.max(1, Math.abs(expected));
+      assert.ok(scaledError <= 0.00005, `${name}(${input}) scaled error ${scaledError}`);
+      if (absoluteError > maximumAbsoluteError) [maximumAbsoluteError, worstCase] = [absoluteError, [name, input]];
+      maximumScaledError = Math.max(maximumScaledError, scaledError);
+      checked += 1;
+    }
+  }
+
+  const poleCases = [];
+  for (let quadrant = -63; quadrant <= 63; quadrant += 2) {
+    for (const input of adjacentFloats(Math.fround(quadrant * (Math.PI / 2)))) {
+      if (input >= -100 && input <= 100) poleCases.push(["tan", input]);
+    }
+  }
+  for (let quadrant = -55; quadrant <= 55; quadrant += 2) {
+    for (const input of adjacentFloats(Math.fround(quadrant * 90))) poleCases.push(["tan_degrees", input]);
+  }
+  const thresholdOffset = Math.asin(0.00001);
+  for (const direction of [-1, 1]) {
+    for (const input of adjacentFloats(Math.fround(Math.PI / 2 + direction * thresholdOffset))) {
+      if (Math.abs(Math.cos(input)) <= 0.00001) poleCases.push(["tan", input]);
+    }
+    const degreeBoundary = Math.fround(90 + direction * thresholdOffset * 180 / Math.PI);
+    for (const input of adjacentFloats(degreeBoundary)) {
+      if (Math.abs(Math.cos(input * Math.PI / 180)) <= 0.00001) poleCases.push(["tan_degrees", input]);
+    }
+  }
+  for (const [name, input] of poleCases) {
+    const result = runFunction(name, { a: input, ans: 91, error: "stale_error" });
+    assert.equal(result.returned, 0, `${name}(${input}) must reject pole`);
+    assert.equal(result.storage["math:"].ans, undefined);
+    assert.equal(result.storage["math:"].error, "undefined_tangent");
+    assert.equal(result.storage["math:"].a, input);
+    assert.ok(Object.keys(result.storage["math:internal"]).every((field) => ["x", "y", "z", "w"].includes(field)));
+  }
+
+  for (const [name, input] of [
+    ["tan", Math.fround(Math.PI / 2 - 0.00004)],
+    ["tan", Math.fround(Math.PI / 2 + 0.00004)],
+    ["tan_degrees", Math.fround(90 - 0.00004 * 180 / Math.PI)],
+    ["tan_degrees", Math.fround(90 + 0.00004 * 180 / Math.PI)],
+  ]) {
+    const result = runFunction(name, { a: input, ans: 91, error: "stale_error" });
+    assert.equal(result.returned, 1, `${name}(${input}) outside conservative pole band`);
+    assert.ok(Number.isFinite(result.storage["math:"].ans));
+    assert.equal(result.storage["math:"].error, undefined);
+  }
+
+  for (const [name, input] of [["tan", 0], ["tan", -0], ["tan_degrees", 0], ["tan_degrees", -0]]) {
+    const actual = assertSuccessfulUnary(name, input);
+    assert.equal(actual, input);
+    assert.equal(Object.is(actual, -0), Object.is(input, -0));
+  }
+
+  t.diagnostic(`${checked} away-from-pole tangent samples; max absolute error ${maximumAbsoluteError} at ${worstCase}; max scaled error ${maximumScaledError}; ${poleCases.length} pole-adjacent rejects`);
+});
+
+test("trigonometric wrappers reject non-finite inputs and accept usable larger finite phases", () => {
+  for (const name of ["sin", "cos", "tan", "sin_degrees", "cos_degrees", "tan_degrees"]) {
+    for (const input of [Infinity, -Infinity, NaN]) {
+      const result = runFunction(name, { a: input, ans: 91, error: "stale_error" });
+      assert.equal(result.returned, 0, `${name}(${input}) must fail`);
+      assert.equal(result.storage["math:"].ans, undefined);
+      assert.equal(result.storage["math:"].error, "invalid_number");
+      assert.deepEqual(result.storage["math:"].a, input);
+    }
+  }
+
+  for (const [name, inputs] of [
+    ["sin", [1_000, -1_000, 1_000_000]],
+    ["cos", [1_000, -1_000, 1_000_000]],
+    ["tan", [1_000, -1_000, 1_000_000]],
+    ["sin_degrees", [10_000, -10_000, 1_000_000]],
+    ["cos_degrees", [10_000, -10_000, 1_000_000]],
+    ["tan_degrees", [10_000, -10_000, 1_000_000]],
+  ]) {
+    for (const input of inputs) {
+      const result = runFunction(name, { a: Math.fround(input), error: "stale_error" });
+      assert.equal(result.returned, 1, `${name}(${input}) must retain a usable finite phase`);
+      assert.ok(Number.isFinite(result.storage["math:"].ans), `${name}(${input}) must return finite ans`);
+      assert.equal(result.storage["math:"].error, undefined);
+      assert.equal(result.storage["math:"].a, Math.fround(input));
+    }
+  }
+});

@@ -20,6 +20,9 @@ const largestSubnormalFloat = Math.fround(2 ** -126 - 2 ** -149);
 const smallestFiniteReciprocalInput = Math.fround(2 ** -128 + 2 ** -149);
 const maximumFiniteExpInput = Math.fround(88.72283172607422);
 const maximumZeroExpInput = Math.fround(-103.97208404541016);
+const pi = Math.fround(Math.PI);
+const halfPi = Math.fround(Math.PI / 2);
+const tau = Math.fround(Math.PI * 2);
 const powerOverflowLogThreshold = Math.log((2 - 2 ** -24) * 2 ** 127);
 const powerOverflowThresholdHigh = Math.fround(powerOverflowLogThreshold);
 const powerOverflowThresholdLow = Math.fround(powerOverflowLogThreshold - powerOverflowThresholdHigh);
@@ -111,6 +114,15 @@ function previousPositiveFloat(value) {
   return view.getFloat32(0);
 }
 
+function nextPositiveFloat(value) {
+  const rounded = Math.fround(value);
+  const buffer = new ArrayBuffer(4);
+  const view = new DataView(buffer);
+  view.setFloat32(0, rounded);
+  view.setUint32(0, view.getUint32(0) + 1);
+  return view.getFloat32(0);
+}
+
 function chunk(values, size) {
   const chunks = [];
   for (let index = 0; index < values.length; index += size) {
@@ -142,6 +154,54 @@ emit("common/rounding/quotient", product(x, w));
 emit("common/rounding/reduce", sum(w, product(-1, z, y)));
 emit("common/rounding/double_y", product(2, y));
 emit("common/rounding/half_y", product(0.5, y));
+
+const sineC3 = Math.fround(-1 / 6);
+const sineC5 = Math.fround(1 / 120);
+const sineC7 = Math.fround(-1 / 5040);
+const sineC9 = Math.fround(1 / 362880);
+const halfPiPrevious = previousPositiveFloat(halfPi);
+const halfPiNext = nextPositiveFloat(halfPi);
+emit("sin/fold/00", numberDispatcher([
+  {
+    condition: inlineValueCheck(z, -finiteLimit, -halfPi),
+    number_provider: sum(-pi, product(-1, z)),
+  },
+  {
+    condition: inlineValueCheck(z, halfPi, finiteLimit),
+    number_provider: sum(pi, product(-1, z)),
+  },
+], z));
+emit("sin/polynomial/00", product(
+  x,
+  sum(
+    1,
+    product(
+      x,
+      x,
+      sum(
+        sineC3,
+        product(
+          x,
+          x,
+          sum(
+            sineC5,
+            product(
+              x,
+              x,
+              sum(sineC7, product(x, x, sineC9)),
+            ),
+          ),
+        ),
+      ),
+    ),
+  ),
+));
+emit("sin/00", numberDispatcher([
+  { condition: inlineValueCheck(x, halfPiPrevious, halfPiNext), number_provider: 1 },
+  { condition: inlineValueCheck(x, -halfPiNext, -halfPiPrevious), number_provider: -1 },
+], "math:sin/polynomial/00"));
+emit("cos/00", sum(x, halfPi));
+emit("tan/00", product(publicAnswer, z));
 
 const reciprocalAbsolute = "math:common/reciprocal/normalize/absolute/00";
 const reciprocalMantissa = "math:common/reciprocal/normalize/mantissa/00";
@@ -457,6 +517,15 @@ emitPredicate("reciprocal/zero", {
   type: "minecraft:value_check",
   value: x,
   range: { min: 0, max: 0 },
+});
+emitPredicate("tan/undefined", {
+  type: "minecraft:value_check",
+  value: maximum(x, product(-1, x)),
+  // The public cosine contract permits 1e-5 absolute approximation error.
+  // A 2e-5 computed guard therefore guarantees rejection whenever the true
+  // reduced cosine is at most 1e-5; it can conservatively reject true cosine
+  // magnitudes only through 3e-5.
+  range: { max: 0.00002 },
 });
 emitPredicate("square_root/zero", {
   type: "minecraft:value_check",
@@ -1011,6 +1080,61 @@ emitFunction("internal/normalize_period", [
   "data modify storage math:internal z set compute default math:common/rounding/reduce",
   "return 1",
 ]);
+
+emitFunction("internal/sin_x", [
+  "data modify storage math:internal y set compute default math:common/constant/tau",
+  "function math:internal/normalize_period",
+  "data modify storage math:internal x set compute default math:sin/fold/00",
+  "data modify storage math:internal x set compute default math:sin/00",
+  "return 1",
+]);
+
+emitFunction("internal/cos_x", [
+  "data modify storage math:internal y set compute default math:common/constant/tau",
+  "function math:internal/normalize_period",
+  "data modify storage math:internal x set from storage math:internal z",
+  "data modify storage math:internal x set compute default math:cos/00",
+  "data modify storage math:internal z set from storage math:internal x",
+  "data modify storage math:internal x set compute default math:sin/fold/00",
+  "data modify storage math:internal x set compute default math:sin/00",
+  "return 1",
+]);
+
+emitFunction("internal/tan_x", [
+  "function math:internal/sin_x",
+  "data modify storage math: ans set compute default math:common/input/x",
+  "data modify storage math:internal x set from storage math:internal w",
+  "function math:internal/cos_x",
+  "execute if predicate math:internal/tan/undefined run data remove storage math: ans",
+  "execute if predicate math:internal/tan/undefined run data modify storage math: error set value \"undefined_tangent\"",
+  "execute if predicate math:internal/tan/undefined run return fail",
+  "data modify storage math:internal z set compute default math:common/reciprocal/00",
+  "data modify storage math: ans set compute default math:tan/00",
+  "return 1",
+]);
+
+function trigWrapper(name, kernel, degrees, zeroResult) {
+  const lines = validationLines(["a"]);
+  lines.push("data modify storage math:internal x set from storage math: a");
+  if (degrees) lines.push("data modify storage math:internal x set compute default math:common/conversion/rad");
+  lines.push(`execute if predicate math:internal/reciprocal/zero run data modify storage math: ans set ${zeroResult}`);
+  lines.push("execute if predicate math:internal/reciprocal/zero run return 1");
+  if (kernel === "tan_x") {
+    lines.push("return run function math:internal/tan_x");
+  } else {
+    lines.push(`function math:internal/${kernel}`);
+    lines.push("data modify storage math: ans set compute default math:common/input/x");
+    lines.push("return 1");
+  }
+  emitFunction(name, lines);
+}
+
+for (const degrees of [false, true]) {
+  const suffix = degrees ? "_degrees" : "";
+  trigWrapper(`sin${suffix}`, "sin_x", degrees, "compute default math:common/input/x");
+  trigWrapper(`cos${suffix}`, "cos_x", degrees, "value 1.0f");
+  trigWrapper(`tan${suffix}`, "tan_x", degrees, "compute default math:common/input/x");
+}
 
 {
   const lines = validationLines(["a"]);
