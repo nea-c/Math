@@ -3,6 +3,7 @@ import path from "node:path";
 import { evaluateProvider } from "../tools/math-provider-lib.mjs";
 
 const functionRoot = path.resolve("Math/data/math/function");
+const functionTagRoot = path.resolve("Math/data/math/tags/function");
 const providerRoot = path.resolve("Math/data/math/number_provider");
 const predicateRoot = path.resolve("Math/data/math/predicate");
 
@@ -23,7 +24,23 @@ function jsonRegistry(root, prefix) {
 
 const providers = jsonRegistry(providerRoot, "math:");
 const predicates = jsonRegistry(predicateRoot, "math:");
+const functionTags = jsonRegistry(functionTagRoot, "math:");
 const functionCommands = new Map();
+
+function functionPath(id) {
+  return id.replace(/^math:/, "");
+}
+
+export function resolvePublicFunctionTag(tag, name) {
+  if (!tag || !Array.isArray(tag.values) || tag.values.length !== 1 || typeof tag.values[0] !== "string") {
+    throw new Error(`Public function tag must contain exactly one function: math:${name}`);
+  }
+  return functionPath(tag.values[0]);
+}
+
+function publicImplementationPath(name) {
+  return resolvePublicFunctionTag(functionTags.get(`math:${name}`), name);
+}
 
 function commandsFor(functionName) {
   let commands = functionCommands.get(functionName);
@@ -86,10 +103,6 @@ function runWithStorage(name, publicInput, internalInput) {
     const maximum = predicate.range?.max === undefined ? undefined : asJavaInt(Math.fround(predicate.range.max));
     return (minimum === undefined || value >= minimum)
       && (maximum === undefined || value <= maximum);
-  }
-
-  function functionPath(id) {
-    return id.replace(/^math:/, "");
   }
 
   function computeCommandResult(value) {
@@ -188,7 +201,11 @@ function runWithStorage(name, publicInput, internalInput) {
 }
 
 export function runFunction(name, publicInput) {
-  return runWithStorage(name, publicInput, {});
+  return runWithStorage(publicImplementationPath(name), publicInput, {});
+}
+
+export function runImplementation(path, publicInput = {}, internalInput = {}) {
+  return runWithStorage(path, publicInput, internalInput);
 }
 
 export function runInternalFunction(name, internalInput) {

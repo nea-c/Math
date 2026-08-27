@@ -1,6 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { runFunction, storageFieldKey } from "./mcfunction-test-harness.mjs";
+import { resolvePublicFunctionTag, runFunction, storageFieldKey } from "./mcfunction-test-harness.mjs";
+
+test("public function tags resolve exactly one implementation", () => {
+  assert.equal(resolvePublicFunctionTag({ values: ["math:add"] }, "add"), "add");
+  assert.throws(
+    () => resolvePublicFunctionTag({ values: [] }, "add"),
+    /Public function tag must contain exactly one function: math:add/,
+  );
+});
 
 const wrappers = [
   ["add", { a: 1.25, b: -0.5 }, 0.75],
