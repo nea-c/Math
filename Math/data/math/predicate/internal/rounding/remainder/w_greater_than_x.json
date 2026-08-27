@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:value_check",
+  "value": {
+    "type": "minecraft:sum",
+    "operands": [
+      {
+        "type": "minecraft:storage",
+        "storage": "math:internal",
+        "path": "w"
+      },
+      {
+        "type": "minecraft:product",
+        "operands": [
+          -1,
+          {
+            "type": "minecraft:storage",
+            "storage": "math:internal",
+            "path": "x"
+          }
+        ]
+      }
+    ]
+  },
+  "range": {
+    "min": 1.401298464324817e-45
+  }
+}

@@ -42,6 +42,8 @@ const x = storage("math:internal", "x");
 const y = storage("math:internal", "y");
 const z = storage("math:internal", "z");
 const w = storage("math:internal", "w");
+const publicA = storage("math:", "a");
+const publicB = storage("math:", "b");
 
 function inlineValueCheck(value, min, max) {
   return {
@@ -98,6 +100,8 @@ emit("common/rounding/negate", product(-1, x));
 emit("common/rounding/add_half", sum(x, 0.5));
 emit("common/rounding/quotient", product(x, w));
 emit("common/rounding/reduce", sum(w, product(-1, z, y)));
+emit("common/rounding/double_y", product(2, y));
+emit("common/rounding/half_y", product(0.5, y));
 
 const reciprocalAbsolute = "math:common/reciprocal/normalize/absolute/00";
 const reciprocalMantissa = "math:common/reciprocal/normalize/mantissa/00";
@@ -206,6 +210,41 @@ emitPredicate("rounding/safe_command_result", {
   value: maximum(x, product(-1, x)),
   range: { max: previousPositiveFloat(2 ** 24) },
 });
+emitPredicate("rounding/integer_input", {
+  type: "minecraft:value_check",
+  value: maximum(x, product(-1, x)),
+  range: { min: 2 ** 23 },
+});
+emitPredicate("rounding/remainder/can_subtract_y", {
+  type: "minecraft:value_check",
+  value: sum(x, product(-1, y)),
+  range: { min: 0 },
+});
+emitPredicate("rounding/remainder/w_greater_than_x", {
+  type: "minecraft:value_check",
+  value: sum(w, product(-1, x)),
+  range: { min: -smallestNegativeFloat },
+});
+emitPredicate("rounding/remainder/y_too_large_to_double", {
+  type: "minecraft:value_check",
+  value: y,
+  range: { min: 2 ** 127 },
+});
+emitPredicate("rounding/remainder/zero", {
+  type: "minecraft:value_check",
+  value: z,
+  range: { min: 0, max: 0 },
+});
+emitPredicate("rounding/public/a_negative", {
+  type: "minecraft:value_check",
+  value: publicA,
+  range: { max: smallestNegativeFloat },
+});
+emitPredicate("rounding/public/b_negative", {
+  type: "minecraft:value_check",
+  value: publicB,
+  range: { max: smallestNegativeFloat },
+});
 
 function validationLines(inputs) {
   const lines = ["data remove storage math: error"];
@@ -279,6 +318,8 @@ emitFunction("internal/truncate_x", [
 {
   const lines = validationLines(["a"]);
   lines.push("data modify storage math:internal x set from storage math: a");
+  lines.push("execute if predicate math:internal/rounding/integer_input run data modify storage math: ans set compute default math:common/input/x");
+  lines.push("execute if predicate math:internal/rounding/integer_input run return 1");
   lines.push("data modify storage math:internal x set compute default math:common/rounding/add_half");
   lines.push("function math:internal/floor_x");
   lines.push("data modify storage math: ans set compute default math:common/input/z");
@@ -303,18 +344,17 @@ function divisionByZeroLines() {
   ];
 }
 
-function reductionLines(roundingHelper) {
+function exactRemainderLines() {
   return [
-    "data modify storage math:internal z set compute default math:common/reciprocal/00",
     "data modify storage math:internal x set from storage math: a",
-    "data modify storage math:internal w set from storage math:internal z",
-    "data modify storage math:internal y set from storage math: b",
-    "data modify storage math:internal z set compute default math:common/rounding/quotient",
-    "data modify storage math:internal w set from storage math:internal x",
+    "data modify storage math:internal x set compute default math:common/comparison/absolute",
+    "data modify storage math:internal z set from storage math:internal x",
+    "data modify storage math:internal x set from storage math: b",
+    "data modify storage math:internal x set compute default math:common/comparison/absolute",
+    "data modify storage math:internal y set from storage math:internal x",
     "data modify storage math:internal x set from storage math:internal z",
-    `function math:internal/${roundingHelper}`,
-    "data modify storage math: ans set compute default math:common/rounding/reduce",
-    "return 1",
+    "function math:internal/reduce_remainder",
+    "data modify storage math:internal z set compute default math:common/input/x",
   ];
 }
 
@@ -339,12 +379,59 @@ function reductionLines(roundingHelper) {
   emitFunction("divide", lines);
 }
 
-for (const [name, roundingHelper] of [["remainder", "truncate_x"], ["modulo", "floor_x"]]) {
+emitFunction("internal/reduce_remainder", [
+  "execute unless predicate math:internal/rounding/remainder/can_subtract_y run return 1",
+  "execute if predicate math:internal/rounding/remainder/y_too_large_to_double run data modify storage math:internal x set compute default math:common/arithmetic/subtract",
+  "execute if predicate math:internal/rounding/remainder/y_too_large_to_double run return 1",
+  "data modify storage math:internal w set compute default math:common/rounding/double_y",
+  "execute if predicate math:internal/rounding/remainder/w_greater_than_x run data modify storage math:internal x set compute default math:common/arithmetic/subtract",
+  "execute if predicate math:internal/rounding/remainder/w_greater_than_x run return 1",
+  "data modify storage math:internal y set from storage math:internal w",
+  "function math:internal/reduce_remainder",
+  "data modify storage math:internal y set compute default math:common/rounding/half_y",
+  "execute if predicate math:internal/rounding/remainder/can_subtract_y run data modify storage math:internal x set compute default math:common/arithmetic/subtract",
+  "return 1",
+]);
+
+{
   const lines = validationLines(["a", "b"]);
   lines.push("data modify storage math:internal x set from storage math: b");
   lines.push(...divisionByZeroLines());
-  lines.push(...reductionLines(roundingHelper));
-  emitFunction(name, lines);
+  lines.push(...exactRemainderLines());
+  lines.push("execute if predicate math:internal/rounding/remainder/zero run data modify storage math: ans set value 0.0f");
+  lines.push("execute if predicate math:internal/rounding/remainder/zero run return 1");
+  lines.push("execute unless predicate math:internal/rounding/public/a_negative run data modify storage math: ans set compute default math:common/input/z");
+  lines.push("execute unless predicate math:internal/rounding/public/a_negative run return 1");
+  lines.push("data modify storage math:internal x set from storage math:internal z");
+  lines.push("data modify storage math: ans set compute default math:common/rounding/negate");
+  lines.push("return 1");
+  emitFunction("remainder", lines);
+}
+
+emitFunction("internal/modulo_negative_b", [
+  "execute if predicate math:internal/rounding/public/a_negative run data modify storage math:internal x set from storage math:internal z",
+  "execute if predicate math:internal/rounding/public/a_negative run data modify storage math: ans set compute default math:common/rounding/negate",
+  "execute if predicate math:internal/rounding/public/a_negative run return 1",
+  "data modify storage math:internal x set from storage math:internal z",
+  "data modify storage math: ans set compute default math:common/arithmetic/subtract",
+  "return 1",
+]);
+
+{
+  const lines = validationLines(["a", "b"]);
+  lines.push("data modify storage math:internal x set from storage math: b");
+  lines.push(...divisionByZeroLines());
+  lines.push(...exactRemainderLines());
+  lines.push("execute if predicate math:internal/rounding/remainder/zero run data modify storage math: ans set value 0.0f");
+  lines.push("execute if predicate math:internal/rounding/remainder/zero run return 1");
+  lines.push("execute if predicate math:internal/rounding/public/b_negative run return run function math:internal/modulo_negative_b");
+  lines.push("execute unless predicate math:internal/rounding/public/a_negative run data modify storage math: ans set compute default math:common/input/z");
+  lines.push("execute unless predicate math:internal/rounding/public/a_negative run return 1");
+  lines.push("data modify storage math:internal x set from storage math:internal y");
+  lines.push("data modify storage math:internal y set from storage math:internal z");
+  lines.push("data modify storage math: ans set compute default math:common/arithmetic/subtract");
+  lines.push("return 1");
+  emitFunction("modulo", lines);
 }
 
 emitFunction("internal/normalize_period", [

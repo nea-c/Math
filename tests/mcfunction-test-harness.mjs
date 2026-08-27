@@ -21,6 +21,20 @@ function jsonRegistry(root, prefix) {
   return registry;
 }
 
+const providers = jsonRegistry(providerRoot, "math:");
+const predicates = jsonRegistry(predicateRoot, "math:");
+const functionCommands = new Map();
+
+function commandsFor(functionName) {
+  let commands = functionCommands.get(functionName);
+  if (!commands) {
+    commands = fs.readFileSync(path.join(functionRoot, `${functionName}.mcfunction`), "utf8")
+      .split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    functionCommands.set(functionName, commands);
+  }
+  return commands;
+}
+
 function getPath(root, pathText) {
   return pathText.split(".").reduce((value, segment) => value?.[segment], root);
 }
@@ -47,8 +61,6 @@ export function storageFieldKey(storageId, pathText) {
 function runWithStorage(name, publicInput, internalInput) {
   const storage = { "math:": clone(publicInput), "math:internal": clone(internalInput) };
   const numericTags = new Map();
-  const providers = jsonRegistry(providerRoot, "math:");
-  const predicates = jsonRegistry(predicateRoot, "math:");
   let returned;
 
   function predicateMatches(id) {
@@ -78,9 +90,7 @@ function runWithStorage(name, publicInput, internalInput) {
   }
 
   function runCommands(functionName) {
-    const commands = fs.readFileSync(path.join(functionRoot, `${functionName}.mcfunction`), "utf8")
-      .split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-    for (const command of commands) {
+    for (const command of commandsFor(functionName)) {
       const result = execute(command);
       if (result !== undefined) return result;
     }

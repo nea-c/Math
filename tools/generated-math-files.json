@@ -11,7 +11,9 @@
     "Math/data/math/function/e.mcfunction",
     "Math/data/math/function/floor.mcfunction",
     "Math/data/math/function/internal/floor_x.mcfunction",
+    "Math/data/math/function/internal/modulo_negative_b.mcfunction",
     "Math/data/math/function/internal/normalize_period.mcfunction",
+    "Math/data/math/function/internal/reduce_remainder.mcfunction",
     "Math/data/math/function/internal/truncate_x.mcfunction",
     "Math/data/math/function/lerp.mcfunction",
     "Math/data/math/function/maximum.mcfunction",
@@ -75,6 +77,8 @@
     "Math/data/math/number_provider/common/reciprocal/normalize/mantissa/00.json",
     "Math/data/math/number_provider/common/reciprocal/normalize/sign/00.json",
     "Math/data/math/number_provider/common/rounding/add_half.json",
+    "Math/data/math/number_provider/common/rounding/double_y.json",
+    "Math/data/math/number_provider/common/rounding/half_y.json",
     "Math/data/math/number_provider/common/rounding/negate.json",
     "Math/data/math/number_provider/common/rounding/quotient.json",
     "Math/data/math/number_provider/common/rounding/reduce.json",
@@ -87,6 +91,13 @@
     "Math/data/math/predicate/internal/range/negative.json",
     "Math/data/math/predicate/internal/range/positive.json",
     "Math/data/math/predicate/internal/reciprocal/zero.json",
+    "Math/data/math/predicate/internal/rounding/integer_input.json",
+    "Math/data/math/predicate/internal/rounding/public/a_negative.json",
+    "Math/data/math/predicate/internal/rounding/public/b_negative.json",
+    "Math/data/math/predicate/internal/rounding/remainder/can_subtract_y.json",
+    "Math/data/math/predicate/internal/rounding/remainder/w_greater_than_x.json",
+    "Math/data/math/predicate/internal/rounding/remainder/y_too_large_to_double.json",
+    "Math/data/math/predicate/internal/rounding/remainder/zero.json",
     "Math/data/math/predicate/internal/rounding/safe_command_result.json"
   ]
 }

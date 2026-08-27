@@ -7,6 +7,7 @@ import { runFunction, runInternalFunction, storageFieldKey } from "./mcfunction-
 
 const providerRoot = path.resolve("Math/data/math/number_provider");
 const finiteLimit = Math.fround(3.4028234663852886e38);
+const smallestFloat = Math.fround(2 ** -149);
 const smallestFiniteReciprocalInput = Math.fround(2 ** -128 + 2 ** -149);
 
 function providerRegistry() {
@@ -22,6 +23,40 @@ function providerRegistry() {
 
 function run(id, internal) {
   return evaluateProvider(id, providers, new Map([["math:internal", internal]]));
+}
+
+function floatMagnitudeParts(value) {
+  const bytes = new ArrayBuffer(4);
+  const view = new DataView(bytes);
+  view.setFloat32(0, Math.abs(value));
+  const bits = view.getUint32(0);
+  const exponentBits = (bits >>> 23) & 0xff;
+  const fraction = bits & 0x7fffff;
+  return exponentBits === 0
+    ? { significand: BigInt(fraction), exponent: -149 }
+    : { significand: BigInt(0x800000 | fraction), exponent: exponentBits - 150 };
+}
+
+function exactRemainderMagnitude(a, b) {
+  if (a === 0) return 0;
+  const left = floatMagnitudeParts(a);
+  const right = floatMagnitudeParts(b);
+  const commonExponent = Math.min(left.exponent, right.exponent);
+  const numerator = left.significand << BigInt(left.exponent - commonExponent);
+  const denominator = right.significand << BigInt(right.exponent - commonExponent);
+  return Math.fround(Number(numerator % denominator) * (2 ** commonExponent));
+}
+
+function exactRemainderReference(a, b) {
+  const magnitude = exactRemainderMagnitude(a, b);
+  return magnitude === 0 ? 0 : Math.fround(Math.sign(a) * magnitude);
+}
+
+function exactModuloReference(a, b) {
+  const magnitude = exactRemainderMagnitude(a, b);
+  if (magnitude === 0) return 0;
+  if (Math.sign(a) === Math.sign(b)) return Math.fround(Math.sign(b) * magnitude);
+  return Math.fround(Math.sign(b) * (Math.abs(b) - magnitude));
 }
 
 const providers = providerRegistry();
@@ -116,6 +151,9 @@ test("rounding wrappers honor signed half boundaries and the float integer limit
   const cases = [
     [-16_777_217, [-16_777_216, -16_777_216, -16_777_216, -16_777_216]],
     [-16_777_216, [-16_777_216, -16_777_216, -16_777_216, -16_777_216]],
+    [-16_777_215, [-16_777_215, -16_777_215, -16_777_215, -16_777_215]],
+    [-8_388_609, [-8_388_609, -8_388_609, -8_388_609, -8_388_609]],
+    [-8_388_608, [-8_388_608, -8_388_608, -8_388_608, -8_388_608]],
     [-finiteLimit, [-finiteLimit, -finiteLimit, -finiteLimit, -finiteLimit]],
     [-2.5, [-3, -2, -2, -2]],
     [-1.5, [-2, -1, -1, -1]],
@@ -124,6 +162,9 @@ test("rounding wrappers honor signed half boundaries and the float integer limit
     [0.5, [0, 1, 1, 0]],
     [1.5, [1, 2, 2, 1]],
     [2.5, [2, 3, 3, 2]],
+    [8_388_608, [8_388_608, 8_388_608, 8_388_608, 8_388_608]],
+    [8_388_609, [8_388_609, 8_388_609, 8_388_609, 8_388_609]],
+    [16_777_215, [16_777_215, 16_777_215, 16_777_215, 16_777_215]],
     [16_777_216, [16_777_216, 16_777_216, 16_777_216, 16_777_216]],
     [16_777_217, [16_777_216, 16_777_216, 16_777_216, 16_777_216]],
     [finiteLimit, [finiteLimit, finiteLimit, finiteLimit, finiteLimit]],
@@ -145,12 +186,23 @@ test("rounding wrappers honor signed half boundaries and the float integer limit
 });
 
 test("remainder and modulo use truncating and flooring quotients", () => {
+  const pointThree = Math.fround(0.3);
+  const threeSmallestFloats = Math.fround(3 * smallestFloat);
   const cases = [
+    [pointThree, pointThree, 0, 0],
     [-5, 3, -2, 1],
     [5, -3, 2, -1],
     [-5, -3, -2, -2],
     [5, 3, 2, 2],
     [6, 3, 0, 0],
+    [smallestFloat, finiteLimit, smallestFloat, smallestFloat],
+    [1, smallestFloat, 0, 0],
+    [1, threeSmallestFloats, 2 * smallestFloat, 2 * smallestFloat],
+    [-1, threeSmallestFloats, -2 * smallestFloat, smallestFloat],
+    [1, -threeSmallestFloats, 2 * smallestFloat, -smallestFloat],
+    [finiteLimit, 11, 9, 9],
+    [-finiteLimit, 11, -9, 2],
+    [finiteLimit, -11, 9, -2],
   ];
 
   for (const [a, b, expectedRemainder, expectedModulo] of cases) {
@@ -165,6 +217,55 @@ test("remainder and modulo use truncating and flooring quotients", () => {
       assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float", `${name} must write a float`);
       assert.ok(Object.keys(storage["math:internal"]).every((field) => ["x", "y", "z", "w"].includes(field)), `${name} scratch keys`);
     }
+  }
+});
+
+test("modulo results have the divisor sign and stay within its magnitude", () => {
+  const threeSmallestFloats = Math.fround(3 * smallestFloat);
+  const cases = [
+    [Math.fround(0.3), Math.fround(0.3)],
+    [-5, 3],
+    [5, -3],
+    [-5, -3],
+    [1, threeSmallestFloats],
+    [-1, threeSmallestFloats],
+    [1, -threeSmallestFloats],
+    [finiteLimit, 11],
+    [-finiteLimit, 11],
+    [finiteLimit, -11],
+  ];
+  for (const [a, b] of cases) {
+    const { storage, returned } = runFunction("modulo", { a, b });
+    const actual = storage["math:"].ans;
+    assert.equal(returned, 1);
+    assert.ok(actual === 0 || Math.sign(actual) === Math.sign(b), `modulo(${a}, ${b}) sign: ${actual}`);
+    assert.ok(Math.abs(actual) < Math.abs(b), `modulo(${a}, ${b}) range: ${actual}`);
+  }
+});
+
+test("remainder and modulo match exact binary32 reduction across deterministic finite inputs", () => {
+  const bytes = new ArrayBuffer(4);
+  const view = new DataView(bytes);
+  let state = 0x9e3779b9;
+  let count = 0;
+  while (count < 256) {
+    state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;
+    view.setUint32(0, state);
+    const a = view.getFloat32(0);
+    state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;
+    view.setUint32(0, state);
+    const b = view.getFloat32(0);
+    if (!Number.isFinite(a) || !Number.isFinite(b) || b === 0) continue;
+
+    for (const [name, expected] of [
+      ["remainder", exactRemainderReference(a, b)],
+      ["modulo", exactModuloReference(a, b)],
+    ]) {
+      const { storage, returned } = runFunction(name, { a, b });
+      assert.equal(returned, 1, `${name}(${a}, ${b}) must succeed`);
+      assert.equal(storage["math:"].ans, expected, `${name}(${a}, ${b})`);
+    }
+    count += 1;
   }
 });
 

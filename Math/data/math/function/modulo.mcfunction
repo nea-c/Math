@@ -9,13 +9,21 @@ data modify storage math:internal x set from storage math: b
 execute if predicate math:internal/reciprocal/zero run data remove storage math: ans
 execute if predicate math:internal/reciprocal/zero run data modify storage math: error set value "division_by_zero"
 execute if predicate math:internal/reciprocal/zero run return fail
-data modify storage math:internal z set compute default math:common/reciprocal/00
 data modify storage math:internal x set from storage math: a
-data modify storage math:internal w set from storage math:internal z
-data modify storage math:internal y set from storage math: b
-data modify storage math:internal z set compute default math:common/rounding/quotient
-data modify storage math:internal w set from storage math:internal x
+data modify storage math:internal x set compute default math:common/comparison/absolute
+data modify storage math:internal z set from storage math:internal x
+data modify storage math:internal x set from storage math: b
+data modify storage math:internal x set compute default math:common/comparison/absolute
+data modify storage math:internal y set from storage math:internal x
 data modify storage math:internal x set from storage math:internal z
-function math:internal/floor_x
-data modify storage math: ans set compute default math:common/rounding/reduce
+function math:internal/reduce_remainder
+data modify storage math:internal z set compute default math:common/input/x
+execute if predicate math:internal/rounding/remainder/zero run data modify storage math: ans set value 0.0f
+execute if predicate math:internal/rounding/remainder/zero run return 1
+execute if predicate math:internal/rounding/public/b_negative run return run function math:internal/modulo_negative_b
+execute unless predicate math:internal/rounding/public/a_negative run data modify storage math: ans set compute default math:common/input/z
+execute unless predicate math:internal/rounding/public/a_negative run return 1
+data modify storage math:internal x set from storage math:internal y
+data modify storage math:internal y set from storage math:internal z
+data modify storage math: ans set compute default math:common/arithmetic/subtract
 return 1
