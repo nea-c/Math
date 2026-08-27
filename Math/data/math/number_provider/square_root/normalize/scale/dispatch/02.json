@@ -1,0 +1,582 @@
+{
+  "type": "minecraft:number_dispatcher",
+  "cases": [
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 2.5849394142282115e-26,
+          "max": 5.169878520307632e-26
+        }
+      },
+      "number_provider": {
+        "type": "minecraft:product",
+        "operands": [
+          1.1368683772161603e-13,
+          1.4142135381698608
+        ]
+      }
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 5.169878828456423e-26,
+          "max": 1.0339757040615264e-25
+        }
+      },
+      "number_provider": 2.2737367544323206e-13
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 1.0339757656912846e-25,
+          "max": 2.0679514081230527e-25
+        }
+      },
+      "number_provider": {
+        "type": "minecraft:product",
+        "operands": [
+          2.2737367544323206e-13,
+          1.4142135381698608
+        ]
+      }
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 2.0679515313825692e-25,
+          "max": 4.1359028162461055e-25
+        }
+      },
+      "number_provider": 4.547473508864641e-13
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 4.1359030627651384e-25,
+          "max": 8.271805632492211e-25
+        }
+      },
+      "number_provider": {
+        "type": "minecraft:product",
+        "operands": [
+          4.547473508864641e-13,
+          1.4142135381698608
+        ]
+      }
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 8.271806125530277e-25,
+          "max": 1.6543611264984422e-24
+        }
+      },
+      "number_provider": 9.094947017729282e-13
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 1.6543612251060553e-24,
+          "max": 3.3087222529968844e-24
+        }
+      },
+      "number_provider": {
+        "type": "minecraft:product",
+        "operands": [
+          9.094947017729282e-13,
+          1.4142135381698608
+        ]
+      }
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 3.308722450212111e-24,
+          "max": 6.617444505993769e-24
+        }
+      },
+      "number_provider": 1.8189894035458565e-12
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 6.617444900424222e-24,
+          "max": 1.3234889011987538e-23
+        }
+      },
+      "number_provider": {
+        "type": "minecraft:product",
+        "operands": [
+          1.8189894035458565e-12,
+          1.4142135381698608
+        ]
+      }
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 1.3234889800848443e-23,
+          "max": 2.6469778023975075e-23
+        }
+      },
+      "number_provider": 3.637978807091713e-12
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 2.6469779601696886e-23,
+          "max": 5.293955604795015e-23
+        }
+      },
+      "number_provider": {
+        "type": "minecraft:product",
+        "operands": [
+          3.637978807091713e-12,
+          1.4142135381698608
+        ]
+      }
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 5.293955920339377e-23,
+          "max": 1.058791120959003e-22
+        }
+      },
+      "number_provider": 7.275957614183426e-12
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 1.0587911840678754e-22,
+          "max": 2.117582241918006e-22
+        }
+      },
+      "number_provider": {
+        "type": "minecraft:product",
+        "operands": [
+          7.275957614183426e-12,
+          1.4142135381698608
+        ]
+      }
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 2.117582368135751e-22,
+          "max": 4.235164483836012e-22
+        }
+      },
+      "number_provider": 1.4551915228366852e-11
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 4.235164736271502e-22,
+          "max": 8.470328967672024e-22
+        }
+      },
+      "number_provider": {
+        "type": "minecraft:product",
+        "operands": [
+          1.4551915228366852e-11,
+          1.4142135381698608
+        ]
+      }
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 8.470329472543003e-22,
+          "max": 1.6940657935344048e-21
+        }
+      },
+      "number_provider": 2.9103830456733704e-11
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 1.6940658945086007e-21,
+          "max": 3.3881315870688096e-21
+        }
+      },
+      "number_provider": {
+        "type": "minecraft:product",
+        "operands": [
+          2.9103830456733704e-11,
+          1.4142135381698608
+        ]
+      }
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 3.3881317890172014e-21,
+          "max": 6.776263174137619e-21
+        }
+      },
+      "number_provider": 5.820766091346741e-11
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 6.776263578034403e-21,
+          "max": 1.3552526348275238e-20
+        }
+      },
+      "number_provider": {
+        "type": "minecraft:product",
+        "operands": [
+          5.820766091346741e-11,
+          1.4142135381698608
+        ]
+      }
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 1.3552527156068805e-20,
+          "max": 2.7105052696550477e-20
+        }
+      },
+      "number_provider": 1.1641532182693481e-10
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 2.710505431213761e-20,
+          "max": 5.4210105393100954e-20
+        }
+      },
+      "number_provider": {
+        "type": "minecraft:product",
+        "operands": [
+          1.1641532182693481e-10,
+          1.4142135381698608
+        ]
+      }
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 5.421010862427522e-20,
+          "max": 1.0842021078620191e-19
+        }
+      },
+      "number_provider": 2.3283064365386963e-10
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 1.0842021724855044e-19,
+          "max": 2.1684042157240382e-19
+        }
+      },
+      "number_provider": {
+        "type": "minecraft:product",
+        "operands": [
+          2.3283064365386963e-10,
+          1.4142135381698608
+        ]
+      }
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 2.168404344971009e-19,
+          "max": 4.3368084314480763e-19
+        }
+      },
+      "number_provider": 4.656612873077393e-10
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 4.336808689942018e-19,
+          "max": 8.673616862896153e-19
+        }
+      },
+      "number_provider": {
+        "type": "minecraft:product",
+        "operands": [
+          4.656612873077393e-10,
+          1.4142135381698608
+        ]
+      }
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 8.673617379884035e-19,
+          "max": 1.7347233725792305e-18
+        }
+      },
+      "number_provider": 9.313225746154785e-10
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 1.734723475976807e-18,
+          "max": 3.469446745158461e-18
+        }
+      },
+      "number_provider": {
+        "type": "minecraft:product",
+        "operands": [
+          9.313225746154785e-10,
+          1.4142135381698608
+        ]
+      }
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 3.469446951953614e-18,
+          "max": 6.938893490316922e-18
+        }
+      },
+      "number_provider": 1.862645149230957e-9
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 6.938893903907228e-18,
+          "max": 1.3877786980633844e-17
+        }
+      },
+      "number_provider": {
+        "type": "minecraft:product",
+        "operands": [
+          1.862645149230957e-9,
+          1.4142135381698608
+        ]
+      }
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 1.3877787807814457e-17,
+          "max": 2.7755573961267688e-17
+        }
+      },
+      "number_provider": 3.725290298461914e-9
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 2.7755575615628914e-17,
+          "max": 5.5511147922535377e-17
+        }
+      },
+      "number_provider": {
+        "type": "minecraft:product",
+        "operands": [
+          3.725290298461914e-9,
+          1.4142135381698608
+        ]
+      }
+    },
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        "range": {
+          "min": 5.551115123125783e-17,
+          "max": 1.1102229584507075e-16
+        }
+      },
+      "number_provider": 7.450580596923828e-9
+    }
+  ],
+  "default": 0
+}

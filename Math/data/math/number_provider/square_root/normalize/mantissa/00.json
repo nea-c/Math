@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "x"
+    },
+    "math:common/normalize/power_of_two/scale"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    0.5,
+    {
+      "type": "minecraft:sum",
+      "operands": [
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "z"
+        },
+        {
+          "type": "minecraft:product",
+          "operands": [
+            {
+              "type": "minecraft:storage",
+              "storage": "math:internal",
+              "path": "y"
+            },
+            {
+              "type": "minecraft:storage",
+              "storage": "math:internal",
+              "path": "w"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

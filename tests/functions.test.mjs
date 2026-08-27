@@ -21,6 +21,7 @@ const wrappers = [
   ["lerp", { a: 10, b: 20, t: 0.25 }, 12.5],
   ["reciprocal", { a: -2 }, -0.5],
   ["divide", { a: 7, b: -2 }, -3.5],
+  ["square_root", { a: 4 }, 2],
 ];
 
 test("public wrappers execute providers, clear stale errors, return success, and preserve public inputs", () => {
@@ -70,4 +71,18 @@ test("reciprocal and divide reject zero without mutating public inputs", () => {
     assert.equal(storage["math:"].a, publicInput.a);
     assert.equal(storage["math:"].b, publicInput.b);
   }
+});
+
+test("square root rejects invalid and negative inputs with stale-output cleanup", () => {
+  const invalidNumber = runFunction("square_root", { a: Infinity, ans: 91, error: "stale_error" });
+  assert.equal(invalidNumber.returned, 0);
+  assert.equal(invalidNumber.storage["math:"].ans, undefined);
+  assert.equal(invalidNumber.storage["math:"].error, "invalid_number");
+  assert.equal(invalidNumber.storage["math:"].a, Infinity);
+
+  const negative = runFunction("square_root", { a: -1, ans: 91, error: "stale_error" });
+  assert.equal(negative.returned, 0);
+  assert.equal(negative.storage["math:"].ans, undefined);
+  assert.equal(negative.storage["math:"].error, "negative_square_root");
+  assert.equal(negative.storage["math:"].a, -1);
 });

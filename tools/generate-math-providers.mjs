@@ -15,6 +15,8 @@ const command = "node tools/generate-math-providers.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const finiteLimit = 3.4028234663852886e38;
 const smallestNegativeFloat = -1.401298464324817e-45;
+const smallestPositiveFloat = Math.fround(2 ** -149);
+const largestSubnormalFloat = Math.fround(2 ** -126 - 2 ** -149);
 const smallestFiniteReciprocalInput = Math.fround(2 ** -128 + 2 ** -149);
 const generatedFiles = [];
 
@@ -44,6 +46,7 @@ const z = storage("math:internal", "z");
 const w = storage("math:internal", "w");
 const publicA = storage("math:", "a");
 const publicB = storage("math:", "b");
+const publicAnswer = storage("math:", "ans");
 
 function inlineValueCheck(value, min, max) {
   return {
@@ -184,6 +187,60 @@ emit("common/reciprocal/00", product(
   reciprocalEstimate,
 ));
 
+// Positive subnormals are first scaled by 2^24, bringing every value into
+// the exponent range supported by the shared power-of-two normalizer. The
+// square-root output scale still dispatches on the original input exponent.
+emit("square_root/normalize/prescale/00", product(x, numberDispatcher([
+  {
+    condition: inlineValueCheck(x, smallestPositiveFloat, largestSubnormalFloat),
+    number_provider: Math.fround(2 ** 24),
+  },
+], 1)));
+emit("square_root/normalize/mantissa/00", product(
+  x,
+  "math:common/normalize/power_of_two/scale",
+));
+
+const squareRootBands = [];
+for (let exponent = -149; exponent <= 127; exponent += 1) {
+  const minimum = Math.fround(2 ** exponent);
+  const maximum = exponent === 127 ? Math.fround(finiteLimit) : previousPositiveFloat(2 ** (exponent + 1));
+  const halfExponentScale = Math.fround(2 ** Math.floor(exponent / 2));
+  squareRootBands.push({
+    minimum,
+    maximum,
+    scale: exponent % 2 === 0
+      ? halfExponentScale
+      : product(halfExponentScale, Math.fround(Math.SQRT2)),
+  });
+}
+
+{
+  const chunkReferences = [];
+  for (const [index, bands] of chunk(squareRootBands, 32).entries()) {
+    const chunkName = index.toString().padStart(2, "0");
+    const providerPath = `square_root/normalize/scale/dispatch/${chunkName}`;
+    chunkReferences.push(`math:${providerPath}`);
+    emit(providerPath, numberDispatcher(bands.map((band) => ({
+      condition: inlineValueCheck(x, band.minimum, band.maximum),
+      number_provider: band.scale,
+    }))));
+  }
+  emit("square_root/normalize/scale/00", sum(...chunkReferences));
+}
+
+emit("square_root/approximate/00", product(0.5, sum(y, 1)));
+for (let stage = 0; stage < 3; stage += 1) {
+  emit(`square_root/newton/${stage.toString().padStart(2, "0")}/00`, product(
+    0.5,
+    sum(z, product(y, w)),
+  ));
+}
+emit("square_root/00", product(
+  "math:square_root/normalize/scale/00",
+  z,
+));
+
 for (const name of ["a", "b", "min", "max", "t"]) emitPredicate(`finite/${name}`, finitePredicate(name));
 emitPredicate("range/min_greater_than_max", {
   type: "minecraft:value_check",
@@ -204,6 +261,16 @@ emitPredicate("reciprocal/zero", {
   type: "minecraft:value_check",
   value: x,
   range: { min: 0, max: 0 },
+});
+emitPredicate("square_root/zero", {
+  type: "minecraft:value_check",
+  value: x,
+  range: { min: 0, max: 0 },
+});
+emitPredicate("square_root/result_finite", {
+  type: "minecraft:value_check",
+  value: publicAnswer,
+  range: { min: -finiteLimit, max: finiteLimit },
 });
 emitPredicate("rounding/safe_command_result", {
   type: "minecraft:value_check",
@@ -365,6 +432,33 @@ function exactRemainderLines() {
   lines.push("data modify storage math: ans set compute default math:common/reciprocal/00");
   lines.push("return 1");
   emitFunction("reciprocal", lines);
+}
+
+{
+  const lines = validationLines(["a"]);
+  lines.push("data modify storage math:internal x set from storage math: a");
+  lines.push("execute if predicate math:internal/range/negative run data remove storage math: ans");
+  lines.push("execute if predicate math:internal/range/negative run data modify storage math: error set value \"negative_square_root\"");
+  lines.push("execute if predicate math:internal/range/negative run return fail");
+  lines.push("execute if predicate math:internal/square_root/zero run data modify storage math: ans set value 0.0f");
+  lines.push("execute if predicate math:internal/square_root/zero run return 1");
+  lines.push("data modify storage math:internal x set compute default math:square_root/normalize/prescale/00");
+  lines.push("data modify storage math:internal y set compute default math:square_root/normalize/mantissa/00");
+  lines.push("data modify storage math:internal z set compute default math:square_root/approximate/00");
+  for (let stage = 0; stage < 3; stage += 1) {
+    const stageName = stage.toString().padStart(2, "0");
+    lines.push("data modify storage math:internal x set from storage math:internal z");
+    lines.push("data modify storage math:internal w set compute default math:common/reciprocal/00");
+    lines.push(`data modify storage math:internal x set compute default math:square_root/newton/${stageName}/00`);
+    lines.push("data modify storage math:internal z set from storage math:internal x");
+  }
+  lines.push("data modify storage math:internal x set from storage math: a");
+  lines.push("data modify storage math: ans set compute default math:square_root/00");
+  lines.push("execute unless predicate math:internal/square_root/result_finite run data remove storage math: ans");
+  lines.push("execute unless predicate math:internal/square_root/result_finite run data modify storage math: error set value \"result_out_of_range\"");
+  lines.push("execute unless predicate math:internal/square_root/result_finite run return fail");
+  lines.push("return 1");
+  emitFunction("square_root", lines);
 }
 
 {

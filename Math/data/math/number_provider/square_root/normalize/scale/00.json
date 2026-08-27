@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:sum",
+  "operands": [
+    "math:square_root/normalize/scale/dispatch/00",
+    "math:square_root/normalize/scale/dispatch/01",
+    "math:square_root/normalize/scale/dispatch/02",
+    "math:square_root/normalize/scale/dispatch/03",
+    "math:square_root/normalize/scale/dispatch/04",
+    "math:square_root/normalize/scale/dispatch/05",
+    "math:square_root/normalize/scale/dispatch/06",
+    "math:square_root/normalize/scale/dispatch/07",
+    "math:square_root/normalize/scale/dispatch/08"
+  ]
+}

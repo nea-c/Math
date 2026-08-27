@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:value_check",
+  "value": {
+    "type": "minecraft:storage",
+    "storage": "math:",
+    "path": "ans"
+  },
+  "range": {
+    "min": -3.4028234663852886e+38,
+    "max": 3.4028234663852886e+38
+  }
+}
