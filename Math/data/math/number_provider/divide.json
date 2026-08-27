@@ -6,10 +6,6 @@
       "path": "a",
       "storage": "math:"
     },
-    {
-      "type": "storage",
-      "path": "x",
-      "storage": "math:"
-    }
+    "math:reciprocal/00"
   ]
 }
