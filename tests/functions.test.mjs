@@ -103,6 +103,10 @@ function runFunction(name, publicInput) {
       const condition = match[1] === "negative" ? value < 0 : value > 0;
       return condition ? execute(match[2]) : undefined;
     }
+    match = command.match(/^execute if predicate math:internal\/reciprocal\/zero run (.+)$/);
+    if (match) {
+      return storage["math:internal"].x === 0 ? execute(match[1]) : undefined;
+    }
     if (command === "return 1") {
       return 1;
     }
@@ -138,6 +142,8 @@ const wrappers = [
   ["tau", {}, Math.fround(Math.PI * 2)],
   ["e", {}, Math.fround(Math.E)],
   ["lerp", { a: 10, b: 20, t: 0.25 }, 12.5],
+  ["reciprocal", { a: -2 }, -0.5],
+  ["divide", { a: 7, b: -2 }, -3.5],
 ];
 
 test("public wrappers execute providers, clear stale errors, return success, and preserve public inputs", () => {
@@ -156,7 +162,7 @@ test("public wrappers execute providers, clear stale errors, return success, and
 test("public wrappers confine scratch state to x/y/z/w fields", () => {
   for (const [name, inputs] of wrappers) {
     const { storage } = runFunction(name, inputs);
-    assert.ok(Object.keys(storage["math:internal"]).every((field) => /^[xyzw]/.test(field)), `${name} must use x/y/z/w scratch fields only`);
+    assert.ok(Object.keys(storage["math:internal"]).every((field) => ["x", "y", "z", "w"].includes(field)), `${name} must use x/y/z/w scratch fields only`);
   }
 });
 
@@ -175,4 +181,16 @@ test("public wrappers reject non-finite inputs and clamp rejects inverted bounds
   assert.equal(invalidRange.returned, 0);
   assert.equal(invalidRange.storage["math:"].ans, undefined);
   assert.equal(invalidRange.storage["math:"].error, "invalid_clamp_range");
+});
+
+test("reciprocal and divide reject zero without mutating public inputs", () => {
+  for (const [name, inputs] of [["reciprocal", { a: 0 }], ["divide", { a: 7, b: 0 }]]) {
+    const publicInput = { ...inputs, ans: 91, error: "stale_error" };
+    const { storage, returned } = runFunction(name, publicInput);
+    assert.equal(returned, 0);
+    assert.equal(storage["math:"].ans, undefined);
+    assert.equal(storage["math:"].error, "division_by_zero");
+    assert.equal(storage["math:"].a, publicInput.a);
+    assert.equal(storage["math:"].b, publicInput.b);
+  }
 });

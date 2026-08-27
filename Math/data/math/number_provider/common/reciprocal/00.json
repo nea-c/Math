@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    "math:common/reciprocal/normalize/sign/00",
+    "math:common/normalize/power_of_two/scale",
+    "math:common/reciprocal/normalize/factor/00",
+    "math:common/reciprocal/newton/02/00"
+  ]
+}

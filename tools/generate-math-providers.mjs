@@ -15,6 +15,7 @@ const command = "node tools/generate-math-providers.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const finiteLimit = 3.4028234663852886e38;
 const smallestNegativeFloat = -1.401298464324817e-45;
+const smallestFiniteReciprocalInput = Math.fround(2 ** -128 + 2 ** -149);
 const generatedFiles = [];
 
 function emit(relativePath, value) {
@@ -42,6 +43,40 @@ const y = storage("math:internal", "y");
 const z = storage("math:internal", "z");
 const w = storage("math:internal", "w");
 
+function inlineValueCheck(value, min, max) {
+  return {
+    condition: "minecraft:value_check",
+    value,
+    range: { min, max },
+  };
+}
+
+function numberDispatcher(cases, defaultValue = 0) {
+  return {
+    type: "minecraft:number_dispatcher",
+    cases,
+    default: defaultValue,
+  };
+}
+
+function previousPositiveFloat(value) {
+  const rounded = Math.fround(value);
+  if (rounded === Infinity) return Math.fround(finiteLimit);
+  const buffer = new ArrayBuffer(4);
+  const view = new DataView(buffer);
+  view.setFloat32(0, rounded);
+  view.setUint32(0, view.getUint32(0) - 1);
+  return view.getFloat32(0);
+}
+
+function chunk(values, size) {
+  const chunks = [];
+  for (let index = 0; index < values.length; index += size) {
+    chunks.push(values.slice(index, index + size));
+  }
+  return chunks;
+}
+
 for (const [name, provider] of Object.entries({ x, y, z, w })) emit(`common/input/${name}`, provider);
 
 emit("common/constant/pi", Math.fround(Math.PI));
@@ -60,6 +95,87 @@ emit("common/comparison/clamp", maximum(minimum(x, w), z));
 emit("common/conversion/rad", product(x, Math.fround(Math.PI / 180)));
 emit("common/conversion/deg", product(x, Math.fround(180 / Math.PI)));
 
+const reciprocalAbsolute = "math:common/reciprocal/normalize/absolute/00";
+const reciprocalMantissa = "math:common/reciprocal/normalize/mantissa/00";
+const reciprocalFactor = "math:common/reciprocal/normalize/factor/00";
+const reciprocalBands = [];
+for (let exponent = -128; exponent <= 127; exponent += 1) {
+  const minimum = exponent === -128 ? smallestFiniteReciprocalInput : Math.fround(2 ** exponent);
+  const maximum = exponent === 127 ? Math.fround(finiteLimit) : previousPositiveFloat(2 ** (exponent + 1));
+  reciprocalBands.push({
+    exponent,
+    minimum,
+    maximum,
+    scale: exponent === -128 ? Math.fround(2 ** 127) : Math.fround(2 ** -exponent),
+  });
+}
+
+for (const [responsibility, selectValue] of [
+  ["scale", (band) => band.scale],
+  ["exponent", (band) => Math.fround(band.exponent)],
+]) {
+  const chunkReferences = [];
+  for (const [index, bands] of chunk(reciprocalBands, 32).entries()) {
+    const chunkName = index.toString().padStart(2, "0");
+    const providerPath = `common/normalize/power_of_two/${responsibility}/${chunkName}`;
+    chunkReferences.push(`math:${providerPath}`);
+    emit(providerPath, numberDispatcher(bands.map((band) => ({
+      condition: inlineValueCheck(reciprocalAbsolute, band.minimum, band.maximum),
+      number_provider: selectValue(band),
+    }))));
+  }
+  emit(`common/normalize/power_of_two/${responsibility}`, sum(...chunkReferences));
+}
+
+emit("common/reciprocal/normalize/absolute/00", maximum(x, product(-1, x)));
+// The reciprocal seed is accurate on [0.5, 1). Shared normalization yields
+// [1, 2), except where the e=-128 scale cap already yields [0.5, 1).
+emit("common/reciprocal/normalize/factor/00", numberDispatcher([
+  {
+    condition: inlineValueCheck(
+      reciprocalAbsolute,
+      smallestFiniteReciprocalInput,
+      previousPositiveFloat(2 ** -127),
+    ),
+    number_provider: 1,
+  },
+], 0.5));
+emit("common/reciprocal/normalize/mantissa/00", product(
+  reciprocalAbsolute,
+  "math:common/normalize/power_of_two/scale",
+  reciprocalFactor,
+));
+emit("common/reciprocal/normalize/sign/00", numberDispatcher([
+  {
+    condition: inlineValueCheck(x, -Math.fround(finiteLimit), smallestNegativeFloat),
+    number_provider: -1,
+  },
+  {
+    condition: inlineValueCheck(x, -smallestNegativeFloat, Math.fround(finiteLimit)),
+    number_provider: 1,
+  },
+]));
+emit("common/reciprocal/approximate/00", sum(
+  Math.fround(48 / 17),
+  product(Math.fround(-32 / 17), reciprocalMantissa),
+));
+
+let reciprocalEstimate = "math:common/reciprocal/approximate/00";
+for (let stage = 0; stage < 3; stage += 1) {
+  const stagePath = `common/reciprocal/newton/${stage.toString().padStart(2, "0")}/00`;
+  emit(stagePath, product(
+    reciprocalEstimate,
+    sum(2, product(-1, reciprocalMantissa, reciprocalEstimate)),
+  ));
+  reciprocalEstimate = `math:${stagePath}`;
+}
+emit("common/reciprocal/00", product(
+  "math:common/reciprocal/normalize/sign/00",
+  "math:common/normalize/power_of_two/scale",
+  reciprocalFactor,
+  reciprocalEstimate,
+));
+
 for (const name of ["a", "b", "min", "max", "t"]) emitPredicate(`finite/${name}`, finitePredicate(name));
 emitPredicate("range/min_greater_than_max", {
   condition: "minecraft:value_check",
@@ -75,6 +191,11 @@ emitPredicate("range/positive", {
   condition: "minecraft:value_check",
   value: x,
   range: { min: -smallestNegativeFloat },
+});
+emitPredicate("reciprocal/zero", {
+  condition: "minecraft:value_check",
+  value: x,
+  range: { min: 0, max: 0 },
 });
 
 function validationLines(inputs) {
@@ -110,6 +231,35 @@ wrapper("deg", ["a"], "math:common/conversion/deg", { x: "a" });
 wrapper("lerp", ["a", "b", "t"], "math:common/arithmetic/lerp", { x: "a", y: "b", z: "t" });
 for (const name of ["pi", "tau", "e"]) wrapper(name, [], `math:common/constant/${name}`, {});
 
+function divisionByZeroLines() {
+  return [
+    "execute if predicate math:internal/reciprocal/zero run data remove storage math: ans",
+    "execute if predicate math:internal/reciprocal/zero run data modify storage math: error set value \"division_by_zero\"",
+    "execute if predicate math:internal/reciprocal/zero run return fail",
+  ];
+}
+
+{
+  const lines = validationLines(["a"]);
+  lines.push("data modify storage math:internal x set from storage math: a");
+  lines.push(...divisionByZeroLines());
+  lines.push("data modify storage math: ans set compute default math:common/reciprocal/00");
+  lines.push("return 1");
+  emitFunction("reciprocal", lines);
+}
+
+{
+  const lines = validationLines(["a", "b"]);
+  lines.push("data modify storage math:internal x set from storage math: b");
+  lines.push(...divisionByZeroLines());
+  lines.push("data modify storage math:internal z set compute default math:common/reciprocal/00");
+  lines.push("data modify storage math:internal x set from storage math: a");
+  lines.push("data modify storage math:internal y set from storage math:internal z");
+  lines.push("data modify storage math: ans set compute default math:common/arithmetic/multiply");
+  lines.push("return 1");
+  emitFunction("divide", lines);
+}
+
 {
   const lines = validationLines(["a"]);
   lines.push("data modify storage math:internal x set from storage math: a");
@@ -134,6 +284,8 @@ for (const name of ["pi", "tau", "e"]) wrapper(name, [], `math:common/constant/$
 }
 
 function generate(targetRoot) {
+  fs.rmSync(path.join(targetRoot, "Math", "data", "math", "number_provider", "reciprocal"), { recursive: true, force: true });
+  fs.rmSync(path.join(targetRoot, "Math", "data", "math", "number_provider", "divide.json"), { force: true });
   for (const file of generatedFiles) {
     if (file.kind === "json") {
       writeGeneratedJson(targetRoot, file.relativePath.replace(/\.json$/, ""), file.value);

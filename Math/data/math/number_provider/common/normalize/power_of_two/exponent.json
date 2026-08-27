@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:sum",
+  "operands": [
+    "math:common/normalize/power_of_two/exponent/00",
+    "math:common/normalize/power_of_two/exponent/01",
+    "math:common/normalize/power_of_two/exponent/02",
+    "math:common/normalize/power_of_two/exponent/03",
+    "math:common/normalize/power_of_two/exponent/04",
+    "math:common/normalize/power_of_two/exponent/05",
+    "math:common/normalize/power_of_two/exponent/06",
+    "math:common/normalize/power_of_two/exponent/07"
+  ]
+}

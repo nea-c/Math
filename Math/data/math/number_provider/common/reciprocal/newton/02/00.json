@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    "math:common/reciprocal/newton/01/00",
+    {
+      "type": "minecraft:sum",
+      "operands": [
+        2,
+        {
+          "type": "minecraft:product",
+          "operands": [
+            -1,
+            "math:common/reciprocal/normalize/mantissa/00",
+            "math:common/reciprocal/newton/01/00"
+          ]
+        }
+      ]
+    }
+  ]
+}

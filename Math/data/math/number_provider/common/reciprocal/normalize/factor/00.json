@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:number_dispatcher",
+  "cases": [
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 2.938737278354183e-39,
+          "max": 5.877470352812973e-39
+        }
+      },
+      "number_provider": 1
+    }
+  ],
+  "default": 0.5
+}

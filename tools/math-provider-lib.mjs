@@ -91,6 +91,20 @@ function evaluateAggregate(operands, registry, storageValues, initial, operation
   return result;
 }
 
+function evaluateInlinePredicate(predicate, registry, storageValues) {
+  if (!predicate || typeof predicate !== "object") {
+    throw new TypeError("Inline predicate must be a predicate object");
+  }
+  const condition = normalizeType(predicate.condition);
+  if (condition !== "value_check") {
+    throw new Error(`Unsupported inline predicate condition: ${predicate.condition}`);
+  }
+  const value = evaluateProvider(predicate.value, registry, storageValues);
+  const range = predicate.range ?? {};
+  return (range.min === undefined || value >= f32(range.min))
+    && (range.max === undefined || value <= f32(range.max));
+}
+
 export function evaluateProvider(provider, registry = new Map(), storageValues = new Map()) {
   if (typeof provider === "number") {
     return f32(provider);
@@ -111,6 +125,17 @@ export function evaluateProvider(provider, registry = new Map(), storageValues =
   }
   if (type === "storage") {
     return f32(readStorage(provider.storage, provider.path, storageValues));
+  }
+  if (type === "number_dispatcher") {
+    if (!Array.isArray(provider.cases)) {
+      throw new TypeError(`Number provider ${provider.type} requires a cases array`);
+    }
+    for (const dispatcherCase of provider.cases) {
+      if (evaluateInlinePredicate(dispatcherCase.condition, registry, storageValues)) {
+        return evaluateProvider(dispatcherCase.number_provider, registry, storageValues);
+      }
+    }
+    return evaluateProvider(provider.default ?? 0, registry, storageValues);
   }
 
   const operands = provider.operands;

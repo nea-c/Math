@@ -1,0 +1,358 @@
+{
+  "type": "minecraft:number_dispatcher",
+  "cases": [
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 2.3283064365386963e-10,
+          "max": 4.6566125955216364e-10
+        }
+      },
+      "number_provider": -32
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 4.656612873077393e-10,
+          "max": 9.313225191043273e-10
+        }
+      },
+      "number_provider": -31
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 9.313225746154785e-10,
+          "max": 1.8626450382086546e-9
+        }
+      },
+      "number_provider": -30
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 1.862645149230957e-9,
+          "max": 3.725290076417309e-9
+        }
+      },
+      "number_provider": -29
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 3.725290298461914e-9,
+          "max": 7.450580152834618e-9
+        }
+      },
+      "number_provider": -28
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 7.450580596923828e-9,
+          "max": 1.4901160305669237e-8
+        }
+      },
+      "number_provider": -27
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 1.4901161193847656e-8,
+          "max": 2.9802320611338473e-8
+        }
+      },
+      "number_provider": -26
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 2.9802322387695312e-8,
+          "max": 5.9604641222676946e-8
+        }
+      },
+      "number_provider": -25
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 5.960464477539063e-8,
+          "max": 1.1920928244535389e-7
+        }
+      },
+      "number_provider": -24
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 1.1920928955078125e-7,
+          "max": 2.3841856489070778e-7
+        }
+      },
+      "number_provider": -23
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 2.384185791015625e-7,
+          "max": 4.7683712978141557e-7
+        }
+      },
+      "number_provider": -22
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 4.76837158203125e-7,
+          "max": 9.536742595628311e-7
+        }
+      },
+      "number_provider": -21
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 9.5367431640625e-7,
+          "max": 0.0000019073485191256623
+        }
+      },
+      "number_provider": -20
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 0.0000019073486328125,
+          "max": 0.0000038146970382513246
+        }
+      },
+      "number_provider": -19
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 0.000003814697265625,
+          "max": 0.000007629394076502649
+        }
+      },
+      "number_provider": -18
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 0.00000762939453125,
+          "max": 0.000015258788153005298
+        }
+      },
+      "number_provider": -17
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 0.0000152587890625,
+          "max": 0.000030517576306010596
+        }
+      },
+      "number_provider": -16
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 0.000030517578125,
+          "max": 0.00006103515261202119
+        }
+      },
+      "number_provider": -15
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 0.00006103515625,
+          "max": 0.00012207030522404239
+        }
+      },
+      "number_provider": -14
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 0.0001220703125,
+          "max": 0.00024414061044808477
+        }
+      },
+      "number_provider": -13
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 0.000244140625,
+          "max": 0.00048828122089616954
+        }
+      },
+      "number_provider": -12
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 0.00048828125,
+          "max": 0.0009765624417923391
+        }
+      },
+      "number_provider": -11
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 0.0009765625,
+          "max": 0.0019531248835846782
+        }
+      },
+      "number_provider": -10
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 0.001953125,
+          "max": 0.0039062497671693563
+        }
+      },
+      "number_provider": -9
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 0.00390625,
+          "max": 0.007812499534338713
+        }
+      },
+      "number_provider": -8
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 0.0078125,
+          "max": 0.015624999068677425
+        }
+      },
+      "number_provider": -7
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 0.015625,
+          "max": 0.03124999813735485
+        }
+      },
+      "number_provider": -6
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 0.03125,
+          "max": 0.0624999962747097
+        }
+      },
+      "number_provider": -5
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 0.0625,
+          "max": 0.1249999925494194
+        }
+      },
+      "number_provider": -4
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 0.125,
+          "max": 0.2499999850988388
+        }
+      },
+      "number_provider": -3
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 0.25,
+          "max": 0.4999999701976776
+        }
+      },
+      "number_provider": -2
+    },
+    {
+      "condition": {
+        "condition": "minecraft:value_check",
+        "value": "math:common/reciprocal/normalize/absolute/00",
+        "range": {
+          "min": 0.5,
+          "max": 0.9999999403953552
+        }
+      },
+      "number_provider": -1
+    }
+  ],
+  "default": 0
+}
