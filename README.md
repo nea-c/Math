@@ -8,7 +8,9 @@ Minecraft Java Edition 26.3 Snapshot 10 向けの、依存関係なしで動く 
 
 ## ストレージ API
 
-呼び出し側は必要な値を `storage math:` に書き、`function math:<name>` を実行します。数値は有限な float 値として毎回設定してください。
+呼び出し側は必要な値を `storage math:` に書き、`function #math:<name>` を実行します。公開関数だけが同名の function tag に登録されているため、`function #math:` の補完を公開 API 一覧として使用できます。数値は有限な float 値として毎回設定してください。
+
+互換性のため `function math:<name>` でも直接呼び出せますが、通常はタグ経由の呼び出しを推奨します。`math:internal/*` はタグへ登録されておらず、内部実装なので直接呼び出さないでください。
 
 | フィールド | 用途 |
 |---|---|
@@ -86,7 +88,7 @@ Snapshot 10 では predicate 内の number provider が整数モードで評価�
 ```mcfunction
 data modify storage math: a set value 12.0f
 data modify storage math: b set value 5.0f
-function math:divide
+function #math:divide
 data get storage math: ans
 ```
 
@@ -94,9 +96,9 @@ data get storage math: ans
 
 ```mcfunction
 data modify storage math: a set value 30.0f
-function math:rad
+function #math:rad
 data modify storage math: a set from storage math: ans
-function math:sin
+function #math:sin
 data get storage math: ans
 ```
 
@@ -105,7 +107,7 @@ power と失敗結果の確認例です。
 ```mcfunction
 data modify storage math: a set value -2.0f
 data modify storage math: b set value 0.5f
-function math:power
+function #math:power
 data get storage math: error
 ```
 

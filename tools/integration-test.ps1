@@ -136,7 +136,7 @@ try {
         }
         $assertionCommands.Add('data modify storage math: ans set value -999.0f')
         $assertionCommands.Add('data modify storage math: error set value "stale_error"')
-        $assertionCommands.Add("execute store result score #return math_test run function math:$Function")
+        $assertionCommands.Add("execute store result score #return math_test run function #math:$Function")
         if ($Case -eq 'square_root') {
             $assertionCommands.Add('execute store result score #approx math_test run data get storage math: ans 1000000')
         }
@@ -161,7 +161,7 @@ try {
     $assertionCommands.Add('data modify storage math: b set value 3.4028234663852886E38f')
     $assertionCommands.Add('data modify storage math: ans set value 99.0f')
     $assertionCommands.Add('data modify storage math: error set value "stale_error"')
-    $assertionCommands.Add('execute store result score #return math_test run function math:add')
+    $assertionCommands.Add('execute store result score #return math_test run function #math:add')
     Add-Guard -Condition 'unless score #return math_test matches 0' -Case 'add_overflow_return'
     Add-Guard -Condition 'if data storage math: ans' -Case 'add_overflow_stale_answer'
     Add-Guard -Condition 'unless data storage math: {error:"result_out_of_range"}' -Case 'add_overflow_error'
@@ -232,7 +232,7 @@ try {
     $assertionCommands.Add('data modify storage math: a set value 1.5707964f')
     $assertionCommands.Add('data modify storage math: ans set value 99.0f')
     $assertionCommands.Add('data modify storage math: error set value "stale_error"')
-    $assertionCommands.Add('execute store result score #return math_test run function math:tan')
+    $assertionCommands.Add('execute store result score #return math_test run function #math:tan')
     Add-Guard -Condition 'unless score #return math_test matches 0' -Case 'tan_undefined_return'
     Add-Guard -Condition 'if data storage math: ans' -Case 'tan_undefined_stale_answer'
     Add-Guard -Condition 'unless data storage math: {error:"undefined_tangent"}' -Case 'tan_undefined_error'
@@ -240,7 +240,7 @@ try {
     $assertionCommands.Add('data modify storage math: a set value 2.938735877055719E-39f')
     $assertionCommands.Add('data modify storage math: ans set value 99.0f')
     $assertionCommands.Add('data modify storage math: error set value "stale_error"')
-    $assertionCommands.Add('execute store result score #return math_test run function math:reciprocal')
+    $assertionCommands.Add('execute store result score #return math_test run function #math:reciprocal')
     Add-Guard -Condition 'unless score #return math_test matches 0' -Case 'reciprocal_overflow_return'
     Add-Guard -Condition 'if data storage math: ans' -Case 'reciprocal_overflow_stale_answer'
     Add-Guard -Condition 'unless data storage math: {error:"result_out_of_range"}' -Case 'reciprocal_overflow_error'
@@ -249,7 +249,7 @@ try {
     $assertionCommands.Add('data modify storage math: b set value 0.99999994039535522f')
     $assertionCommands.Add('data modify storage math: ans set value 99.0f')
     $assertionCommands.Add('data modify storage math: error set value "stale_error"')
-    $assertionCommands.Add('execute store result score #return math_test run function math:divide')
+    $assertionCommands.Add('execute store result score #return math_test run function #math:divide')
     Add-Guard -Condition 'unless score #return math_test matches 0' -Case 'divide_top_overflow_return'
     Add-Guard -Condition 'if data storage math: ans' -Case 'divide_top_overflow_stale_answer'
     Add-Guard -Condition 'unless data storage math: {error:"result_out_of_range"}' -Case 'divide_top_overflow_error'

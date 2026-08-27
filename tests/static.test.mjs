@@ -389,6 +389,26 @@ test("release pack excludes prototype debug functions", () => {
   assert.deepEqual(debugFunctions, []);
 });
 
+test("function tags expose every public function and exclude internal functions", () => {
+  const functionRoot = path.join("Math", "data", "math", "function");
+  const tagRoot = path.join("Math", "data", "math", "tags", "function");
+  assert.equal(fs.existsSync(tagRoot), true, "public function tag directory must exist");
+  const publicFunctions = fs.readdirSync(functionRoot, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".mcfunction"))
+    .map((entry) => entry.name.slice(0, -".mcfunction".length))
+    .sort();
+  const tags = fs.readdirSync(tagRoot, { recursive: true, withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
+    .map((entry) => path.relative(tagRoot, path.join(entry.parentPath, entry.name)).replaceAll("\\", "/"))
+    .sort();
+
+  assert.deepEqual(tags, publicFunctions.map((name) => `${name}.json`));
+  for (const name of publicFunctions) {
+    const tag = JSON.parse(fs.readFileSync(path.join(tagRoot, `${name}.json`), "utf8"));
+    assert.deepEqual(tag, { values: [`math:${name}`] }, name);
+  }
+});
+
 test("generated providers are current", () => {
   childProcess.execFileSync(process.execPath, ["tools/generate-math-providers.mjs", "--check"], {
     encoding: "utf8",
