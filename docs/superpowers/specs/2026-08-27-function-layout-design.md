@@ -53,9 +53,10 @@ function/
 └─ .common/
    ├─ reciprocal/
    │  ├─ 0.start.mcfunction
-   │  ├─ 1.scale_down.mcfunction
-   │  ├─ 2.scale_up.mcfunction
-   │  └─ 3.finish.mcfunction
+   │  ├─ 1.scale_up.mcfunction
+   │  ├─ 2.finish_at_scale_limit.mcfunction
+   │  ├─ 3.scale_down.mcfunction
+   │  └─ 4.finish.mcfunction
    ├─ normalize_period/
    │  ├─ 0.start.mcfunction
    │  └─ 1.negative.mcfunction
@@ -104,9 +105,9 @@ function/
 公開呼び出しは常にタグを経由する。
 
 ```text
-#math:divide
-  -> math:divide/0.start
-     -> math:divide/1.normalize
+#math:tan
+  -> math:tan/0.start
+     -> math:.common/tan/0.start
      -> math:.common/reciprocal/0.start
 ```
 
