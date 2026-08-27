@@ -647,6 +647,10 @@ function wrapper(name, inputs, provider, inputMap) {
     lines.push(`data modify storage math:internal ${internalName} set from storage math: ${publicName}`);
   }
   lines.push(`data modify storage math: ans set compute default ${provider}`);
+  if (["add", "subtract", "multiply", "square", "cube", "deg", "lerp"].includes(name)) {
+    lines.push("data modify storage math:internal w_validation_ans set compute default math:internal/comparison/finite/ans");
+    lines.push("execute unless data storage math:internal {w_validation_ans:0.0f} run return run function math:internal/result_out_of_range");
+  }
   lines.push("return 1");
   emitFunction(name, lines);
 }

@@ -157,6 +157,14 @@ try {
         'data modify storage math: a set value 1.25f'
         'data modify storage math: b set value 2.5f'
     )
+    $assertionCommands.Add('data modify storage math: a set value 3.4028234663852886E38f')
+    $assertionCommands.Add('data modify storage math: b set value 3.4028234663852886E38f')
+    $assertionCommands.Add('data modify storage math: ans set value 99.0f')
+    $assertionCommands.Add('data modify storage math: error set value "stale_error"')
+    $assertionCommands.Add('execute store result score #return math_test run function math:add')
+    Add-Guard -Condition 'unless score #return math_test matches 0' -Case 'add_overflow_return'
+    Add-Guard -Condition 'if data storage math: ans' -Case 'add_overflow_stale_answer'
+    Add-Guard -Condition 'unless data storage math: {error:"result_out_of_range"}' -Case 'add_overflow_error'
     Add-SuccessCase -Case 'signed_divide' -Function 'divide' -ExpectedAnswer '-3.5f' -Setup @(
         'data modify storage math: a set value 7.0f'
         'data modify storage math: b set value -2.0f'

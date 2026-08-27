@@ -27,6 +27,8 @@ const wrappers = [
   ["power", { a: 0, b: 0 }, 1],
 ];
 
+const finiteLimit = Math.fround(3.4028234663852886e38);
+
 test("public wrappers execute providers, clear stale errors, return success, and preserve public inputs", () => {
   for (const [name, inputs, expected] of wrappers) {
     const publicInput = { ...inputs, error: "stale_error" };
@@ -63,6 +65,33 @@ test("public wrappers reject non-finite inputs and clamp rejects inverted bounds
   assert.equal(invalidRange.returned, 0);
   assert.equal(invalidRange.storage["math:"].ans, undefined);
   assert.equal(invalidRange.storage["math:"].error, "invalid_clamp_range");
+});
+
+test("provider-native wrappers reject non-finite results", () => {
+  for (const [name, inputs] of [
+    ["add", { a: finiteLimit, b: finiteLimit }],
+    ["add", { a: -finiteLimit, b: -finiteLimit }],
+    ["subtract", { a: finiteLimit, b: -finiteLimit }],
+    ["subtract", { a: -finiteLimit, b: finiteLimit }],
+    ["multiply", { a: finiteLimit, b: 2 }],
+    ["multiply", { a: -finiteLimit, b: 2 }],
+    ["square", { a: finiteLimit }],
+    ["cube", { a: finiteLimit }],
+    ["cube", { a: -finiteLimit }],
+    ["deg", { a: finiteLimit }],
+    ["deg", { a: -finiteLimit }],
+    ["lerp", { a: finiteLimit, b: -finiteLimit, t: 0 }],
+    ["lerp", { a: finiteLimit, b: -finiteLimit, t: 0.5 }],
+    ["lerp", { a: -finiteLimit, b: finiteLimit, t: 0.5 }],
+  ]) {
+    const result = runFunction(name, { ...inputs, ans: 91, error: "stale_error" });
+    assert.equal(result.returned, 0, `${name} must reject a non-finite result`);
+    assert.equal(result.storage["math:"].ans, undefined, `${name} must clear stale ans`);
+    assert.equal(result.storage["math:"].error, "result_out_of_range", `${name} error`);
+    for (const [field, value] of Object.entries(inputs)) {
+      assert.equal(result.storage["math:"][field], value, `${name} must preserve ${field}`);
+    }
+  }
 });
 
 test("reciprocal and divide reject zero without mutating public inputs", () => {

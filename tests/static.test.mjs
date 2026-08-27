@@ -31,6 +31,14 @@ test("pack targets data pack format 118", () => {
   assert.equal(meta.pack.max_format, 118);
 });
 
+test("release pack excludes prototype debug functions", () => {
+  const debugRoot = "Math/data/math/function/debug";
+  const debugFunctions = fs.existsSync(debugRoot)
+    ? fs.readdirSync(debugRoot, { recursive: true }).filter((name) => name.endsWith(".mcfunction"))
+    : [];
+  assert.deepEqual(debugFunctions, []);
+});
+
 test("generated providers are current", () => {
   childProcess.execFileSync(process.execPath, ["tools/generate-math-providers.mjs", "--check"], {
     encoding: "utf8",
