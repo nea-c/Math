@@ -8,7 +8,7 @@
     },
     {
       "type": "storage",
-      "path": "b",
+      "path": "x",
       "storage": "math:"
     }
   ]

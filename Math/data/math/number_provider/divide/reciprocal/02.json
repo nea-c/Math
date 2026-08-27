@@ -1,0 +1,23 @@
+{
+  "operands": [
+    "math:divide/reciprocal/03",
+    "math:divide/reciprocal/04",
+    "math:divide/reciprocal/05",
+    "math:divide/reciprocal/06",
+    "math:divide/reciprocal/07",
+    "math:divide/reciprocal/08",
+    "math:divide/reciprocal/09",
+    "math:divide/reciprocal/10",
+    "math:divide/reciprocal/11",
+    "math:divide/reciprocal/12",
+    "math:divide/reciprocal/13",
+    "math:divide/reciprocal/14",
+    "math:divide/reciprocal/15",
+    "math:divide/reciprocal/16",
+    "math:divide/reciprocal/17",
+    "math:divide/reciprocal/18",
+    "math:divide/reciprocal/19",
+    "math:divide/reciprocal/20"
+  ],
+  "type": "sum"
+}
