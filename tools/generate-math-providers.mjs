@@ -154,6 +154,19 @@ emit("common/rounding/quotient", product(x, w));
 emit("common/rounding/reduce", sum(w, product(-1, z, y)));
 emit("common/rounding/double_y", product(2, y));
 emit("common/rounding/half_y", product(0.5, y));
+const periodHalfDifference = sum(x, product(-0.5, y));
+emit("common/normalize/period/positive/00", numberDispatcher([
+  {
+    condition: inlineValueCheck(periodHalfDifference, 0, finiteLimit),
+    number_provider: subtractExpression(x, y),
+  },
+], x));
+emit("common/normalize/period/negative/00", numberDispatcher([
+  {
+    condition: inlineValueCheck(periodHalfDifference, smallestPositiveFloat, finiteLimit),
+    number_provider: subtractExpression(y, x),
+  },
+], product(-1, x)));
 
 const sineC3 = Math.fround(-1 / 6);
 const sineC5 = Math.fround(1 / 120);
@@ -202,6 +215,31 @@ emit("sin/00", numberDispatcher([
 ], "math:sin/polynomial/00"));
 emit("cos/00", sum(x, halfPi));
 emit("tan/00", product(publicAnswer, z));
+const tangentGuardBase = 0.00002;
+const tangentGuardBaseUp = nextPositiveFloat(tangentGuardBase);
+const tangentGuardInflation = 1 + 2 ** -20;
+const tauErrorRatio = Math.abs(tau - Math.PI * 2) / (Math.PI * 2);
+const radianGuardCoefficient = nextPositiveFloat(tauErrorRatio * tangentGuardInflation);
+const radianConversion = Math.fround(Math.PI / 180);
+const unitRoundoff = 2 ** -24;
+const degreeGuardCoefficientExact = Math.abs(radianConversion - Math.PI / 180)
+  + radianConversion * unitRoundoff
+  + radianConversion * (1 + unitRoundoff) * tauErrorRatio;
+const degreeGuardCoefficient = nextPositiveFloat(degreeGuardCoefficientExact * tangentGuardInflation);
+
+function tangentGuard(domain, coefficient) {
+  const absoluteInput = maximum(publicA, product(-1, publicA));
+  const excess = maximum(0, sum(absoluteInput, -domain));
+  return numberDispatcher([
+    {
+      condition: inlineValueCheck(absoluteInput, -domain, domain),
+      number_provider: tangentGuardBase,
+    },
+  ], minimum(2, sum(tangentGuardBaseUp, product(excess, coefficient))));
+}
+
+emit("tan/guard/radians/00", tangentGuard(100, radianGuardCoefficient));
+emit("tan/guard/degrees/00", tangentGuard(5000, degreeGuardCoefficient));
 
 const reciprocalAbsolute = "math:common/reciprocal/normalize/absolute/00";
 const reciprocalMantissa = "math:common/reciprocal/normalize/mantissa/00";
@@ -526,6 +564,21 @@ emitPredicate("tan/undefined", {
   // reduced cosine is at most 1e-5; it can conservatively reject true cosine
   // magnitudes only through 3e-5.
   range: { max: 0.00002 },
+});
+for (const [variant, guard] of [
+  ["radians", "math:tan/guard/radians/00"],
+  ["degrees", "math:tan/guard/degrees/00"],
+]) {
+  emitPredicate(`tan/undefined_${variant}`, {
+    type: "minecraft:value_check",
+    value: subtractExpression(maximum(x, product(-1, x)), guard),
+    range: { max: 0 },
+  });
+}
+emitPredicate("normalize_period/original_negative", {
+  type: "minecraft:value_check",
+  value: z,
+  range: { max: smallestNegativeFloat },
 });
 emitPredicate("square_root/zero", {
   type: "minecraft:value_check",
@@ -1069,15 +1122,16 @@ emitFunction("internal/modulo_negative_b", [
 
 emitFunction("internal/normalize_period", [
   "data modify storage math:internal z set from storage math:internal x",
-  "data modify storage math:internal x set from storage math:internal y",
-  "data modify storage math:internal w set compute default math:common/reciprocal/00",
-  "data modify storage math:internal x set from storage math:internal z",
-  "data modify storage math:internal z set compute default math:common/rounding/quotient",
-  "data modify storage math:internal w set from storage math:internal x",
-  "data modify storage math:internal x set from storage math:internal z",
-  "data modify storage math:internal x set compute default math:common/rounding/add_half",
-  "function math:internal/floor_x",
-  "data modify storage math:internal z set compute default math:common/rounding/reduce",
+  "data modify storage math:internal x set compute default math:common/comparison/absolute",
+  "function math:internal/reduce_remainder",
+  "data modify storage math:internal w set from storage math:internal z",
+  "execute if predicate math:internal/normalize_period/original_negative run return run function math:internal/normalize_period_negative",
+  "data modify storage math:internal z set compute default math:common/normalize/period/positive/00",
+  "return 1",
+]);
+
+emitFunction("internal/normalize_period_negative", [
+  "data modify storage math:internal z set compute default math:common/normalize/period/negative/00",
   "return 1",
 ]);
 
@@ -1105,13 +1159,19 @@ emitFunction("internal/tan_x", [
   "data modify storage math: ans set compute default math:common/input/x",
   "data modify storage math:internal x set from storage math:internal w",
   "function math:internal/cos_x",
-  "execute if predicate math:internal/tan/undefined run data remove storage math: ans",
-  "execute if predicate math:internal/tan/undefined run data modify storage math: error set value \"undefined_tangent\"",
-  "execute if predicate math:internal/tan/undefined run return fail",
-  "data modify storage math:internal z set compute default math:common/reciprocal/00",
-  "data modify storage math: ans set compute default math:tan/00",
   "return 1",
 ]);
+
+function tangentResultLines(predicate) {
+  return [
+    `execute if predicate ${predicate} run data remove storage math: ans`,
+    `execute if predicate ${predicate} run data modify storage math: error set value "undefined_tangent"`,
+    `execute if predicate ${predicate} run return fail`,
+    "data modify storage math:internal z set compute default math:common/reciprocal/00",
+    "data modify storage math: ans set compute default math:tan/00",
+    "return 1",
+  ];
+}
 
 function trigWrapper(name, kernel, degrees, zeroResult) {
   const lines = validationLines(["a"]);
@@ -1120,7 +1180,8 @@ function trigWrapper(name, kernel, degrees, zeroResult) {
   lines.push(`execute if predicate math:internal/reciprocal/zero run data modify storage math: ans set ${zeroResult}`);
   lines.push("execute if predicate math:internal/reciprocal/zero run return 1");
   if (kernel === "tan_x") {
-    lines.push("return run function math:internal/tan_x");
+    lines.push("function math:internal/tan_x");
+    lines.push(...tangentResultLines(`math:internal/tan/undefined_${degrees ? "degrees" : "radians"}`));
   } else {
     lines.push(`function math:internal/${kernel}`);
     lines.push("data modify storage math: ans set compute default math:common/input/x");

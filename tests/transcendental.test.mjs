@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { runFunction, storageFieldKey } from "./mcfunction-test-harness.mjs";
+import { evaluateGeneratedProvider, runFunction, storageFieldKey } from "./mcfunction-test-harness.mjs";
 
 const finiteLimit = Math.fround(3.4028234663852886e38);
 const smallestFloat = Math.fround(2 ** -149);
@@ -772,5 +772,124 @@ test("trigonometric wrappers reject non-finite inputs and accept usable larger f
       assert.equal(result.storage["math:"].error, undefined);
       assert.equal(result.storage["math:"].a, Math.fround(input));
     }
+  }
+});
+
+test("all trigonometric wrappers handle huge finite inputs without successful non-finite answers", () => {
+  const hugeInputs = [
+    Math.fround(1e20),
+    Math.fround(-1e20),
+    Math.fround(1e30),
+    Math.fround(-1e30),
+    finiteLimit,
+    -finiteLimit,
+  ];
+  for (const name of ["sin", "cos", "sin_degrees", "cos_degrees"]) {
+    for (const input of hugeInputs) {
+      const result = runFunction(name, { a: input, ans: 91, error: "stale_error" });
+      assert.equal(result.returned, 1, `${name}(${input}) must succeed`);
+      assert.ok(Number.isFinite(result.storage["math:"].ans), `${name}(${input}) must return finite ans`);
+      assert.equal(result.storage["math:"].error, undefined);
+      assert.equal(result.storage["math:"].a, input);
+      assert.equal(result.numericTags.get(storageFieldKey("math:", "ans")), "float");
+      assert.ok(Object.keys(result.storage["math:internal"]).every((field) => ["x", "y", "z", "w"].includes(field)));
+    }
+  }
+  for (const name of ["tan", "tan_degrees"]) {
+    for (const input of hugeInputs) {
+      const result = runFunction(name, { a: input, ans: 91, error: "stale_error" });
+      assert.equal(result.returned, 0, `${name}(${input}) must conservatively reject uncertified phase`);
+      assert.equal(result.storage["math:"].ans, undefined);
+      assert.equal(result.storage["math:"].error, "undefined_tangent");
+      assert.equal(result.storage["math:"].a, input);
+    }
+  }
+});
+
+test("tangent rejects reference poles outside its accuracy domains", () => {
+  for (const [name, input, radians] of [
+    ["tan", Math.fround(278.03094482421875), Math.fround(278.03094482421875)],
+    ["tan_degrees", Math.fround(15210), 15210 * Math.PI / 180],
+    ["tan_degrees", Math.fround(50130), 50130 * Math.PI / 180],
+    ["tan_degrees", Math.fround(1_000_170), 1_000_170 * Math.PI / 180],
+  ]) {
+    assert.ok(Math.abs(Math.cos(radians)) <= 0.00001, `${name}(${input}) reference pole fixture`);
+    const result = runFunction(name, { a: input, ans: 91, error: "stale_error" });
+    assert.equal(result.returned, 0, `${name}(${input}) must reject reference pole`);
+    assert.equal(result.storage["math:"].ans, undefined);
+    assert.equal(result.storage["math:"].error, "undefined_tangent");
+    assert.equal(result.storage["math:"].a, input);
+  }
+});
+
+test("tangent rejects deterministic high-multiple reference poles", (t) => {
+  let radianCases = 0;
+  for (let multiple = 64; multiple <= 10_000; multiple += 1) {
+    const input = Math.fround((2 * multiple + 1) * Math.PI / 2);
+    if (Math.abs(Math.cos(input)) > 0.00001) continue;
+    const result = runFunction("tan", { a: input, ans: 91, error: "stale_error" });
+    assert.equal(result.returned, 0, `tan(${input}) high-multiple pole`);
+    assert.equal(result.storage["math:"].ans, undefined);
+    assert.equal(result.storage["math:"].error, "undefined_tangent");
+    radianCases += 1;
+  }
+
+  let degreeCases = 0;
+  for (let multiple = 28; multiple <= 10_000; multiple += 37) {
+    const input = Math.fround(90 + 180 * multiple);
+    assert.ok(Math.abs(Math.cos(input * Math.PI / 180)) <= 0.00001, `degree pole fixture ${input}`);
+    const result = runFunction("tan_degrees", { a: input, ans: 91, error: "stale_error" });
+    assert.equal(result.returned, 0, `tan_degrees(${input}) high-multiple pole`);
+    assert.equal(result.storage["math:"].ans, undefined);
+    assert.equal(result.storage["math:"].error, "undefined_tangent");
+    degreeCases += 1;
+  }
+
+  assert.ok(radianCases >= 300, `expected broad radian pole coverage, got ${radianCases}`);
+  assert.ok(degreeCases >= 250, `expected broad degree pole coverage, got ${degreeCases}`);
+  t.diagnostic(`${radianCases} radian and ${degreeCases} degree high-multiple poles rejected`);
+});
+
+test("tangent uncertainty guards round upward from independent phase-error bounds", () => {
+  const tauErrorRatio = Math.abs(Math.fround(Math.PI * 2) - Math.PI * 2) / (Math.PI * 2);
+  const unitRoundoff = 2 ** -24;
+  const radCoefficient = tauErrorRatio;
+  const radFloat = Math.fround(Math.PI / 180);
+  const degreeCoefficient = Math.abs(radFloat - Math.PI / 180)
+    + radFloat * unitRoundoff
+    + radFloat * (1 + unitRoundoff) * tauErrorRatio;
+
+  assert.equal(evaluateGeneratedProvider("math:tan/guard/radians/00", { a: 100 }), Math.fround(0.00002));
+  assert.equal(evaluateGeneratedProvider("math:tan/guard/degrees/00", { a: 5000 }), Math.fround(0.00002));
+
+  for (const [provider, domain, coefficient, inputs] of [
+    ["math:tan/guard/radians/00", 100, radCoefficient, [nextPositiveFloat(100), 278.03094482421875, 1_000_000, 35_000_000]],
+    ["math:tan/guard/degrees/00", 5000, degreeCoefficient, [nextPositiveFloat(5000), 15210, 1_000_170, 500_000_000]],
+  ]) {
+    for (const input of inputs.map(Math.fround)) {
+      const actual = evaluateGeneratedProvider(provider, { a: input });
+      const independentLowerBound = 0.00002 + (Math.abs(input) - domain) * coefficient;
+      assert.ok(actual >= independentLowerBound || actual >= 1, `${provider}(${input}) ${actual} must not underestimate ${independentLowerBound}`);
+      assert.ok(Number.isFinite(actual));
+    }
+  }
+
+  for (const [name, input] of [["tan", 1000], ["tan_degrees", 10000]]) {
+    const result = runFunction(name, { a: Math.fround(input), error: "stale_error" });
+    assert.equal(result.returned, 1, `${name}(${input}) representative uncertified-domain angle remains usable`);
+    assert.ok(Number.isFinite(result.storage["math:"].ans));
+    assert.equal(result.storage["math:"].error, undefined);
+  }
+
+  for (const [name, provider, input] of [
+    ["tan", "math:tan/guard/radians/00", 35_935_120],
+    ["tan_degrees", "math:tan/guard/degrees/00", 601_976_832],
+  ]) {
+    const guard = evaluateGeneratedProvider(provider, { a: Math.fround(input) });
+    assert.ok(guard >= 1.000004, `${provider} reaches the complete cosine-output range at ${input}`);
+    const result = runFunction(name, { a: Math.fround(input), ans: 91, error: "stale_error" });
+    assert.equal(result.returned, 0, `${name}(${input}) uncertified phase must reject`);
+    assert.equal(result.storage["math:"].ans, undefined);
+    assert.equal(result.storage["math:"].error, "undefined_tangent");
   }
 });

@@ -59,6 +59,19 @@ function exactModuloReference(a, b) {
   return Math.fround(Math.sign(b) * (Math.abs(b) - magnitude));
 }
 
+function exactCenteredRemainderReference(value, period) {
+  const magnitude = exactRemainderMagnitude(value, period);
+  const halfPeriod = Math.fround(period * 0.5);
+  if (value < 0) {
+    return magnitude > halfPeriod
+      ? Math.fround(period - magnitude)
+      : Math.fround(-magnitude);
+  }
+  return magnitude >= halfPeriod
+    ? Math.fround(magnitude - period)
+    : magnitude;
+}
+
 const providers = providerRegistry();
 
 test("common exact providers evaluate hand-checked arithmetic and conversions", () => {
@@ -295,5 +308,26 @@ test("period normalization reduces with a round-to-nearest quotient", () => {
     assert.equal(storage["math:internal"].z, Math.fround(expected), `normalize ${internal.x} by ${internal.y}`);
     assert.equal(numericTags.get(storageFieldKey("math:internal", "z")), "float");
     assert.ok(Object.keys(storage["math:internal"]).every((field) => ["x", "y", "z", "w"].includes(field)));
+  }
+});
+
+test("period normalization stays exact and finite across the binary32 range", () => {
+  const tau = Math.fround(Math.PI * 2);
+  for (const input of [
+    Math.fround(1e20),
+    Math.fround(-1e20),
+    Math.fround(1e30),
+    Math.fround(-1e30),
+    finiteLimit,
+    -finiteLimit,
+  ]) {
+    const expected = exactCenteredRemainderReference(input, tau);
+    const result = runInternalFunction("normalize_period", { x: input, y: tau });
+    assert.equal(result.returned, 1, `normalize_period(${input}) success`);
+    assert.equal(result.storage["math:internal"].z, expected, `normalize_period(${input}) exact centered remainder`);
+    assert.ok(Number.isFinite(result.storage["math:internal"].z), `normalize_period(${input}) finite result`);
+    assert.equal(result.storage["math:internal"].w, input, `normalize_period(${input}) preserves original x in w`);
+    assert.equal(result.numericTags.get(storageFieldKey("math:internal", "z")), "float");
+    assert.ok(Object.keys(result.storage["math:internal"]).every((field) => ["x", "y", "z", "w"].includes(field)));
   }
 });

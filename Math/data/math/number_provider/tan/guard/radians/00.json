@@ -1,0 +1,87 @@
+{
+  "type": "minecraft:number_dispatcher",
+  "cases": [
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:maximum",
+          "operands": [
+            {
+              "type": "minecraft:storage",
+              "storage": "math:",
+              "path": "a"
+            },
+            {
+              "type": "minecraft:product",
+              "operands": [
+                -1,
+                {
+                  "type": "minecraft:storage",
+                  "storage": "math:",
+                  "path": "a"
+                }
+              ]
+            }
+          ]
+        },
+        "range": {
+          "min": -100,
+          "max": 100
+        }
+      },
+      "number_provider": 0.00002
+    }
+  ],
+  "default": {
+    "type": "minecraft:minimum",
+    "operands": [
+      2,
+      {
+        "type": "minecraft:sum",
+        "operands": [
+          0.000020000001313746907,
+          {
+            "type": "minecraft:product",
+            "operands": [
+              {
+                "type": "minecraft:maximum",
+                "operands": [
+                  0,
+                  {
+                    "type": "minecraft:sum",
+                    "operands": [
+                      {
+                        "type": "minecraft:maximum",
+                        "operands": [
+                          {
+                            "type": "minecraft:storage",
+                            "storage": "math:",
+                            "path": "a"
+                          },
+                          {
+                            "type": "minecraft:product",
+                            "operands": [
+                              -1,
+                              {
+                                "type": "minecraft:storage",
+                                "storage": "math:",
+                                "path": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      -100
+                    ]
+                  }
+                ]
+              },
+              2.7827564252902448e-8
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

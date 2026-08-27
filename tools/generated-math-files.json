@@ -19,6 +19,7 @@
     "Math/data/math/function/internal/log_x.mcfunction",
     "Math/data/math/function/internal/modulo_negative_b.mcfunction",
     "Math/data/math/function/internal/normalize_period.mcfunction",
+    "Math/data/math/function/internal/normalize_period_negative.mcfunction",
     "Math/data/math/function/internal/power_boundary_negative.mcfunction",
     "Math/data/math/function/internal/power_boundary_positive.mcfunction",
     "Math/data/math/function/internal/power_classify_overflow.mcfunction",
@@ -73,6 +74,8 @@
     "Math/data/math/number_provider/common/input/x.json",
     "Math/data/math/number_provider/common/input/y.json",
     "Math/data/math/number_provider/common/input/z.json",
+    "Math/data/math/number_provider/common/normalize/period/negative/00.json",
+    "Math/data/math/number_provider/common/normalize/period/positive/00.json",
     "Math/data/math/number_provider/common/normalize/power_of_two/exponent.json",
     "Math/data/math/number_provider/common/normalize/power_of_two/exponent/00.json",
     "Math/data/math/number_provider/common/normalize/power_of_two/exponent/01.json",
@@ -241,6 +244,8 @@
     "Math/data/math/number_provider/square_root/normalize/scale/dispatch/07.json",
     "Math/data/math/number_provider/square_root/normalize/scale/dispatch/08.json",
     "Math/data/math/number_provider/tan/00.json",
+    "Math/data/math/number_provider/tan/guard/degrees/00.json",
+    "Math/data/math/number_provider/tan/guard/radians/00.json",
     "Math/data/math/predicate/internal/exp/input_finite.json",
     "Math/data/math/predicate/internal/exp/input_in_range.json",
     "Math/data/math/predicate/internal/exp/minimum_nonzero.json",
@@ -252,6 +257,7 @@
     "Math/data/math/predicate/internal/finite/min.json",
     "Math/data/math/predicate/internal/finite/t.json",
     "Math/data/math/predicate/internal/log/zero.json",
+    "Math/data/math/predicate/internal/normalize_period/original_negative.json",
     "Math/data/math/predicate/internal/power/base_zero.json",
     "Math/data/math/predicate/internal/power/classifier_overflow.json",
     "Math/data/math/predicate/internal/power/exponent_integer.json",
@@ -275,6 +281,8 @@
     "Math/data/math/predicate/internal/rounding/safe_command_result.json",
     "Math/data/math/predicate/internal/square_root/result_finite.json",
     "Math/data/math/predicate/internal/square_root/zero.json",
-    "Math/data/math/predicate/internal/tan/undefined.json"
+    "Math/data/math/predicate/internal/tan/undefined.json",
+    "Math/data/math/predicate/internal/tan/undefined_degrees.json",
+    "Math/data/math/predicate/internal/tan/undefined_radians.json"
   ]
 }
