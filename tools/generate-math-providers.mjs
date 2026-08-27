@@ -218,7 +218,9 @@ emit("tan/00", product(publicAnswer, z));
 const tangentGuardBase = 0.00002;
 const tangentGuardBaseUp = nextPositiveFloat(tangentGuardBase);
 const tangentGuardInflation = 1 + 2 ** -20;
-const tauErrorRatio = Math.abs(tau - Math.PI * 2) / (Math.PI * 2);
+const tauAbsoluteError = Math.abs(tau - Math.PI * 2);
+const tauErrorRatio = tauAbsoluteError / (Math.PI * 2);
+const tangentPeriodStepError = nextPositiveFloat(tauAbsoluteError * tangentGuardInflation);
 const radianGuardCoefficient = nextPositiveFloat(tauErrorRatio * tangentGuardInflation);
 const radianConversion = Math.fround(Math.PI / 180);
 const unitRoundoff = 2 ** -24;
@@ -235,7 +237,7 @@ function tangentGuard(domain, coefficient) {
       condition: inlineValueCheck(absoluteInput, -domain, domain),
       number_provider: tangentGuardBase,
     },
-  ], minimum(2, sum(tangentGuardBaseUp, product(excess, coefficient))));
+  ], minimum(2, sum(tangentGuardBaseUp, tangentPeriodStepError, product(excess, coefficient))));
 }
 
 emit("tan/guard/radians/00", tangentGuard(100, radianGuardCoefficient));

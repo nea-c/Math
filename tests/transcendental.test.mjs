@@ -851,7 +851,9 @@ test("tangent rejects deterministic high-multiple reference poles", (t) => {
 });
 
 test("tangent uncertainty guards round upward from independent phase-error bounds", () => {
-  const tauErrorRatio = Math.abs(Math.fround(Math.PI * 2) - Math.PI * 2) / (Math.PI * 2);
+  const tauFloat = Math.fround(Math.PI * 2);
+  const tauAbsoluteError = Math.abs(tauFloat - Math.PI * 2);
+  const tauErrorRatio = tauAbsoluteError / (Math.PI * 2);
   const unitRoundoff = 2 ** -24;
   const radCoefficient = tauErrorRatio;
   const radFloat = Math.fround(Math.PI / 180);
@@ -891,5 +893,40 @@ test("tangent uncertainty guards round upward from independent phase-error bound
     assert.equal(result.returned, 0, `${name}(${input}) uncertified phase must reject`);
     assert.equal(result.storage["math:"].ans, undefined);
     assert.equal(result.storage["math:"].error, "undefined_tangent");
+  }
+});
+
+test("radian tangent guard covers nextUp and nextDown at centered quotient transitions", () => {
+  const tauFloat = Math.fround(Math.PI * 2);
+  const tauAbsoluteError = Math.abs(tauFloat - Math.PI * 2);
+  const centeredPeriodCount = (magnitude) => Math.floor(magnitude / tauFloat + 0.5);
+  const domainPeriodCount = centeredPeriodCount(100);
+  const transition = Math.fround(16.5 * tauFloat);
+
+  for (const input of [previousPositiveFloat(transition), transition, nextPositiveFloat(transition)]) {
+    const actual = evaluateGeneratedProvider("math:tan/guard/radians/00", { a: input });
+    const additionalPeriods = centeredPeriodCount(input) - domainPeriodCount;
+    const independentLowerBound = 0.00002 + additionalPeriods * tauAbsoluteError;
+    assert.ok(actual >= independentLowerBound, `radian transition guard(${input}) ${actual} must cover ${independentLowerBound}`);
+  }
+});
+
+test("degree tangent guard adds quotient steps to conversion and product uncertainty", () => {
+  const tauFloat = Math.fround(Math.PI * 2);
+  const tauAbsoluteError = Math.abs(tauFloat - Math.PI * 2);
+  const radFloat = Math.fround(Math.PI / 180);
+  const unitRoundoff = 2 ** -24;
+  const conversionCoefficient = Math.abs(radFloat - Math.PI / 180) + radFloat * unitRoundoff;
+  const centeredPeriodCount = (magnitude) => Math.floor(magnitude / tauFloat + 0.5);
+  const domainPeriodCount = centeredPeriodCount(Math.fround(5000 * radFloat));
+  const transition = Math.fround(14.5 * tauFloat / radFloat);
+
+  for (const input of [previousPositiveFloat(transition), transition, nextPositiveFloat(transition)]) {
+    const converted = Math.fround(input * radFloat);
+    const additionalPeriods = centeredPeriodCount(converted) - domainPeriodCount;
+    const conversionIncrement = (input - 5000) * conversionCoefficient;
+    const independentLowerBound = 0.00002 + conversionIncrement + additionalPeriods * tauAbsoluteError;
+    const actual = evaluateGeneratedProvider("math:tan/guard/degrees/00", { a: input });
+    assert.ok(actual >= independentLowerBound, `degree transition guard(${input}) ${actual} must cover ${independentLowerBound}`);
   }
 });

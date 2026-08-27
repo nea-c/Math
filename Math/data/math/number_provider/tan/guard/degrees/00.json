@@ -41,6 +41,7 @@
         "type": "minecraft:sum",
         "operands": [
           0.000020000001313746907,
+          1.74845737888063e-7,
           {
             "type": "minecraft:product",
             "operands": [
