@@ -94,6 +94,10 @@ emit("common/comparison/maximum", maximum(x, y));
 emit("common/comparison/clamp", maximum(minimum(x, w), z));
 emit("common/conversion/rad", product(x, Math.fround(Math.PI / 180)));
 emit("common/conversion/deg", product(x, Math.fround(180 / Math.PI)));
+emit("common/rounding/negate", product(-1, x));
+emit("common/rounding/add_half", sum(x, 0.5));
+emit("common/rounding/quotient", product(x, w));
+emit("common/rounding/reduce", sum(w, product(-1, z, y)));
 
 const reciprocalAbsolute = "math:common/reciprocal/normalize/absolute/00";
 const reciprocalMantissa = "math:common/reciprocal/normalize/mantissa/00";
@@ -197,6 +201,11 @@ emitPredicate("reciprocal/zero", {
   value: x,
   range: { min: 0, max: 0 },
 });
+emitPredicate("rounding/safe_command_result", {
+  type: "minecraft:value_check",
+  value: maximum(x, product(-1, x)),
+  range: { max: previousPositiveFloat(2 ** 24) },
+});
 
 function validationLines(inputs) {
   const lines = ["data remove storage math: error"];
@@ -231,11 +240,81 @@ wrapper("deg", ["a"], "math:common/conversion/deg", { x: "a" });
 wrapper("lerp", ["a", "b", "t"], "math:common/arithmetic/lerp", { x: "a", y: "b", z: "t" });
 for (const name of ["pi", "tau", "e"]) wrapper(name, [], `math:common/constant/${name}`, {});
 
+emitFunction("internal/floor_x", [
+  "data modify storage math:internal z set compute default math:common/input/x",
+  "execute unless predicate math:internal/rounding/safe_command_result run return 1",
+  "execute store result storage math:internal z float 1 run compute default math:common/input/x",
+  "return 1",
+]);
+
+emitFunction("internal/truncate_x", [
+  "execute unless predicate math:internal/range/negative run return run function math:internal/floor_x",
+  "data modify storage math:internal x set compute default math:common/rounding/negate",
+  "function math:internal/floor_x",
+  "data modify storage math:internal x set from storage math:internal z",
+  "data modify storage math:internal z set compute default math:common/rounding/negate",
+  "return 1",
+]);
+
+{
+  const lines = validationLines(["a"]);
+  lines.push("data modify storage math:internal x set from storage math: a");
+  lines.push("function math:internal/floor_x");
+  lines.push("data modify storage math: ans set compute default math:common/input/z");
+  lines.push("return 1");
+  emitFunction("floor", lines);
+}
+
+{
+  const lines = validationLines(["a"]);
+  lines.push("data modify storage math:internal x set from storage math: a");
+  lines.push("data modify storage math:internal x set compute default math:common/rounding/negate");
+  lines.push("function math:internal/floor_x");
+  lines.push("data modify storage math:internal x set from storage math:internal z");
+  lines.push("data modify storage math: ans set compute default math:common/rounding/negate");
+  lines.push("return 1");
+  emitFunction("ceil", lines);
+}
+
+{
+  const lines = validationLines(["a"]);
+  lines.push("data modify storage math:internal x set from storage math: a");
+  lines.push("data modify storage math:internal x set compute default math:common/rounding/add_half");
+  lines.push("function math:internal/floor_x");
+  lines.push("data modify storage math: ans set compute default math:common/input/z");
+  lines.push("return 1");
+  emitFunction("round", lines);
+}
+
+{
+  const lines = validationLines(["a"]);
+  lines.push("data modify storage math:internal x set from storage math: a");
+  lines.push("function math:internal/truncate_x");
+  lines.push("data modify storage math: ans set compute default math:common/input/z");
+  lines.push("return 1");
+  emitFunction("truncate", lines);
+}
+
 function divisionByZeroLines() {
   return [
     "execute if predicate math:internal/reciprocal/zero run data remove storage math: ans",
     "execute if predicate math:internal/reciprocal/zero run data modify storage math: error set value \"division_by_zero\"",
     "execute if predicate math:internal/reciprocal/zero run return fail",
+  ];
+}
+
+function reductionLines(roundingHelper) {
+  return [
+    "data modify storage math:internal z set compute default math:common/reciprocal/00",
+    "data modify storage math:internal x set from storage math: a",
+    "data modify storage math:internal w set from storage math:internal z",
+    "data modify storage math:internal y set from storage math: b",
+    "data modify storage math:internal z set compute default math:common/rounding/quotient",
+    "data modify storage math:internal w set from storage math:internal x",
+    "data modify storage math:internal x set from storage math:internal z",
+    `function math:internal/${roundingHelper}`,
+    "data modify storage math: ans set compute default math:common/rounding/reduce",
+    "return 1",
   ];
 }
 
@@ -259,6 +338,28 @@ function divisionByZeroLines() {
   lines.push("return 1");
   emitFunction("divide", lines);
 }
+
+for (const [name, roundingHelper] of [["remainder", "truncate_x"], ["modulo", "floor_x"]]) {
+  const lines = validationLines(["a", "b"]);
+  lines.push("data modify storage math:internal x set from storage math: b");
+  lines.push(...divisionByZeroLines());
+  lines.push(...reductionLines(roundingHelper));
+  emitFunction(name, lines);
+}
+
+emitFunction("internal/normalize_period", [
+  "data modify storage math:internal z set from storage math:internal x",
+  "data modify storage math:internal x set from storage math:internal y",
+  "data modify storage math:internal w set compute default math:common/reciprocal/00",
+  "data modify storage math:internal x set from storage math:internal z",
+  "data modify storage math:internal z set compute default math:common/rounding/quotient",
+  "data modify storage math:internal w set from storage math:internal x",
+  "data modify storage math:internal x set from storage math:internal z",
+  "data modify storage math:internal x set compute default math:common/rounding/add_half",
+  "function math:internal/floor_x",
+  "data modify storage math:internal z set compute default math:common/rounding/reduce",
+  "return 1",
+]);
 
 {
   const lines = validationLines(["a"]);
