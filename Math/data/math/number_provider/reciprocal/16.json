@@ -1,0 +1,1077 @@
+{
+  "operands": [
+    {
+      "operands": [
+        4.93038113911381e-28,
+        {
+          "operands": [
+            {
+              "operands": [
+                {
+                  "operands": [
+                    {
+                      "operands": [
+                        1.4341828484214638e+27,
+                        {
+                          "operands": [
+                            "math:reciprocal/21",
+                            2.028240761553538e+27
+                          ],
+                          "type": "minimum"
+                        }
+                      ],
+                      "type": "maximum"
+                    },
+                    -1.4341828484214638e+27
+                  ],
+                  "type": "sum"
+                },
+                1.6833374974762864e-27
+              ],
+              "type": "product"
+            },
+            {
+              "operands": [
+                {
+                  "operands": [
+                    2.8683656968429277e+27,
+                    {
+                      "operands": [
+                        -1.0,
+                        {
+                          "operands": [
+                            2.028240761553538e+27,
+                            {
+                              "operands": [
+                                "math:reciprocal/21",
+                                2.8683656968429277e+27
+                              ],
+                              "type": "minimum"
+                            }
+                          ],
+                          "type": "maximum"
+                        }
+                      ],
+                      "type": "product"
+                    }
+                  ],
+                  "type": "sum"
+                },
+                1.1902991428236623e-27
+              ],
+              "type": "product"
+            }
+          ],
+          "type": "minimum"
+        }
+      ],
+      "type": "product"
+    },
+    {
+      "operands": [
+        3.486305866785136e-28,
+        {
+          "operands": [
+            {
+              "operands": [
+                {
+                  "operands": [
+                    {
+                      "operands": [
+                        2.028240761553538e+27,
+                        {
+                          "operands": [
+                            "math:reciprocal/21",
+                            2.8683656968429277e+27
+                          ],
+                          "type": "minimum"
+                        }
+                      ],
+                      "type": "maximum"
+                    },
+                    -2.028240761553538e+27
+                  ],
+                  "type": "sum"
+                },
+                1.1902991428236623e-27
+              ],
+              "type": "product"
+            },
+            {
+              "operands": [
+                {
+                  "operands": [
+                    4.056481523107076e+27,
+                    {
+                      "operands": [
+                        -1.0,
+                        {
+                          "operands": [
+                            2.8683656968429277e+27,
+                            {
+                              "operands": [
+                                "math:reciprocal/21",
+                                4.056481523107076e+27
+                              ],
+                              "type": "minimum"
+                            }
+                          ],
+                          "type": "maximum"
+                        }
+                      ],
+                      "type": "product"
+                    }
+                  ],
+                  "type": "sum"
+                },
+                8.416687487381432e-28
+              ],
+              "type": "product"
+            }
+          ],
+          "type": "minimum"
+        }
+      ],
+      "type": "product"
+    },
+    {
+      "operands": [
+        2.465190569556905e-28,
+        {
+          "operands": [
+            {
+              "operands": [
+                {
+                  "operands": [
+                    {
+                      "operands": [
+                        2.8683656968429277e+27,
+                        {
+                          "operands": [
+                            "math:reciprocal/21",
+                            4.056481523107076e+27
+                          ],
+                          "type": "minimum"
+                        }
+                      ],
+                      "type": "maximum"
+                    },
+                    -2.8683656968429277e+27
+                  ],
+                  "type": "sum"
+                },
+                8.416687487381432e-28
+              ],
+              "type": "product"
+            },
+            {
+              "operands": [
+                {
+                  "operands": [
+                    5.736731393685855e+27,
+                    {
+                      "operands": [
+                        -1.0,
+                        {
+                          "operands": [
+                            4.056481523107076e+27,
+                            {
+                              "operands": [
+                                "math:reciprocal/21",
+                                5.736731393685855e+27
+                              ],
+                              "type": "minimum"
+                            }
+                          ],
+                          "type": "maximum"
+                        }
+                      ],
+                      "type": "product"
+                    }
+                  ],
+                  "type": "sum"
+                },
+                5.951495714118312e-28
+              ],
+              "type": "product"
+            }
+          ],
+          "type": "minimum"
+        }
+      ],
+      "type": "product"
+    },
+    {
+      "operands": [
+        1.743152933392568e-28,
+        {
+          "operands": [
+            {
+              "operands": [
+                {
+                  "operands": [
+                    {
+                      "operands": [
+                        4.056481523107076e+27,
+                        {
+                          "operands": [
+                            "math:reciprocal/21",
+                            5.736731393685855e+27
+                          ],
+                          "type": "minimum"
+                        }
+                      ],
+                      "type": "maximum"
+                    },
+                    -4.056481523107076e+27
+                  ],
+                  "type": "sum"
+                },
+                5.951495714118312e-28
+              ],
+              "type": "product"
+            },
+            {
+              "operands": [
+                {
+                  "operands": [
+                    8.112963046214152e+27,
+                    {
+                      "operands": [
+                        -1.0,
+                        {
+                          "operands": [
+                            5.736731393685855e+27,
+                            {
+                              "operands": [
+                                "math:reciprocal/21",
+                                8.112963046214152e+27
+                              ],
+                              "type": "minimum"
+                            }
+                          ],
+                          "type": "maximum"
+                        }
+                      ],
+                      "type": "product"
+                    }
+                  ],
+                  "type": "sum"
+                },
+                4.208343743690716e-28
+              ],
+              "type": "product"
+            }
+          ],
+          "type": "minimum"
+        }
+      ],
+      "type": "product"
+    },
+    {
+      "operands": [
+        1.2325952847784525e-28,
+        {
+          "operands": [
+            {
+              "operands": [
+                {
+                  "operands": [
+                    {
+                      "operands": [
+                        5.736731393685855e+27,
+                        {
+                          "operands": [
+                            "math:reciprocal/21",
+                            8.112963046214152e+27
+                          ],
+                          "type": "minimum"
+                        }
+                      ],
+                      "type": "maximum"
+                    },
+                    -5.736731393685855e+27
+                  ],
+                  "type": "sum"
+                },
+                4.208343743690716e-28
+              ],
+              "type": "product"
+            },
+            {
+              "operands": [
+                {
+                  "operands": [
+                    1.147346278737171e+28,
+                    {
+                      "operands": [
+                        -1.0,
+                        {
+                          "operands": [
+                            8.112963046214152e+27,
+                            {
+                              "operands": [
+                                "math:reciprocal/21",
+                                1.147346278737171e+28
+                              ],
+                              "type": "minimum"
+                            }
+                          ],
+                          "type": "maximum"
+                        }
+                      ],
+                      "type": "product"
+                    }
+                  ],
+                  "type": "sum"
+                },
+                2.975747857059156e-28
+              ],
+              "type": "product"
+            }
+          ],
+          "type": "minimum"
+        }
+      ],
+      "type": "product"
+    },
+    {
+      "operands": [
+        8.71576466696284e-29,
+        {
+          "operands": [
+            {
+              "operands": [
+                {
+                  "operands": [
+                    {
+                      "operands": [
+                        8.112963046214152e+27,
+                        {
+                          "operands": [
+                            "math:reciprocal/21",
+                            1.147346278737171e+28
+                          ],
+                          "type": "minimum"
+                        }
+                      ],
+                      "type": "maximum"
+                    },
+                    -8.112963046214152e+27
+                  ],
+                  "type": "sum"
+                },
+                2.975747857059156e-28
+              ],
+              "type": "product"
+            },
+            {
+              "operands": [
+                {
+                  "operands": [
+                    1.6225926092428305e+28,
+                    {
+                      "operands": [
+                        -1.0,
+                        {
+                          "operands": [
+                            1.147346278737171e+28,
+                            {
+                              "operands": [
+                                "math:reciprocal/21",
+                                1.6225926092428305e+28
+                              ],
+                              "type": "minimum"
+                            }
+                          ],
+                          "type": "maximum"
+                        }
+                      ],
+                      "type": "product"
+                    }
+                  ],
+                  "type": "sum"
+                },
+                2.104171871845358e-28
+              ],
+              "type": "product"
+            }
+          ],
+          "type": "minimum"
+        }
+      ],
+      "type": "product"
+    },
+    {
+      "operands": [
+        6.162976423892262e-29,
+        {
+          "operands": [
+            {
+              "operands": [
+                {
+                  "operands": [
+                    {
+                      "operands": [
+                        1.147346278737171e+28,
+                        {
+                          "operands": [
+                            "math:reciprocal/21",
+                            1.6225926092428305e+28
+                          ],
+                          "type": "minimum"
+                        }
+                      ],
+                      "type": "maximum"
+                    },
+                    -1.147346278737171e+28
+                  ],
+                  "type": "sum"
+                },
+                2.104171871845358e-28
+              ],
+              "type": "product"
+            },
+            {
+              "operands": [
+                {
+                  "operands": [
+                    2.294692557474342e+28,
+                    {
+                      "operands": [
+                        -1.0,
+                        {
+                          "operands": [
+                            1.6225926092428305e+28,
+                            {
+                              "operands": [
+                                "math:reciprocal/21",
+                                2.294692557474342e+28
+                              ],
+                              "type": "minimum"
+                            }
+                          ],
+                          "type": "maximum"
+                        }
+                      ],
+                      "type": "product"
+                    }
+                  ],
+                  "type": "sum"
+                },
+                1.487873928529578e-28
+              ],
+              "type": "product"
+            }
+          ],
+          "type": "minimum"
+        }
+      ],
+      "type": "product"
+    },
+    {
+      "operands": [
+        4.35788233348142e-29,
+        {
+          "operands": [
+            {
+              "operands": [
+                {
+                  "operands": [
+                    {
+                      "operands": [
+                        1.6225926092428305e+28,
+                        {
+                          "operands": [
+                            "math:reciprocal/21",
+                            2.294692557474342e+28
+                          ],
+                          "type": "minimum"
+                        }
+                      ],
+                      "type": "maximum"
+                    },
+                    -1.6225926092428305e+28
+                  ],
+                  "type": "sum"
+                },
+                1.487873928529578e-28
+              ],
+              "type": "product"
+            },
+            {
+              "operands": [
+                {
+                  "operands": [
+                    3.245185218485661e+28,
+                    {
+                      "operands": [
+                        -1.0,
+                        {
+                          "operands": [
+                            2.294692557474342e+28,
+                            {
+                              "operands": [
+                                "math:reciprocal/21",
+                                3.245185218485661e+28
+                              ],
+                              "type": "minimum"
+                            }
+                          ],
+                          "type": "maximum"
+                        }
+                      ],
+                      "type": "product"
+                    }
+                  ],
+                  "type": "sum"
+                },
+                1.052085935922679e-28
+              ],
+              "type": "product"
+            }
+          ],
+          "type": "minimum"
+        }
+      ],
+      "type": "product"
+    },
+    {
+      "operands": [
+        3.081488211946131e-29,
+        {
+          "operands": [
+            {
+              "operands": [
+                {
+                  "operands": [
+                    {
+                      "operands": [
+                        2.294692557474342e+28,
+                        {
+                          "operands": [
+                            "math:reciprocal/21",
+                            3.245185218485661e+28
+                          ],
+                          "type": "minimum"
+                        }
+                      ],
+                      "type": "maximum"
+                    },
+                    -2.294692557474342e+28
+                  ],
+                  "type": "sum"
+                },
+                1.052085935922679e-28
+              ],
+              "type": "product"
+            },
+            {
+              "operands": [
+                {
+                  "operands": [
+                    4.589385114948684e+28,
+                    {
+                      "operands": [
+                        -1.0,
+                        {
+                          "operands": [
+                            3.245185218485661e+28,
+                            {
+                              "operands": [
+                                "math:reciprocal/21",
+                                4.589385114948684e+28
+                              ],
+                              "type": "minimum"
+                            }
+                          ],
+                          "type": "maximum"
+                        }
+                      ],
+                      "type": "product"
+                    }
+                  ],
+                  "type": "sum"
+                },
+                7.43936964264789e-29
+              ],
+              "type": "product"
+            }
+          ],
+          "type": "minimum"
+        }
+      ],
+      "type": "product"
+    },
+    {
+      "operands": [
+        2.17894116674071e-29,
+        {
+          "operands": [
+            {
+              "operands": [
+                {
+                  "operands": [
+                    {
+                      "operands": [
+                        3.245185218485661e+28,
+                        {
+                          "operands": [
+                            "math:reciprocal/21",
+                            4.589385114948684e+28
+                          ],
+                          "type": "minimum"
+                        }
+                      ],
+                      "type": "maximum"
+                    },
+                    -3.245185218485661e+28
+                  ],
+                  "type": "sum"
+                },
+                7.43936964264789e-29
+              ],
+              "type": "product"
+            },
+            {
+              "operands": [
+                {
+                  "operands": [
+                    6.490370436971322e+28,
+                    {
+                      "operands": [
+                        -1.0,
+                        {
+                          "operands": [
+                            4.589385114948684e+28,
+                            {
+                              "operands": [
+                                "math:reciprocal/21",
+                                6.490370436971322e+28
+                              ],
+                              "type": "minimum"
+                            }
+                          ],
+                          "type": "maximum"
+                        }
+                      ],
+                      "type": "product"
+                    }
+                  ],
+                  "type": "sum"
+                },
+                5.260429679613395e-29
+              ],
+              "type": "product"
+            }
+          ],
+          "type": "minimum"
+        }
+      ],
+      "type": "product"
+    },
+    {
+      "operands": [
+        1.5407441059730656e-29,
+        {
+          "operands": [
+            {
+              "operands": [
+                {
+                  "operands": [
+                    {
+                      "operands": [
+                        4.589385114948684e+28,
+                        {
+                          "operands": [
+                            "math:reciprocal/21",
+                            6.490370436971322e+28
+                          ],
+                          "type": "minimum"
+                        }
+                      ],
+                      "type": "maximum"
+                    },
+                    -4.589385114948684e+28
+                  ],
+                  "type": "sum"
+                },
+                5.260429679613395e-29
+              ],
+              "type": "product"
+            },
+            {
+              "operands": [
+                {
+                  "operands": [
+                    9.178770229897369e+28,
+                    {
+                      "operands": [
+                        -1.0,
+                        {
+                          "operands": [
+                            6.490370436971322e+28,
+                            {
+                              "operands": [
+                                "math:reciprocal/21",
+                                9.178770229897369e+28
+                              ],
+                              "type": "minimum"
+                            }
+                          ],
+                          "type": "maximum"
+                        }
+                      ],
+                      "type": "product"
+                    }
+                  ],
+                  "type": "sum"
+                },
+                3.719684821323945e-29
+              ],
+              "type": "product"
+            }
+          ],
+          "type": "minimum"
+        }
+      ],
+      "type": "product"
+    },
+    {
+      "operands": [
+        1.089470583370355e-29,
+        {
+          "operands": [
+            {
+              "operands": [
+                {
+                  "operands": [
+                    {
+                      "operands": [
+                        6.490370436971322e+28,
+                        {
+                          "operands": [
+                            "math:reciprocal/21",
+                            9.178770229897369e+28
+                          ],
+                          "type": "minimum"
+                        }
+                      ],
+                      "type": "maximum"
+                    },
+                    -6.490370436971322e+28
+                  ],
+                  "type": "sum"
+                },
+                3.719684821323945e-29
+              ],
+              "type": "product"
+            },
+            {
+              "operands": [
+                {
+                  "operands": [
+                    1.2980740873942644e+29,
+                    {
+                      "operands": [
+                        -1.0,
+                        {
+                          "operands": [
+                            9.178770229897369e+28,
+                            {
+                              "operands": [
+                                "math:reciprocal/21",
+                                1.2980740873942644e+29
+                              ],
+                              "type": "minimum"
+                            }
+                          ],
+                          "type": "maximum"
+                        }
+                      ],
+                      "type": "product"
+                    }
+                  ],
+                  "type": "sum"
+                },
+                2.6302148398066974e-29
+              ],
+              "type": "product"
+            }
+          ],
+          "type": "minimum"
+        }
+      ],
+      "type": "product"
+    },
+    {
+      "operands": [
+        7.703720529865328e-30,
+        {
+          "operands": [
+            {
+              "operands": [
+                {
+                  "operands": [
+                    {
+                      "operands": [
+                        9.178770229897369e+28,
+                        {
+                          "operands": [
+                            "math:reciprocal/21",
+                            1.2980740873942644e+29
+                          ],
+                          "type": "minimum"
+                        }
+                      ],
+                      "type": "maximum"
+                    },
+                    -9.178770229897369e+28
+                  ],
+                  "type": "sum"
+                },
+                2.6302148398066974e-29
+              ],
+              "type": "product"
+            },
+            {
+              "operands": [
+                {
+                  "operands": [
+                    1.8357540459794737e+29,
+                    {
+                      "operands": [
+                        -1.0,
+                        {
+                          "operands": [
+                            1.2980740873942644e+29,
+                            {
+                              "operands": [
+                                "math:reciprocal/21",
+                                1.8357540459794737e+29
+                              ],
+                              "type": "minimum"
+                            }
+                          ],
+                          "type": "maximum"
+                        }
+                      ],
+                      "type": "product"
+                    }
+                  ],
+                  "type": "sum"
+                },
+                1.8598424106619724e-29
+              ],
+              "type": "product"
+            }
+          ],
+          "type": "minimum"
+        }
+      ],
+      "type": "product"
+    },
+    {
+      "operands": [
+        5.447352916851775e-30,
+        {
+          "operands": [
+            {
+              "operands": [
+                {
+                  "operands": [
+                    {
+                      "operands": [
+                        1.2980740873942644e+29,
+                        {
+                          "operands": [
+                            "math:reciprocal/21",
+                            1.8357540459794737e+29
+                          ],
+                          "type": "minimum"
+                        }
+                      ],
+                      "type": "maximum"
+                    },
+                    -1.2980740873942644e+29
+                  ],
+                  "type": "sum"
+                },
+                1.8598424106619724e-29
+              ],
+              "type": "product"
+            },
+            {
+              "operands": [
+                {
+                  "operands": [
+                    2.5961481747885288e+29,
+                    {
+                      "operands": [
+                        -1.0,
+                        {
+                          "operands": [
+                            1.8357540459794737e+29,
+                            {
+                              "operands": [
+                                "math:reciprocal/21",
+                                2.5961481747885288e+29
+                              ],
+                              "type": "minimum"
+                            }
+                          ],
+                          "type": "maximum"
+                        }
+                      ],
+                      "type": "product"
+                    }
+                  ],
+                  "type": "sum"
+                },
+                1.3151074199033487e-29
+              ],
+              "type": "product"
+            }
+          ],
+          "type": "minimum"
+        }
+      ],
+      "type": "product"
+    },
+    {
+      "operands": [
+        3.851860264932664e-30,
+        {
+          "operands": [
+            {
+              "operands": [
+                {
+                  "operands": [
+                    {
+                      "operands": [
+                        1.8357540459794737e+29,
+                        {
+                          "operands": [
+                            "math:reciprocal/21",
+                            2.5961481747885288e+29
+                          ],
+                          "type": "minimum"
+                        }
+                      ],
+                      "type": "maximum"
+                    },
+                    -1.8357540459794737e+29
+                  ],
+                  "type": "sum"
+                },
+                1.3151074199033487e-29
+              ],
+              "type": "product"
+            },
+            {
+              "operands": [
+                {
+                  "operands": [
+                    3.6715080919589474e+29,
+                    {
+                      "operands": [
+                        -1.0,
+                        {
+                          "operands": [
+                            2.5961481747885288e+29,
+                            {
+                              "operands": [
+                                "math:reciprocal/21",
+                                3.6715080919589474e+29
+                              ],
+                              "type": "minimum"
+                            }
+                          ],
+                          "type": "maximum"
+                        }
+                      ],
+                      "type": "product"
+                    }
+                  ],
+                  "type": "sum"
+                },
+                9.299212053309862e-30
+              ],
+              "type": "product"
+            }
+          ],
+          "type": "minimum"
+        }
+      ],
+      "type": "product"
+    },
+    {
+      "operands": [
+        2.7236764584258874e-30,
+        {
+          "operands": [
+            {
+              "operands": [
+                {
+                  "operands": [
+                    {
+                      "operands": [
+                        2.5961481747885288e+29,
+                        {
+                          "operands": [
+                            "math:reciprocal/21",
+                            3.6715080919589474e+29
+                          ],
+                          "type": "minimum"
+                        }
+                      ],
+                      "type": "maximum"
+                    },
+                    -2.5961481747885288e+29
+                  ],
+                  "type": "sum"
+                },
+                9.299212053309862e-30
+              ],
+              "type": "product"
+            },
+            {
+              "operands": [
+                {
+                  "operands": [
+                    5.1922963495770576e+29,
+                    {
+                      "operands": [
+                        -1.0,
+                        {
+                          "operands": [
+                            3.6715080919589474e+29,
+                            {
+                              "operands": [
+                                "math:reciprocal/21",
+                                5.1922963495770576e+29
+                              ],
+                              "type": "minimum"
+                            }
+                          ],
+                          "type": "maximum"
+                        }
+                      ],
+                      "type": "product"
+                    }
+                  ],
+                  "type": "sum"
+                },
+                6.575537099516744e-30
+              ],
+              "type": "product"
+            }
+          ],
+          "type": "minimum"
+        }
+      ],
+      "type": "product"
+    }
+  ],
+  "type": "sum"
+}

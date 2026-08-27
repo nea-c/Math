@@ -1,0 +1,20 @@
+{
+  "operands": [
+    "math:reciprocal/02",
+    {
+      "operands": [
+        2.0,
+        {
+          "operands": [
+            -1.0,
+            "math:reciprocal/21",
+            "math:reciprocal/02"
+          ],
+          "type": "product"
+        }
+      ],
+      "type": "sum"
+    }
+  ],
+  "type": "product"
+}

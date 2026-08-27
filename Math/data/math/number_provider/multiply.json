@@ -1,0 +1,15 @@
+{
+  "type": "product",
+  "operands": [
+    {
+      "type": "storage",
+      "path": "a",
+      "storage": "math:"
+    },
+    {
+      "type": "storage",
+      "path": "b",
+      "storage": "math:"
+    }
+  ]
+}

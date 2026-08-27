@@ -1,0 +1,5 @@
+
+
+
+$tellraw @a "$(ans)"
+
