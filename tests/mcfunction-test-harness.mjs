@@ -195,10 +195,9 @@ export function runInternalFunction(name, internalInput) {
   return runWithStorage(`internal/${name}`, {}, internalInput);
 }
 
-export function evaluateGeneratedProvider(id, publicInput = {}, internalInput = {}, comparisonInput = {}) {
+export function evaluateGeneratedProvider(id, publicInput = {}, internalInput = {}) {
   return evaluateProvider(id, providers, new Map([
     ["math:", clone(publicInput)],
     ["math:internal", clone(internalInput)],
-    ["math:comparison", clone(comparisonInput)],
   ]));
 }

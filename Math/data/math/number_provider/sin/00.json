@@ -9,8 +9,8 @@
             "type": "minecraft:value_check",
             "value": {
               "type": "minecraft:storage",
-              "storage": "math:comparison",
-              "path": "sin_positive_lower"
+              "storage": "math:internal",
+              "path": "w_comparison.sin_positive_lower"
             },
             "range": {
               "min": 0
@@ -20,8 +20,8 @@
             "type": "minecraft:value_check",
             "value": {
               "type": "minecraft:storage",
-              "storage": "math:comparison",
-              "path": "sin_positive_upper"
+              "storage": "math:internal",
+              "path": "w_comparison.sin_positive_upper"
             },
             "range": {
               "max": 0
@@ -39,8 +39,8 @@
             "type": "minecraft:value_check",
             "value": {
               "type": "minecraft:storage",
-              "storage": "math:comparison",
-              "path": "sin_negative_lower"
+              "storage": "math:internal",
+              "path": "w_comparison.sin_negative_lower"
             },
             "range": {
               "min": 0
@@ -50,8 +50,8 @@
             "type": "minecraft:value_check",
             "value": {
               "type": "minecraft:storage",
-              "storage": "math:comparison",
-              "path": "sin_negative_upper"
+              "storage": "math:internal",
+              "path": "w_comparison.sin_negative_upper"
             },
             "range": {
               "max": 0

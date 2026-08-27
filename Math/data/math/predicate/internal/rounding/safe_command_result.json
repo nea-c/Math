@@ -2,8 +2,8 @@
   "type": "minecraft:value_check",
   "value": {
     "type": "minecraft:storage",
-    "storage": "math:comparison",
-    "path": "predicate.rounding_safe_command_result.maximum"
+    "storage": "math:internal",
+    "path": "w_comparison.predicate.rounding_safe_command_result.maximum"
   },
   "range": {
     "max": 0

@@ -2,8 +2,8 @@
   "type": "minecraft:value_check",
   "value": {
     "type": "minecraft:storage",
-    "storage": "math:comparison",
-    "path": "predicate.exp_input_in_range.maximum"
+    "storage": "math:internal",
+    "path": "w_comparison.predicate.exp_input_in_range.maximum"
   },
   "range": {
     "max": 0

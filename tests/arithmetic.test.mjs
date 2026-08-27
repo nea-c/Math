@@ -148,20 +148,85 @@ test("common reciprocal stays within tolerance for 20,000 deterministic finite f
     state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;
     view.setUint32(0, state);
     const input = view.getFloat32(0);
-    if (!Number.isFinite(input) || input === 0 || Math.abs(input) < smallestFiniteReciprocalInput) continue;
+    if (!Number.isFinite(input) || input === 0) continue;
 
     const expected = Math.fround(1 / input);
-    const actual = runStagedReciprocal(input);
-    const relativeError = Math.abs((actual - expected) / expected);
-    if (relativeError > maximumRelativeError) {
-      maximumRelativeError = relativeError;
-      worstInput = input;
+    const result = runFunction("reciprocal", { a: input, ans: 91, error: "stale_error" });
+    if (!Number.isFinite(expected)) {
+      assert.equal(result.returned, 0, `reciprocal(${input}) overflow must fail`);
+      assert.equal(result.storage["math:"].ans, undefined);
+      assert.equal(result.storage["math:"].error, "result_out_of_range");
+    } else {
+      assert.equal(result.returned, 1, `reciprocal(${input}) must succeed`);
+      const actual = result.storage["math:"].ans;
+      const relativeError = Math.abs((actual - expected) / expected);
+      if (relativeError > maximumRelativeError) {
+        maximumRelativeError = relativeError;
+        worstInput = input;
+      }
     }
     count += 1;
   }
 
   t.diagnostic(`maximum relative error ${maximumRelativeError} at ${worstInput}`);
   assert.ok(maximumRelativeError <= 0.00001, `maximum relative error ${maximumRelativeError} at ${worstInput}`);
+});
+
+test("coordinated division preserves precision across deterministic binary32 operands", (t) => {
+  const bytes = new ArrayBuffer(4);
+  const view = new DataView(bytes);
+  let state = 0x243f6a88;
+  let count = 0;
+  let maximumNormalRelativeError = 0;
+  let worstNormalCase = "";
+  let maximumSubnormalUlpError = 0;
+  let worstSubnormalCase = "";
+
+  while (count < 512) {
+    state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;
+    view.setUint32(0, state);
+    const a = view.getFloat32(0);
+    state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;
+    view.setUint32(0, state);
+    const b = view.getFloat32(0);
+    if (!Number.isFinite(a) || !Number.isFinite(b) || b === 0) continue;
+
+    const expected = Math.fround(a / b);
+    const result = runFunction("divide", { a, b, ans: 91, error: "stale_error" });
+    if (!Number.isFinite(expected)) {
+      assert.equal(result.returned, 0, `divide(${a}, ${b}) overflow must fail`);
+      assert.equal(result.storage["math:"].ans, undefined);
+      assert.equal(result.storage["math:"].error, "result_out_of_range");
+    } else {
+      assert.equal(result.returned, 1, `divide(${a}, ${b}) must succeed`);
+      const actual = result.storage["math:"].ans;
+      if (expected === 0) {
+        assert.ok(Object.is(actual, expected), `divide(${a}, ${b}) zero sign`);
+      } else {
+        const allowedError = Math.max(Math.abs(expected) * 0.00001, smallestFloat);
+        const scaledError = Math.abs(actual - expected) / allowedError;
+        if (Math.abs(expected) >= Math.fround(2 ** -126)) {
+          const relativeError = Math.abs((actual - expected) / expected);
+          if (relativeError > maximumNormalRelativeError) {
+            maximumNormalRelativeError = relativeError;
+            worstNormalCase = `${a} / ${b}: ${actual} versus ${expected}`;
+          }
+        } else {
+          const ulpError = Math.abs(actual - expected) / smallestFloat;
+          if (ulpError > maximumSubnormalUlpError) {
+            maximumSubnormalUlpError = ulpError;
+            worstSubnormalCase = `${a} / ${b}: ${actual} versus ${expected}`;
+          }
+        }
+        assert.ok(scaledError <= 1, `divide(${a}, ${b}) produced ${actual}, expected ${expected}`);
+      }
+      assert.equal(result.storage["math:"].error, undefined);
+    }
+    count += 1;
+  }
+
+  t.diagnostic(`maximum normal relative division error ${maximumNormalRelativeError} at ${worstNormalCase}`);
+  t.diagnostic(`maximum subnormal division error ${maximumSubnormalUlpError} min-subnormal ULP at ${worstSubnormalCase}`);
 });
 
 test("rounding wrappers honor signed half boundaries and the float integer limit", () => {
@@ -197,7 +262,7 @@ test("rounding wrappers honor signed half boundaries and the float integer limit
       assert.equal(storage["math:"].error, undefined, `${name}(${input}) must clear stale errors`);
       assert.equal(storage["math:"].a, input, `${name}(${input}) must preserve a`);
       assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float", `${name}(${input}) must write a float`);
-      assert.ok(Object.keys(storage["math:internal"]).every((field) => ["x", "y", "z", "w"].includes(field)), `${name}(${input}) scratch keys`);
+      assert.ok(Object.keys(storage["math:internal"]).every((field) => /^[xyzw](?:_|$)/.test(field)), `${name}(${input}) scratch keys`);
     }
   }
 });
@@ -232,7 +297,7 @@ test("remainder and modulo use truncating and flooring quotients", () => {
       assert.equal(storage["math:"].a, a, `${name} must preserve a`);
       assert.equal(storage["math:"].b, b, `${name} must preserve b`);
       assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float", `${name} must write a float`);
-      assert.ok(Object.keys(storage["math:internal"]).every((field) => ["x", "y", "z", "w"].includes(field)), `${name} scratch keys`);
+      assert.ok(Object.keys(storage["math:internal"]).every((field) => /^[xyzw](?:_|$)/.test(field)), `${name} scratch keys`);
     }
   }
 });
@@ -311,7 +376,7 @@ test("period normalization reduces with a round-to-nearest quotient", () => {
     assert.equal(returned, 1);
     assert.equal(storage["math:internal"].z, Math.fround(expected), `normalize ${internal.x} by ${internal.y}`);
     assert.equal(numericTags.get(storageFieldKey("math:internal", "z")), "float");
-    assert.ok(Object.keys(storage["math:internal"]).every((field) => ["x", "y", "z", "w"].includes(field)));
+    assert.ok(Object.keys(storage["math:internal"]).every((field) => /^[xyzw](?:_|$)/.test(field)));
   }
 });
 
@@ -332,6 +397,6 @@ test("period normalization stays exact and finite across the binary32 range", ()
     assert.ok(Number.isFinite(result.storage["math:internal"].z), `normalize_period(${input}) finite result`);
     assert.equal(result.storage["math:internal"].w, input, `normalize_period(${input}) preserves original x in w`);
     assert.equal(result.numericTags.get(storageFieldKey("math:internal", "z")), "float");
-    assert.ok(Object.keys(result.storage["math:internal"]).every((field) => ["x", "y", "z", "w"].includes(field)));
+    assert.ok(Object.keys(result.storage["math:internal"]).every((field) => /^[xyzw](?:_|$)/.test(field)));
   }
 });

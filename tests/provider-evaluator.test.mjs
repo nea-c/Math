@@ -155,7 +155,7 @@ test("materialized comparisons distinguish adjacent floats at signed power-of-tw
     cases: [{
       condition: {
         type: "minecraft:value_check",
-        value: storage("math:comparison", "value"),
+        value: storage("math:internal", "w_value"),
         range: { min: 0 },
       },
       number_provider: 1,
@@ -171,7 +171,7 @@ test("materialized comparisons distinguish adjacent floats at signed power-of-tw
     for (const [input, expected] of [[nextDown, 0], [threshold, 1], [nextUp, 1]]) {
       const values = new Map([["math:internal", { x: input }]]);
       const materialized = evaluateProvider(floatComparison(x, threshold), new Map(), values);
-      values.set("math:comparison", { value: materialized });
+      values.set("math:internal", { w_value: materialized });
       assert.equal(evaluateProvider(selector, new Map(), values), expected, `${input} >= ${threshold}`);
     }
   }

@@ -164,6 +164,14 @@ try {
     Add-SuccessCase -Case 'small_reciprocal' -Function 'reciprocal' -ExpectedAnswer '16384.0f' -Setup @(
         'data modify storage math: a set value 0.00006103515625f'
     )
+    Add-SuccessCase -Case 'subnormal_divide_equal' -Function 'divide' -ExpectedAnswer '1.0f' -Setup @(
+        'data modify storage math: a set value 1.401298464324817E-45f'
+        'data modify storage math: b set value 1.401298464324817E-45f'
+    )
+    Add-SuccessCase -Case 'subnormal_divide_band' -Function 'divide' -ExpectedAnswer '8388608.0f' -Setup @(
+        'data modify storage math: a set value 1.1754943508222875E-38f'
+        'data modify storage math: b set value 1.401298464324817E-45f'
+    )
     Add-SuccessCase -Case 'round' -Function 'round' -ExpectedAnswer '-1.0f' -Setup @(
         'data modify storage math: a set value -1.5f'
     )
@@ -208,6 +216,14 @@ try {
     Add-Guard -Condition 'unless score #return math_test matches 0' -Case 'tan_undefined_return'
     Add-Guard -Condition 'if data storage math: ans' -Case 'tan_undefined_stale_answer'
     Add-Guard -Condition 'unless data storage math: {error:"undefined_tangent"}' -Case 'tan_undefined_error'
+
+    $assertionCommands.Add('data modify storage math: a set value 2.938735877055719E-39f')
+    $assertionCommands.Add('data modify storage math: ans set value 99.0f')
+    $assertionCommands.Add('data modify storage math: error set value "stale_error"')
+    $assertionCommands.Add('execute store result score #return math_test run function math:reciprocal')
+    Add-Guard -Condition 'unless score #return math_test matches 0' -Case 'reciprocal_overflow_return'
+    Add-Guard -Condition 'if data storage math: ans' -Case 'reciprocal_overflow_stale_answer'
+    Add-Guard -Condition 'unless data storage math: {error:"result_out_of_range"}' -Case 'reciprocal_overflow_error'
     $assertionCommands.Add("say $passMarker")
     Set-Content -LiteralPath (Join-Path $assertionFunctionRoot 'run.mcfunction') -Encoding utf8 -Value $assertionCommands
 
@@ -327,7 +343,7 @@ try {
         throw 'Minecraft integration marker was observed, but the stop command was not sent.'
     }
     if ($process.ExitCode -ne 0) {
-        throw "Minecraft server did not exit cleanly after verification (exit code $($process.ExitCode))."
+        throw "Minecraft server did not exit cleanly after verification (exit code $($process.ExitCode)).`n$($capturedOutput -join [Environment]::NewLine)"
     }
 
     Write-Output $passMarker

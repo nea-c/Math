@@ -16,7 +16,7 @@ const powerOverflowLogThreshold = Math.log((2 - 2 ** -24) * 2 ** 127);
 function evaluateTangentGuard(variant, input) {
   const publicInput = { a: Math.fround(input) };
   const tanDomain = evaluateGeneratedProvider(`math:tan/guard/${variant}/compare_domain`, publicInput);
-  return evaluateGeneratedProvider(`math:tan/guard/${variant}/00`, publicInput, {}, { tan_domain: tanDomain });
+  return evaluateGeneratedProvider(`math:tan/guard/${variant}/00`, publicInput, { w_comparison: { tan_domain: tanDomain } });
 }
 
 function floatFromBits(bits) {
@@ -52,7 +52,7 @@ function assertSquareRoot(input) {
   assert.equal(storage["math:"].error, undefined, `square_root(${input}) must clear stale error`);
   assert.equal(storage["math:"].a, input, `square_root(${input}) must preserve a`);
   assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float", `square_root(${input}) must write a float`);
-  assert.ok(Object.keys(storage["math:internal"]).every((field) => ["x", "y", "z", "w"].includes(field)), `square_root(${input}) scratch keys`);
+  assert.ok(Object.keys(storage["math:internal"]).every((field) => /^[xyzw](?:_|$)/.test(field)), `square_root(${input}) scratch keys`);
   assert.ok(relativeError <= 0.00001, `square_root(${input}) produced ${actual}, expected ${expected}, relative error ${relativeError}`);
   return relativeError;
 }
@@ -64,7 +64,7 @@ function assertSuccessfulUnary(name, input) {
   assert.equal(result.storage["math:"].error, undefined, `${name}(${input}) must clear stale error`);
   assert.equal(result.storage["math:"].a, input, `${name}(${input}) must preserve a`);
   assert.equal(result.numericTags.get(storageFieldKey("math:", "ans")), "float", `${name}(${input}) must write a float`);
-  assert.ok(Object.keys(result.storage["math:internal"]).every((field) => ["x", "y", "z", "w"].includes(field)), `${name}(${input}) scratch keys`);
+  assert.ok(Object.keys(result.storage["math:internal"]).every((field) => /^[xyzw](?:_|$)/.test(field)), `${name}(${input}) scratch keys`);
   return result.storage["math:"].ans;
 }
 
@@ -100,7 +100,7 @@ function assertPower(a, b) {
   assert.equal(storage["math:"].a, a, `power(${a}, ${b}) must preserve a`);
   assert.equal(storage["math:"].b, b, `power(${a}, ${b}) must preserve b`);
   assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float", `power(${a}, ${b}) must write a float`);
-  assert.ok(Object.keys(storage["math:internal"]).every((field) => ["x", "y", "z", "w"].includes(field)), `power(${a}, ${b}) scratch keys`);
+  assert.ok(Object.keys(storage["math:internal"]).every((field) => /^[xyzw](?:_|$)/.test(field)), `power(${a}, ${b}) scratch keys`);
   assert.ok(error <= 0.00005, `power(${a}, ${b}) produced ${actual}, expected ${expected}, scaled error ${error}`);
   return error;
 }
@@ -732,7 +732,7 @@ test("tangent is accurate away from poles and rejects the documented cosine thre
     assert.equal(result.storage["math:"].ans, undefined);
     assert.equal(result.storage["math:"].error, "undefined_tangent");
     assert.equal(result.storage["math:"].a, input);
-    assert.ok(Object.keys(result.storage["math:internal"]).every((field) => ["x", "y", "z", "w"].includes(field)));
+    assert.ok(Object.keys(result.storage["math:internal"]).every((field) => /^[xyzw](?:_|$)/.test(field)));
   }
 
   for (const [name, input] of [
@@ -802,7 +802,7 @@ test("all trigonometric wrappers handle huge finite inputs without successful no
       assert.equal(result.storage["math:"].error, undefined);
       assert.equal(result.storage["math:"].a, input);
       assert.equal(result.numericTags.get(storageFieldKey("math:", "ans")), "float");
-      assert.ok(Object.keys(result.storage["math:internal"]).every((field) => ["x", "y", "z", "w"].includes(field)));
+      assert.ok(Object.keys(result.storage["math:internal"]).every((field) => /^[xyzw](?:_|$)/.test(field)));
     }
   }
   for (const name of ["tan", "tan_degrees"]) {

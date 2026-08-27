@@ -43,7 +43,8 @@ test("public wrappers execute providers, clear stale errors, return success, and
 test("public wrappers confine scratch state to x/y/z/w fields", () => {
   for (const [name, inputs] of wrappers) {
     const { storage } = runFunction(name, inputs);
-    assert.ok(Object.keys(storage["math:internal"]).every((field) => ["x", "y", "z", "w"].includes(field)), `${name} must use x/y/z/w scratch fields only`);
+    assert.deepEqual(Object.keys(storage).sort(), ["math:", "math:internal"], `${name} must use only declared storage namespaces`);
+    assert.ok(Object.keys(storage["math:internal"]).every((field) => /^[xyzw](?:_|$)/.test(field)), `${name} must use x/y/z/w-prefixed scratch fields only`);
   }
 });
 
@@ -86,6 +87,83 @@ test("reciprocal and divide distinguish small nonzero divisors from zero", () =>
   assert.equal(divide.returned, 1);
   assert.equal(divide.storage["math:"].ans, 16384);
   assert.equal(divide.storage["math:"].error, undefined);
+});
+
+test("reciprocal rejects mathematical overflow at the exact binary32 boundary", () => {
+  const threshold = Math.fround(2 ** -128 + 2 ** -149);
+  const view = new DataView(new ArrayBuffer(4));
+  view.setFloat32(0, threshold);
+  const bits = view.getUint32(0);
+  const magnitudes = [bits - 1, bits, bits + 1].map((value) => {
+    view.setUint32(0, value);
+    return view.getFloat32(0);
+  });
+
+  for (const sign of [1, -1]) {
+    for (const [index, magnitude] of magnitudes.entries()) {
+      const a = Math.fround(sign * magnitude);
+      const result = runFunction("reciprocal", { a, ans: 91, error: "stale_error" });
+      if (index === 0) {
+        assert.equal(result.returned, 0, `reciprocal(${a}) must reject overflow`);
+        assert.equal(result.storage["math:"].ans, undefined);
+        assert.equal(result.storage["math:"].error, "result_out_of_range");
+      } else {
+        assert.equal(result.returned, 1, `reciprocal(${a}) must succeed`);
+        assert.ok(Number.isFinite(result.storage["math:"].ans));
+        assert.equal(result.storage["math:"].error, undefined);
+      }
+      assert.equal(result.storage["math:"].a, a);
+    }
+  }
+});
+
+test("divide coordinates subnormal operands across adjacent exponent bands", () => {
+  const minSubnormal = Math.fround(2 ** -149);
+  const minNormal = Math.fround(2 ** -126);
+  const view = new DataView(new ArrayBuffer(4));
+  view.setFloat32(0, minNormal);
+  const bits = view.getUint32(0);
+  const adjacent = [bits - 1, bits, bits + 1].map((value) => {
+    view.setUint32(0, value);
+    return view.getFloat32(0);
+  });
+  const cases = [
+    [minSubnormal, minSubnormal, 1],
+    [-minSubnormal, minSubnormal, -1],
+    [minSubnormal, -minSubnormal, -1],
+    ...adjacent.map((a, index) => [a, minSubnormal, 8_388_607 + index]),
+  ];
+
+  for (const [a, b, expected] of cases) {
+    const result = runFunction("divide", { a, b, error: "stale_error" });
+    assert.equal(result.returned, 1, `divide(${a}, ${b}) must succeed`);
+    assert.equal(result.storage["math:"].ans, Math.fround(expected), `divide(${a}, ${b})`);
+    assert.equal(result.storage["math:"].error, undefined);
+    assert.equal(result.storage["math:"].a, a);
+    assert.equal(result.storage["math:"].b, b);
+  }
+});
+
+test("divide distinguishes finite underflow from overflow", () => {
+  const minSubnormal = Math.fround(2 ** -149);
+  const finiteLimit = Math.fround(3.4028234663852886e38);
+
+  for (const [a, b, expected] of [
+    [minSubnormal, finiteLimit, 0],
+    [-minSubnormal, finiteLimit, -0],
+  ]) {
+    const result = runFunction("divide", { a, b, ans: 91, error: "stale_error" });
+    assert.equal(result.returned, 1, `divide(${a}, ${b}) underflow must succeed`);
+    assert.ok(Object.is(result.storage["math:"].ans, expected), `divide(${a}, ${b}) must preserve zero sign`);
+    assert.equal(result.storage["math:"].error, undefined);
+  }
+
+  for (const [a, b] of [[finiteLimit, minSubnormal], [-finiteLimit, minSubnormal]]) {
+    const result = runFunction("divide", { a, b, ans: 91, error: "stale_error" });
+    assert.equal(result.returned, 0, `divide(${a}, ${b}) overflow must fail`);
+    assert.equal(result.storage["math:"].ans, undefined);
+    assert.equal(result.storage["math:"].error, "result_out_of_range");
+  }
 });
 
 test("square root rejects invalid and negative inputs with stale-output cleanup", () => {

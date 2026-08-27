@@ -6,8 +6,8 @@
         "type": "minecraft:value_check",
         "value": {
           "type": "minecraft:storage",
-          "storage": "math:comparison",
-          "path": "period_half"
+          "storage": "math:internal",
+          "path": "w_comparison.period_half"
         },
         "range": {
           "min": 0

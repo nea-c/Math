@@ -1,13 +1,13 @@
 data modify storage math:internal x set from storage math:internal y
 function math:internal/truncate_x
-data modify storage math:comparison predicate.power_exponent_integer.value set compute default math:internal/comparison/predicate/power/exponent_integer/value
+data modify storage math:internal w_comparison.predicate.power_exponent_integer.value set compute default math:internal/comparison/predicate/power/exponent_integer/value
 execute unless predicate math:internal/power/exponent_integer run data remove storage math: ans
 execute unless predicate math:internal/power/exponent_integer run data modify storage math: error set value "non_real_result"
 execute unless predicate math:internal/power/exponent_integer run return fail
 data modify storage math:internal x set from storage math: a
 data modify storage math:internal x set compute default math:common/comparison/absolute
 data modify storage math:internal y set from storage math: b
-data modify storage math:comparison predicate.power_exponent_large_even.minimum set compute default math:internal/comparison/predicate/power/exponent_large_even/minimum
+data modify storage math:internal w_comparison.predicate.power_exponent_large_even.minimum set compute default math:internal/comparison/predicate/power/exponent_large_even/minimum
 execute if predicate math:internal/power/exponent_large_even run return run function math:internal/power_positive
 data modify storage math:internal x set from storage math:internal y
 data modify storage math:internal y set value 0.5f

@@ -1,4 +1,4 @@
-data modify storage math:comparison x_sign set compute default math:internal/comparison/x_zero
+data modify storage math:internal w_comparison.x_sign set compute default math:internal/comparison/x_zero
 execute if predicate math:internal/range/negative run data modify storage math: ans set value 0.0f
 execute if predicate math:internal/range/negative run return 1
 data remove storage math: ans

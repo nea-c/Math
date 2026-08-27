@@ -1,20 +1,20 @@
 data remove storage math: error
-data modify storage math:comparison validation_a set compute default math:internal/comparison/finite/a
-execute unless data storage math:comparison {validation_a:0.0f} run return run function math:internal/invalid_number
+data modify storage math:internal w_validation_a set compute default math:internal/comparison/finite/a
+execute unless data storage math:internal {w_validation_a:0.0f} run return run function math:internal/invalid_number
 data modify storage math:internal x set from storage math: a
-data modify storage math:comparison predicate.exp_input_in_range.maximum set compute default math:internal/comparison/predicate/exp/input_in_range/maximum
+data modify storage math:internal w_comparison.predicate.exp_input_in_range.maximum set compute default math:internal/comparison/predicate/exp/input_in_range/maximum
 execute unless predicate math:internal/exp/input_in_range run data remove storage math: ans
 execute unless predicate math:internal/exp/input_in_range run data modify storage math: error set value "result_out_of_range"
 execute unless predicate math:internal/exp/input_in_range run return fail
-data modify storage math:comparison predicate.exp_underflows_to_zero.maximum set compute default math:internal/comparison/predicate/exp/underflows_to_zero/maximum
+data modify storage math:internal w_comparison.predicate.exp_underflows_to_zero.maximum set compute default math:internal/comparison/predicate/exp/underflows_to_zero/maximum
 execute if predicate math:internal/exp/underflows_to_zero run data modify storage math: ans set value 0.0f
 execute if predicate math:internal/exp/underflows_to_zero run return 1
 execute if data storage math:internal {x:-103.97207641601562f} run data modify storage math: ans set compute default math:exp/minimum/00
 execute if data storage math:internal {x:-103.97207641601562f} run return 1
 function math:internal/exp_x
 data modify storage math: ans set compute default math:common/input/x
-data modify storage math:comparison predicate.exp_result_finite.minimum set compute default math:internal/comparison/predicate/exp/result_finite/minimum
-data modify storage math:comparison predicate.exp_result_finite.maximum set compute default math:internal/comparison/predicate/exp/result_finite/maximum
+data modify storage math:internal w_comparison.predicate.exp_result_finite.minimum set compute default math:internal/comparison/predicate/exp/result_finite/minimum
+data modify storage math:internal w_comparison.predicate.exp_result_finite.maximum set compute default math:internal/comparison/predicate/exp/result_finite/maximum
 execute unless predicate math:internal/exp/result_finite run data remove storage math: ans
 execute unless predicate math:internal/exp/result_finite run data modify storage math: error set value "result_out_of_range"
 execute unless predicate math:internal/exp/result_finite run return fail

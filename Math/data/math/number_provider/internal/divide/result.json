@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "x"
+    },
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_divide_sign"
+    },
+    "math:exp/factor/00",
+    "math:exp/scale/00"
+  ]
+}

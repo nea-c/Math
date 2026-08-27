@@ -17,6 +17,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const finiteLimit = 3.4028234663852886e38;
 const smallestNegativeFloat = -1.401298464324817e-45;
 const smallestPositiveFloat = Math.fround(2 ** -149);
+const smallestFiniteReciprocalInput = Math.fround(2 ** -128 + 2 ** -149);
 const largestSubnormalFloat = Math.fround(2 ** -126 - 2 ** -149);
 const maximumFiniteExpInput = Math.fround(88.72283172607422);
 const maximumZeroExpInput = Math.fround(-103.97208404541016);
@@ -66,15 +67,15 @@ function floatRange(value, min, max) {
 const stagedPredicateCommands = new Map();
 
 function emitStagedPredicate(relativePath, value, min, max) {
-  const storagePath = `predicate.${relativePath.replaceAll("/", "_")}`;
+  const storagePath = `w_comparison.predicate.${relativePath.replaceAll("/", "_")}`;
   const stages = [];
   const terms = [];
   const addBoundary = (name, threshold, range) => {
     const providerPath = `internal/comparison/predicate/${relativePath}/${name}`;
     const materializedPath = `${storagePath}.${name}`;
     emit(providerPath, floatComparison(value, threshold));
-    stages.push(`data modify storage math:comparison ${materializedPath} set compute default math:${providerPath}`);
-    terms.push(inlineValueCheck(storage("math:comparison", materializedPath), range.min, range.max));
+    stages.push(`data modify storage math:internal ${materializedPath} set compute default math:${providerPath}`);
+    terms.push(inlineValueCheck(storage("math:internal", materializedPath), range.min, range.max));
   };
 
   if (min !== undefined && max !== undefined && Object.is(min, max)) {
@@ -186,13 +187,13 @@ emit("common/rounding/half_y", product(0.5, y));
 const periodHalfDifference = sum(x, product(-0.5, y));
 emit("common/normalize/period/positive/00", numberDispatcher([
   {
-    condition: inlineValueCheck(storage("math:comparison", "period_half"), 0, undefined),
+    condition: inlineValueCheck(storage("math:internal", "w_comparison.period_half"), 0, undefined),
     number_provider: subtractExpression(x, y),
   },
 ], x));
 emit("common/normalize/period/negative/00", numberDispatcher([
   {
-    condition: inlineValueCheck(storage("math:comparison", "period_half"), 1, undefined),
+    condition: inlineValueCheck(storage("math:internal", "w_comparison.period_half"), 1, undefined),
     number_provider: subtractExpression(y, x),
   },
 ], product(-1, x)));
@@ -207,11 +208,11 @@ const halfPiPrevious = previousPositiveFloat(halfPi);
 const halfPiNext = nextPositiveFloat(halfPi);
 emit("sin/fold/00", numberDispatcher([
   {
-    condition: inlineValueCheck(storage("math:comparison", "sin_fold_lower"), undefined, 0),
+    condition: inlineValueCheck(storage("math:internal", "w_comparison.sin_fold_lower"), undefined, 0),
     number_provider: sum(-pi, product(-1, z)),
   },
   {
-    condition: inlineValueCheck(storage("math:comparison", "sin_fold_upper"), 0, undefined),
+    condition: inlineValueCheck(storage("math:internal", "w_comparison.sin_fold_upper"), 0, undefined),
     number_provider: sum(pi, product(-1, z)),
   },
 ], z));
@@ -247,8 +248,8 @@ emit("sin/00", numberDispatcher([
     condition: {
       type: "minecraft:all_of",
       terms: [
-        inlineValueCheck(storage("math:comparison", "sin_positive_lower"), 0, undefined),
-        inlineValueCheck(storage("math:comparison", "sin_positive_upper"), undefined, 0),
+        inlineValueCheck(storage("math:internal", "w_comparison.sin_positive_lower"), 0, undefined),
+        inlineValueCheck(storage("math:internal", "w_comparison.sin_positive_upper"), undefined, 0),
       ],
     },
     number_provider: 1,
@@ -257,8 +258,8 @@ emit("sin/00", numberDispatcher([
     condition: {
       type: "minecraft:all_of",
       terms: [
-        inlineValueCheck(storage("math:comparison", "sin_negative_lower"), 0, undefined),
-        inlineValueCheck(storage("math:comparison", "sin_negative_upper"), undefined, 0),
+        inlineValueCheck(storage("math:internal", "w_comparison.sin_negative_lower"), 0, undefined),
+        inlineValueCheck(storage("math:internal", "w_comparison.sin_negative_upper"), undefined, 0),
       ],
     },
     number_provider: -1,
@@ -289,7 +290,7 @@ function tangentGuard(domain, coefficient) {
   const excess = maximum(0, sum(absoluteInput, -domain));
   return numberDispatcher([
     {
-      condition: inlineValueCheck(storage("math:comparison", "tan_domain"), undefined, 0),
+      condition: inlineValueCheck(storage("math:internal", "w_comparison.tan_domain"), undefined, 0),
       number_provider: tangentGuardBase,
     },
   ], minimum(2, sum(tangentGuardBaseUp, tangentPeriodStepError, product(excess, coefficient))));
@@ -340,6 +341,20 @@ emit("internal/reciprocal/normalized_at_scale_limit", product(
   0.25,
   stagedReciprocalEstimate,
   stagedReciprocalEstimate,
+));
+const divideAMantissa = storage("math:internal", "w_divide_a_mantissa");
+const divideAExponent = storage("math:internal", "w_divide_a_exponent");
+const divideBExponent = storage("math:internal", "w_divide_b_exponent");
+const divideSign = storage("math:internal", "w_divide_sign");
+emit("internal/divide/normalize/increment_exponent", sum(y, 1));
+emit("internal/divide/normalize/decrement_exponent", sum(y, -1));
+emit("internal/divide/exponent_difference", sum(divideAExponent, product(-1, divideBExponent)));
+emit("internal/divide/flip_sign", product(-1, divideSign));
+emit("internal/divide/result", product(
+  x,
+  divideSign,
+  "math:exp/factor/00",
+  "math:exp/scale/00",
 ));
 const logReciprocalMantissa = product(0.25, x);
 let logReciprocalEstimate = sum(
@@ -527,9 +542,21 @@ emit("power/classify/evaluation_exponent/00", minimum(
 ));
 
 emitStagedPredicate("range/min_greater_than_max", sum(w, product(-1, z)), undefined, smallestNegativeFloat);
+emitStagedPredicate(
+  "reciprocal/input_in_range",
+  maximum(publicA, product(-1, publicA)),
+  smallestFiniteReciprocalInput,
+  undefined,
+);
+emitStagedPredicate("divide/exact_equal", sum(publicA, product(-1, publicB)), 0, 0);
+emitStagedPredicate("divide/a_negative", publicA, undefined, smallestNegativeFloat);
+emitStagedPredicate("divide/b_negative", publicB, undefined, smallestNegativeFloat);
+emitStagedPredicate("divide/exponent_in_range", y, undefined, 127);
+emitStagedPredicate("divide/exponent_underflows", y, undefined, -151);
+emitStagedPredicate("divide/result_finite", publicAnswer, -finiteLimit, finiteLimit);
 emit("internal/comparison/x_zero", floatComparison(x, 0));
-emitPredicate("range/negative", inlineValueCheck(storage("math:comparison", "x_sign"), undefined, -1));
-emitPredicate("range/positive", inlineValueCheck(storage("math:comparison", "x_sign"), 1, undefined));
+emitPredicate("range/negative", inlineValueCheck(storage("math:internal", "w_comparison.x_sign"), undefined, -1));
+emitPredicate("range/positive", inlineValueCheck(storage("math:internal", "w_comparison.x_sign"), 1, undefined));
 for (const [variant, guard] of [
   ["radians", "math:tan/guard/radians/00"],
   ["degrees", "math:tan/guard/degrees/00"],
@@ -541,7 +568,7 @@ for (const [variant, guard] of [
   );
 }
 emitPredicate("normalize_period/original_negative", inlineValueCheck(
-  storage("math:comparison", "period_original"),
+  storage("math:internal", "w_comparison.period_original"),
   undefined,
   -1,
 ));
@@ -567,8 +594,8 @@ emitStagedPredicate("rounding/public/b_negative", publicB, undefined, smallestNe
 function validationLines(inputs) {
   const lines = ["data remove storage math: error"];
   for (const input of inputs) {
-    lines.push(`data modify storage math:comparison validation_${input} set compute default math:internal/comparison/finite/${input}`);
-    lines.push(`execute unless data storage math:comparison {validation_${input}:0.0f} run return run function math:internal/invalid_number`);
+    lines.push(`data modify storage math:internal w_validation_${input} set compute default math:internal/comparison/finite/${input}`);
+    lines.push(`execute unless data storage math:internal {w_validation_${input}:0.0f} run return run function math:internal/invalid_number`);
   }
   return lines;
 }
@@ -611,7 +638,7 @@ emitFunction("internal/floor_x", [
 ]);
 
 emitFunction("internal/truncate_x", [
-  "data modify storage math:comparison x_sign set compute default math:internal/comparison/x_zero",
+  "data modify storage math:internal w_comparison.x_sign set compute default math:internal/comparison/x_zero",
   "execute unless predicate math:internal/range/negative run return run function math:internal/floor_x",
   "data modify storage math:internal x set compute default math:common/rounding/negate",
   "function math:internal/floor_x",
@@ -704,6 +731,32 @@ emitFunction("internal/reciprocal_x", [
   "return run function math:internal/reciprocal_finish",
 ]);
 
+emitFunction("internal/divide_normalize_scale_up", [
+  "data modify storage math:internal x set compute default math:internal/reciprocal/double_x",
+  "data modify storage math:internal y set compute default math:internal/divide/normalize/decrement_exponent",
+  "return run function math:internal/divide_normalize",
+]);
+
+emitFunction("internal/divide_normalize_scale_down", [
+  "data modify storage math:internal x set compute default math:internal/reciprocal/half_x",
+  "data modify storage math:internal y set compute default math:internal/divide/normalize/increment_exponent",
+  "return run function math:internal/divide_normalize",
+]);
+
+emitFunction("internal/divide_normalize", [
+  "data modify storage math:internal w set compute default math:internal/reciprocal/compare/below_one",
+  "execute if predicate math:internal/comparison/negative_integer run return run function math:internal/divide_normalize_scale_up",
+  "data modify storage math:internal w set compute default math:internal/reciprocal/compare/at_least_two",
+  "execute unless predicate math:internal/comparison/negative_integer run return run function math:internal/divide_normalize_scale_down",
+  "return 1",
+]);
+
+emitFunction("internal/divide_underflow", [
+  "data modify storage math: ans set value 0.0f",
+  "execute if data storage math:internal {w_divide_sign:-1.0f} run data modify storage math: ans set value -0.0f",
+  "return 1",
+]);
+
 emitFunction("internal/square_root_scale_up", [
   "data modify storage math:internal z set compute default math:square_root/normalize/quadruple_mantissa/00",
   "data modify storage math:internal w set compute default math:square_root/normalize/half_scale/00",
@@ -742,6 +795,7 @@ function exactRemainderLines() {
   const lines = validationLines(["a"]);
   lines.push("data modify storage math:internal x set from storage math: a");
   lines.push(...divisionByZeroLines());
+  lines.push(...resultOutOfRangeLines("math:internal/reciprocal/input_in_range"));
   lines.push("data modify storage math:internal y set value 1.0f");
   lines.push("function math:internal/reciprocal_x");
   lines.push("data modify storage math: ans set compute default math:common/input/x");
@@ -752,7 +806,7 @@ function exactRemainderLines() {
 {
   const lines = validationLines(["a"]);
   lines.push("data modify storage math:internal x set from storage math: a");
-  lines.push("data modify storage math:comparison x_sign set compute default math:internal/comparison/x_zero");
+  lines.push("data modify storage math:internal w_comparison.x_sign set compute default math:internal/comparison/x_zero");
   lines.push("execute if predicate math:internal/range/negative run data remove storage math: ans");
   lines.push("execute if predicate math:internal/range/negative run data modify storage math: error set value \"negative_square_root\"");
   lines.push("execute if predicate math:internal/range/negative run return fail");
@@ -761,8 +815,8 @@ function exactRemainderLines() {
   lines.push("data modify storage math:internal z set from storage math:internal x");
   lines.push("data modify storage math:internal w set value 1.0f");
   lines.push("function math:internal/square_root_normalize");
-  lines.push("data modify storage math:comparison sqrt.scale set from storage math:internal w");
-  lines.push("data modify storage math:comparison sqrt.mantissa set from storage math:internal z");
+  lines.push("data modify storage math:internal w_comparison.sqrt_scale set from storage math:internal w");
+  lines.push("data modify storage math:internal w_comparison.sqrt_mantissa set from storage math:internal z");
   lines.push("data modify storage math:internal y set from storage math:internal z");
   lines.push("data modify storage math:internal z set compute default math:square_root/approximate/00");
   for (let stage = 0; stage < 3; stage += 1) {
@@ -771,12 +825,13 @@ function exactRemainderLines() {
     lines.push("data modify storage math:internal y set value 1.0f");
     lines.push("function math:internal/reciprocal_x");
     lines.push("data modify storage math:internal w set from storage math:internal x");
-    lines.push("data modify storage math:internal y set from storage math:comparison sqrt.mantissa");
+    lines.push("data modify storage math:internal y set from storage math:internal w_comparison.sqrt_mantissa");
     lines.push(`data modify storage math:internal x set compute default math:square_root/newton/${stageName}/00`);
     lines.push("data modify storage math:internal z set from storage math:internal x");
   }
-  lines.push("data modify storage math:internal w set from storage math:comparison sqrt.scale");
-  lines.push("data remove storage math:comparison sqrt");
+  lines.push("data modify storage math:internal w set from storage math:internal w_comparison.sqrt_scale");
+  lines.push("data remove storage math:internal w_comparison.sqrt_scale");
+  lines.push("data remove storage math:internal w_comparison.sqrt_mantissa");
   lines.push("data modify storage math: ans set compute default math:square_root/00");
   lines.push(...stagePredicate("square_root/result_finite"));
   lines.push("execute unless predicate math:internal/square_root/result_finite run data remove storage math: ans");
@@ -886,7 +941,7 @@ function finalPowerResultLines(negativeResult) {
 
 function powerNonfiniteLines(negativeResult) {
   return [
-    "data modify storage math:comparison x_sign set compute default math:internal/comparison/x_zero",
+    "data modify storage math:internal w_comparison.x_sign set compute default math:internal/comparison/x_zero",
     `execute if predicate math:internal/range/negative run data modify storage math: ans set value ${negativeResult ? "-0.0f" : "0.0f"}`,
     "execute if predicate math:internal/range/negative run return 1",
     "data remove storage math: ans",
@@ -975,7 +1030,7 @@ emitFunction("internal/power_negative", [
 {
   const lines = validationLines(["a"]);
   lines.push("data modify storage math:internal x set from storage math: a");
-  lines.push("data modify storage math:comparison x_sign set compute default math:internal/comparison/x_zero");
+  lines.push("data modify storage math:internal w_comparison.x_sign set compute default math:internal/comparison/x_zero");
   lines.push("execute if predicate math:internal/range/negative run data remove storage math: ans");
   lines.push("execute if predicate math:internal/range/negative run data modify storage math: error set value \"non_real_result\"");
   lines.push("execute if predicate math:internal/range/negative run return fail");
@@ -1011,7 +1066,7 @@ emitFunction("internal/power_negative", [
   lines.push("execute if data storage math:internal {x:0.0f} run return run function math:internal/power_zero");
   lines.push("execute if data storage math:internal {y:1.0f} run data modify storage math: ans set compute default math:common/input/x");
   lines.push("execute if data storage math:internal {y:1.0f} run return 1");
-  lines.push("data modify storage math:comparison x_sign set compute default math:internal/comparison/x_zero");
+  lines.push("data modify storage math:internal w_comparison.x_sign set compute default math:internal/comparison/x_zero");
   lines.push("execute if predicate math:internal/range/negative run return run function math:internal/power_negative");
   lines.push("return run function math:internal/power_positive");
   emitFunction("power", lines);
@@ -1021,12 +1076,40 @@ emitFunction("internal/power_negative", [
   const lines = validationLines(["a", "b"]);
   lines.push("data modify storage math:internal x set from storage math: b");
   lines.push(...divisionByZeroLines());
+  lines.push(...stagePredicate("divide/exact_equal"));
+  lines.push("execute if predicate math:internal/divide/exact_equal run data modify storage math: ans set value 1.0f");
+  lines.push("execute if predicate math:internal/divide/exact_equal run return 1");
+  lines.push("data modify storage math:internal x set from storage math: a");
+  lines.push("execute if data storage math:internal {x:0.0f} run data modify storage math: ans set from storage math: a");
+  lines.push("execute if data storage math:internal {x:0.0f} run return 1");
+  lines.push("data modify storage math:internal w_divide_sign set value 1.0f");
+  lines.push(...stagePredicate("divide/a_negative"));
+  lines.push("execute if predicate math:internal/divide/a_negative run data modify storage math:internal w_divide_sign set value -1.0f");
+  lines.push(...stagePredicate("divide/b_negative"));
+  lines.push("execute if predicate math:internal/divide/b_negative run data modify storage math:internal w_divide_sign set compute default math:internal/divide/flip_sign");
+  lines.push("data modify storage math:internal x set compute default math:common/comparison/absolute");
+  lines.push("data modify storage math:internal y set value 0.0f");
+  lines.push("function math:internal/divide_normalize");
+  lines.push("data modify storage math:internal w_divide_a_mantissa set from storage math:internal x");
+  lines.push("data modify storage math:internal w_divide_a_exponent set from storage math:internal y");
+  lines.push("data modify storage math:internal x set from storage math: b");
+  lines.push("data modify storage math:internal x set compute default math:common/comparison/absolute");
+  lines.push("data modify storage math:internal y set value 0.0f");
+  lines.push("function math:internal/divide_normalize");
+  lines.push("data modify storage math:internal w_divide_b_mantissa set from storage math:internal x");
+  lines.push("data modify storage math:internal w_divide_b_exponent set from storage math:internal y");
   lines.push("data modify storage math:internal y set value 1.0f");
   lines.push("function math:internal/reciprocal_x");
-  lines.push("data modify storage math:internal z set compute default math:common/input/x");
-  lines.push("data modify storage math:internal x set from storage math: a");
-  lines.push("data modify storage math:internal y set from storage math:internal z");
-  lines.push("data modify storage math: ans set compute default math:common/arithmetic/multiply");
+  lines.push("data modify storage math:internal y set from storage math:internal w_divide_a_mantissa");
+  lines.push("data modify storage math:internal x set compute default math:common/arithmetic/multiply");
+  lines.push("data modify storage math:internal y set compute default math:internal/divide/exponent_difference");
+  lines.push("function math:internal/divide_normalize");
+  lines.push(...resultOutOfRangeLines("math:internal/divide/exponent_in_range"));
+  lines.push(...stagePredicate("divide/exponent_underflows"));
+  lines.push("execute if predicate math:internal/divide/exponent_underflows run return run function math:internal/divide_underflow");
+  lines.push("data modify storage math:internal z set from storage math:internal y");
+  lines.push("data modify storage math: ans set compute default math:internal/divide/result");
+  lines.push(...resultOutOfRangeLines("math:internal/divide/result_finite"));
   lines.push("return 1");
   emitFunction("divide", lines);
 }
@@ -1099,8 +1182,8 @@ emitFunction("internal/normalize_period", [
   "data modify storage math:internal z set from storage math:internal x",
   "data modify storage math:internal x set compute default math:common/comparison/absolute",
   "function math:internal/reduce_remainder",
-  "data modify storage math:comparison period_half set compute default math:common/normalize/period/compare_half",
-  "data modify storage math:comparison period_original set compute default math:common/normalize/period/compare_original",
+  "data modify storage math:internal w_comparison.period_half set compute default math:common/normalize/period/compare_half",
+  "data modify storage math:internal w_comparison.period_original set compute default math:common/normalize/period/compare_original",
   "data modify storage math:internal w set from storage math:internal z",
   "execute if predicate math:internal/normalize_period/original_negative run return run function math:internal/normalize_period_negative",
   "data modify storage math:internal z set compute default math:common/normalize/period/positive/00",
@@ -1113,13 +1196,13 @@ emitFunction("internal/normalize_period_negative", [
 ]);
 
 emitFunction("internal/sin_evaluate", [
-  "data modify storage math:comparison sin_fold_lower set compute default math:sin/fold/compare_lower",
-  "data modify storage math:comparison sin_fold_upper set compute default math:sin/fold/compare_upper",
+  "data modify storage math:internal w_comparison.sin_fold_lower set compute default math:sin/fold/compare_lower",
+  "data modify storage math:internal w_comparison.sin_fold_upper set compute default math:sin/fold/compare_upper",
   "data modify storage math:internal x set compute default math:sin/fold/00",
-  "data modify storage math:comparison sin_positive_lower set compute default math:sin/compare/positive_lower",
-  "data modify storage math:comparison sin_positive_upper set compute default math:sin/compare/positive_upper",
-  "data modify storage math:comparison sin_negative_lower set compute default math:sin/compare/negative_lower",
-  "data modify storage math:comparison sin_negative_upper set compute default math:sin/compare/negative_upper",
+  "data modify storage math:internal w_comparison.sin_positive_lower set compute default math:sin/compare/positive_lower",
+  "data modify storage math:internal w_comparison.sin_positive_upper set compute default math:sin/compare/positive_upper",
+  "data modify storage math:internal w_comparison.sin_negative_lower set compute default math:sin/compare/negative_lower",
+  "data modify storage math:internal w_comparison.sin_negative_upper set compute default math:sin/compare/negative_upper",
   "data modify storage math:internal x set compute default math:sin/00",
   "return 1",
 ]);
@@ -1151,7 +1234,7 @@ emitFunction("internal/tan_x", [
 
 function tangentResultLines(predicate, variant) {
   return [
-    `data modify storage math:comparison tan_domain set compute default math:tan/guard/${variant}/compare_domain`,
+    `data modify storage math:internal w_comparison.tan_domain set compute default math:tan/guard/${variant}/compare_domain`,
     ...stagePredicate(`tan/undefined_${variant}`),
     `execute if predicate ${predicate} run data remove storage math: ans`,
     `execute if predicate ${predicate} run data modify storage math: error set value "undefined_tangent"`,
@@ -1193,7 +1276,7 @@ for (const degrees of [false, true]) {
   const lines = validationLines(["a"]);
   lines.push("data modify storage math:internal x set from storage math: a");
   lines.push("data modify storage math: ans set value 0.0f");
-  lines.push("data modify storage math:comparison x_sign set compute default math:internal/comparison/x_zero");
+  lines.push("data modify storage math:internal w_comparison.x_sign set compute default math:internal/comparison/x_zero");
   lines.push("execute if predicate math:internal/range/negative run data modify storage math: ans set value -1.0f");
   lines.push("execute if predicate math:internal/range/positive run data modify storage math: ans set value 1.0f");
   lines.push("return 1");
