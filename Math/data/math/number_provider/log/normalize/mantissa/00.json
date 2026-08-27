@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    "math:log/normalize/raw_mantissa/00",
+    "math:log/normalize/center_factor/00"
+  ]
+}

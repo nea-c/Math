@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:sum",
+  "operands": [
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "z"
+    },
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w"
+    },
+    "math:log/normalize/center_exponent/00"
+  ]
+}

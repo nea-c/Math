@@ -1,0 +1,142 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    2,
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "z"
+    },
+    {
+      "type": "minecraft:sum",
+      "operands": [
+        1,
+        {
+          "type": "minecraft:product",
+          "operands": [
+            {
+              "type": "minecraft:product",
+              "operands": [
+                {
+                  "type": "minecraft:storage",
+                  "storage": "math:internal",
+                  "path": "z"
+                },
+                {
+                  "type": "minecraft:storage",
+                  "storage": "math:internal",
+                  "path": "z"
+                }
+              ]
+            },
+            {
+              "type": "minecraft:sum",
+              "operands": [
+                0.3333333432674408,
+                {
+                  "type": "minecraft:product",
+                  "operands": [
+                    {
+                      "type": "minecraft:product",
+                      "operands": [
+                        {
+                          "type": "minecraft:storage",
+                          "storage": "math:internal",
+                          "path": "z"
+                        },
+                        {
+                          "type": "minecraft:storage",
+                          "storage": "math:internal",
+                          "path": "z"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "minecraft:sum",
+                      "operands": [
+                        0.20000000298023224,
+                        {
+                          "type": "minecraft:product",
+                          "operands": [
+                            {
+                              "type": "minecraft:product",
+                              "operands": [
+                                {
+                                  "type": "minecraft:storage",
+                                  "storage": "math:internal",
+                                  "path": "z"
+                                },
+                                {
+                                  "type": "minecraft:storage",
+                                  "storage": "math:internal",
+                                  "path": "z"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "minecraft:sum",
+                              "operands": [
+                                0.1428571492433548,
+                                {
+                                  "type": "minecraft:product",
+                                  "operands": [
+                                    {
+                                      "type": "minecraft:product",
+                                      "operands": [
+                                        {
+                                          "type": "minecraft:storage",
+                                          "storage": "math:internal",
+                                          "path": "z"
+                                        },
+                                        {
+                                          "type": "minecraft:storage",
+                                          "storage": "math:internal",
+                                          "path": "z"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "minecraft:sum",
+                                      "operands": [
+                                        0.1111111119389534,
+                                        {
+                                          "type": "minecraft:product",
+                                          "operands": [
+                                            {
+                                              "type": "minecraft:product",
+                                              "operands": [
+                                                {
+                                                  "type": "minecraft:storage",
+                                                  "storage": "math:internal",
+                                                  "path": "z"
+                                                },
+                                                {
+                                                  "type": "minecraft:storage",
+                                                  "storage": "math:internal",
+                                                  "path": "z"
+                                                }
+                                              ]
+                                            },
+                                            0.09090909361839294
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

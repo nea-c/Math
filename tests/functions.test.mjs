@@ -22,6 +22,9 @@ const wrappers = [
   ["reciprocal", { a: -2 }, -0.5],
   ["divide", { a: 7, b: -2 }, -3.5],
   ["square_root", { a: 4 }, 2],
+  ["log", { a: 1 }, 0],
+  ["exp", { a: 0 }, 1],
+  ["power", { a: 0, b: 0 }, 1],
 ];
 
 test("public wrappers execute providers, clear stale errors, return success, and preserve public inputs", () => {
@@ -85,4 +88,21 @@ test("square root rejects invalid and negative inputs with stale-output cleanup"
   assert.equal(negative.storage["math:"].ans, undefined);
   assert.equal(negative.storage["math:"].error, "negative_square_root");
   assert.equal(negative.storage["math:"].a, -1);
+});
+
+test("log exp and power reject non-finite inputs with stale-output cleanup", () => {
+  for (const [name, inputs] of [
+    ["log", { a: Infinity }],
+    ["exp", { a: -Infinity }],
+    ["power", { a: 2, b: Infinity }],
+    ["power", { a: NaN, b: 2 }],
+  ]) {
+    const publicInput = { ...inputs, ans: 91, error: "stale_error" };
+    const result = runFunction(name, publicInput);
+    assert.equal(result.returned, 0, `${name} must fail`);
+    assert.equal(result.storage["math:"].ans, undefined);
+    assert.equal(result.storage["math:"].error, "invalid_number");
+    assert.deepEqual(result.storage["math:"].a, publicInput.a);
+    assert.deepEqual(result.storage["math:"].b, publicInput.b);
+  }
 });

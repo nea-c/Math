@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "x"
+    },
+    {
+      "type": "minecraft:number_dispatcher",
+      "cases": [
+        {
+          "condition": {
+            "type": "minecraft:value_check",
+            "value": {
+              "type": "minecraft:storage",
+              "storage": "math:internal",
+              "path": "x"
+            },
+            "range": {
+              "min": 1.401298464324817e-45,
+              "max": 1.1754942106924411e-38
+            }
+          },
+          "number_provider": 16777216
+        }
+      ],
+      "default": 1
+    }
+  ]
+}

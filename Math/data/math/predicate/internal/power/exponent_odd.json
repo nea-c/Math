@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:value_check",
+  "value": {
+    "type": "minecraft:maximum",
+    "operands": [
+      {
+        "type": "minecraft:storage",
+        "storage": "math:internal",
+        "path": "z"
+      },
+      {
+        "type": "minecraft:product",
+        "operands": [
+          -1,
+          {
+            "type": "minecraft:storage",
+            "storage": "math:internal",
+            "path": "z"
+          }
+        ]
+      }
+    ]
+  },
+  "range": {
+    "min": 0.5,
+    "max": 0.5
+  }
+}

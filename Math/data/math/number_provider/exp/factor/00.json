@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:sum",
+  "operands": [
+    "math:exp/factor/dispatch/00",
+    "math:exp/factor/dispatch/01",
+    "math:exp/factor/dispatch/02",
+    "math:exp/factor/dispatch/03",
+    "math:exp/factor/dispatch/04",
+    "math:exp/factor/dispatch/05",
+    "math:exp/factor/dispatch/06",
+    "math:exp/factor/dispatch/07",
+    "math:exp/factor/dispatch/08"
+  ]
+}

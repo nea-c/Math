@@ -18,6 +18,8 @@ const smallestNegativeFloat = -1.401298464324817e-45;
 const smallestPositiveFloat = Math.fround(2 ** -149);
 const largestSubnormalFloat = Math.fround(2 ** -126 - 2 ** -149);
 const smallestFiniteReciprocalInput = Math.fround(2 ** -128 + 2 ** -149);
+const maximumFiniteExpInput = Math.fround(88.72283172607422);
+const maximumZeroExpInput = Math.fround(-103.97208404541016);
 const generatedFiles = [];
 
 function emit(relativePath, value) {
@@ -241,6 +243,112 @@ emit("square_root/00", product(
   z,
 ));
 
+// Center the logarithm mantissa around one. Keeping the shared normalizer's
+// raw [1, 2) interval causes cancellation in log(m) + e*ln(2) for inputs near
+// one; [1/sqrt(2), sqrt(2)] keeps the relative error within the public bound.
+const logRawMantissa = "math:log/normalize/raw_mantissa/00";
+const logCenterCondition = inlineValueCheck(logRawMantissa, Math.fround(Math.SQRT2), 2);
+emit("log/normalize/subnormal_exponent/00", numberDispatcher([
+  {
+    condition: inlineValueCheck(x, smallestPositiveFloat, largestSubnormalFloat),
+    number_provider: -24,
+  },
+]));
+emit("log/normalize/prescale/00", product(x, numberDispatcher([
+  {
+    condition: inlineValueCheck(x, smallestPositiveFloat, largestSubnormalFloat),
+    number_provider: Math.fround(2 ** 24),
+  },
+], 1)));
+emit("log/normalize/raw_mantissa/00", product(
+  x,
+  "math:common/normalize/power_of_two/scale",
+));
+emit("log/normalize/center_factor/00", numberDispatcher([
+  { condition: logCenterCondition, number_provider: 0.5 },
+], 1));
+emit("log/normalize/center_exponent/00", numberDispatcher([
+  { condition: logCenterCondition, number_provider: 1 },
+]));
+emit("log/normalize/exponent/00", sum(
+  z,
+  w,
+  "math:log/normalize/center_exponent/00",
+));
+emit("log/normalize/mantissa/00", product(
+  logRawMantissa,
+  "math:log/normalize/center_factor/00",
+));
+emit("log/normalize/numerator/00", sum(z, -1));
+emit("log/normalize/denominator/00", sum(z, 2));
+emit("log/normalize/u/00", product(x, z));
+
+const logUSquared = product(z, z);
+const logHorner = sum(1, product(logUSquared, sum(
+  Math.fround(1 / 3),
+  product(logUSquared, sum(
+    Math.fround(1 / 5),
+    product(logUSquared, sum(
+      Math.fround(1 / 7),
+      product(logUSquared, sum(
+        Math.fround(1 / 9),
+        product(logUSquared, Math.fround(1 / 11)),
+      )),
+    )),
+  )),
+)));
+emit("log/polynomial/00", product(2, z, logHorner));
+emit("log/00", sum(
+  "math:log/polynomial/00",
+  product(w, Math.fround(Math.LN2)),
+));
+
+emit("exp/reduce/quotient/00", product(x, Math.fround(1 / Math.LN2)));
+emit("exp/reduce/remainder/00", sum(w, product(-Math.fround(Math.LN2), z)));
+emit("exp/minimum/00", smallestPositiveFloat);
+emit("exp/minimum/negative/00", -smallestPositiveFloat);
+
+let expPolynomial = Math.fround(1 / 40320);
+for (const coefficient of [1 / 5040, 1 / 720, 1 / 120, 1 / 24, 1 / 6, 1 / 2, 1, 1]) {
+  expPolynomial = sum(Math.fround(coefficient), product(x, expPolynomial));
+}
+emit("exp/polynomial/00", expPolynomial);
+
+const expScaleBands = [];
+for (let exponent = -150; exponent <= 128; exponent += 1) {
+  expScaleBands.push({
+    exponent,
+    scale: exponent === -150
+      ? smallestPositiveFloat
+      : exponent === 128
+        ? Math.fround(2 ** 127)
+        : Math.fround(2 ** exponent),
+    factor: exponent === -150 ? 0.5 : exponent === 128 ? 2 : 1,
+  });
+}
+for (const [responsibility, selectValue] of [
+  ["scale", (band) => band.scale],
+  ["factor", (band) => band.factor],
+]) {
+  const chunkReferences = [];
+  for (const [index, bands] of chunk(expScaleBands, 32).entries()) {
+    const chunkName = index.toString().padStart(2, "0");
+    const providerPath = `exp/${responsibility}/dispatch/${chunkName}`;
+    chunkReferences.push(`math:${providerPath}`);
+    emit(providerPath, numberDispatcher(bands.map((band) => ({
+      condition: inlineValueCheck(z, band.exponent, band.exponent),
+      number_provider: selectValue(band),
+    }))));
+  }
+  emit(`exp/${responsibility}/00`, sum(...chunkReferences));
+}
+emit("exp/00", product(
+  "math:exp/polynomial/00",
+  "math:exp/factor/00",
+  "math:exp/scale/00",
+));
+emit("power/positive/00", product(x, y));
+
 for (const name of ["a", "b", "min", "max", "t"]) emitPredicate(`finite/${name}`, finitePredicate(name));
 emitPredicate("range/min_greater_than_max", {
   type: "minecraft:value_check",
@@ -271,6 +379,66 @@ emitPredicate("square_root/result_finite", {
   type: "minecraft:value_check",
   value: publicAnswer,
   range: { min: -finiteLimit, max: finiteLimit },
+});
+emitPredicate("log/zero", {
+  type: "minecraft:value_check",
+  value: x,
+  range: { min: 0, max: 0 },
+});
+emitPredicate("exp/input_finite", {
+  type: "minecraft:value_check",
+  value: x,
+  range: { min: -finiteLimit, max: finiteLimit },
+});
+emitPredicate("exp/input_in_range", {
+  type: "minecraft:value_check",
+  value: x,
+  range: { max: maximumFiniteExpInput },
+});
+emitPredicate("exp/underflows_to_zero", {
+  type: "minecraft:value_check",
+  value: x,
+  range: { max: maximumZeroExpInput },
+});
+emitPredicate("exp/minimum_nonzero", {
+  type: "minecraft:value_check",
+  value: x,
+  range: { min: Math.fround(-103.97207641601562), max: Math.fround(-103.97207641601562) },
+});
+emitPredicate("exp/result_finite", {
+  type: "minecraft:value_check",
+  value: publicAnswer,
+  range: { min: -finiteLimit, max: finiteLimit },
+});
+emitPredicate("power/base_zero", {
+  type: "minecraft:value_check",
+  value: x,
+  range: { min: 0, max: 0 },
+});
+emitPredicate("power/exponent_zero", {
+  type: "minecraft:value_check",
+  value: y,
+  range: { min: 0, max: 0 },
+});
+emitPredicate("power/exponent_negative", {
+  type: "minecraft:value_check",
+  value: y,
+  range: { max: smallestNegativeFloat },
+});
+emitPredicate("power/exponent_integer", {
+  type: "minecraft:value_check",
+  value: sum(publicB, product(-1, z)),
+  range: { min: 0, max: 0 },
+});
+emitPredicate("power/exponent_large_even", {
+  type: "minecraft:value_check",
+  value: maximum(publicB, product(-1, publicB)),
+  range: { min: 2 ** 24 },
+});
+emitPredicate("power/exponent_odd", {
+  type: "minecraft:value_check",
+  value: maximum(z, product(-1, z)),
+  range: { min: 0.5, max: 0.5 },
 });
 emitPredicate("rounding/safe_command_result", {
   type: "minecraft:value_check",
@@ -459,6 +627,142 @@ function exactRemainderLines() {
   lines.push("execute unless predicate math:internal/square_root/result_finite run return fail");
   lines.push("return 1");
   emitFunction("square_root", lines);
+}
+
+emitFunction("internal/log_x", [
+  "data modify storage math:internal w set compute default math:log/normalize/subnormal_exponent/00",
+  "data modify storage math:internal x set compute default math:log/normalize/prescale/00",
+  "data modify storage math:internal z set compute default math:common/normalize/power_of_two/exponent",
+  "data modify storage math:internal w set compute default math:log/normalize/exponent/00",
+  "data modify storage math:internal z set compute default math:log/normalize/mantissa/00",
+  "data modify storage math:internal z set compute default math:log/normalize/numerator/00",
+  "data modify storage math:internal x set compute default math:log/normalize/denominator/00",
+  "data modify storage math:internal x set compute default math:common/reciprocal/00",
+  "data modify storage math:internal z set compute default math:log/normalize/u/00",
+  "data modify storage math:internal x set compute default math:log/00",
+  "return 1",
+]);
+
+emitFunction("internal/exp_x", [
+  "data modify storage math:internal w set from storage math:internal x",
+  "data modify storage math:internal x set compute default math:exp/reduce/quotient/00",
+  "data modify storage math:internal x set compute default math:common/rounding/add_half",
+  "function math:internal/floor_x",
+  "data modify storage math:internal x set compute default math:exp/reduce/remainder/00",
+  "data modify storage math:internal x set compute default math:exp/00",
+  "return 1",
+]);
+
+function resultOutOfRangeLines(predicate = "math:internal/exp/input_in_range") {
+  return [
+    `execute unless predicate ${predicate} run data remove storage math: ans`,
+    `execute unless predicate ${predicate} run data modify storage math: error set value "result_out_of_range"`,
+    `execute unless predicate ${predicate} run return fail`,
+  ];
+}
+
+function powerEvaluationLines(negativeResult) {
+  const lines = [
+    "function math:internal/log_x",
+    "data modify storage math:internal x set compute default math:power/positive/00",
+    ...resultOutOfRangeLines("math:internal/exp/input_finite"),
+    ...resultOutOfRangeLines(),
+    `execute if predicate math:internal/exp/underflows_to_zero run data modify storage math: ans set value ${negativeResult ? "-0.0f" : "0.0f"}`,
+    "execute if predicate math:internal/exp/underflows_to_zero run return 1",
+  ];
+  if (negativeResult) {
+    lines.push("execute if predicate math:internal/exp/minimum_nonzero run data modify storage math: ans set compute default math:exp/minimum/negative/00");
+  } else {
+    lines.push("execute if predicate math:internal/exp/minimum_nonzero run data modify storage math: ans set compute default math:exp/minimum/00");
+  }
+  lines.push("execute if predicate math:internal/exp/minimum_nonzero run return 1");
+  lines.push("function math:internal/exp_x");
+  if (negativeResult) {
+    lines.push("data modify storage math: ans set compute default math:common/rounding/negate");
+  } else {
+    lines.push("data modify storage math: ans set compute default math:common/input/x");
+  }
+  lines.push(...resultOutOfRangeLines("math:internal/exp/result_finite"));
+  lines.push("return 1");
+  return lines;
+}
+
+emitFunction("internal/power_positive", powerEvaluationLines(false));
+emitFunction("internal/power_negative_odd", powerEvaluationLines(true));
+
+emitFunction("internal/power_zero", [
+  "execute if predicate math:internal/power/exponent_negative run data remove storage math: ans",
+  "execute if predicate math:internal/power/exponent_negative run data modify storage math: error set value \"zero_to_negative_power\"",
+  "execute if predicate math:internal/power/exponent_negative run return fail",
+  "execute if predicate math:internal/power/exponent_zero run data modify storage math: ans set value 1.0f",
+  "execute if predicate math:internal/power/exponent_zero run return 1",
+  "data modify storage math: ans set value 0.0f",
+  "return 1",
+]);
+
+emitFunction("internal/power_negative", [
+  "data modify storage math:internal x set from storage math:internal y",
+  "function math:internal/truncate_x",
+  "execute unless predicate math:internal/power/exponent_integer run data remove storage math: ans",
+  "execute unless predicate math:internal/power/exponent_integer run data modify storage math: error set value \"non_real_result\"",
+  "execute unless predicate math:internal/power/exponent_integer run return fail",
+  "data modify storage math:internal x set from storage math: a",
+  "data modify storage math:internal x set compute default math:common/comparison/absolute",
+  "data modify storage math:internal y set from storage math: b",
+  "execute if predicate math:internal/power/exponent_large_even run return run function math:internal/power_positive",
+  "data modify storage math:internal x set from storage math:internal y",
+  "data modify storage math:internal y set value 0.5f",
+  "data modify storage math:internal w set compute default math:common/arithmetic/multiply",
+  "data modify storage math:internal x set from storage math:internal w",
+  "function math:internal/truncate_x",
+  "data modify storage math:internal x set from storage math:internal w",
+  "data modify storage math:internal y set from storage math:internal z",
+  "data modify storage math:internal z set compute default math:common/arithmetic/subtract",
+  "data modify storage math:internal x set from storage math: a",
+  "data modify storage math:internal x set compute default math:common/comparison/absolute",
+  "data modify storage math:internal y set from storage math: b",
+  "execute if predicate math:internal/power/exponent_odd run return run function math:internal/power_negative_odd",
+  "return run function math:internal/power_positive",
+]);
+
+{
+  const lines = validationLines(["a"]);
+  lines.push("data modify storage math:internal x set from storage math: a");
+  lines.push("execute if predicate math:internal/range/negative run data remove storage math: ans");
+  lines.push("execute if predicate math:internal/range/negative run data modify storage math: error set value \"non_real_result\"");
+  lines.push("execute if predicate math:internal/range/negative run return fail");
+  lines.push("execute if predicate math:internal/log/zero run data remove storage math: ans");
+  lines.push("execute if predicate math:internal/log/zero run data modify storage math: error set value \"non_real_result\"");
+  lines.push("execute if predicate math:internal/log/zero run return fail");
+  lines.push("function math:internal/log_x");
+  lines.push("data modify storage math: ans set compute default math:common/input/x");
+  lines.push("return 1");
+  emitFunction("log", lines);
+}
+
+{
+  const lines = validationLines(["a"]);
+  lines.push("data modify storage math:internal x set from storage math: a");
+  lines.push(...resultOutOfRangeLines());
+  lines.push("execute if predicate math:internal/exp/underflows_to_zero run data modify storage math: ans set value 0.0f");
+  lines.push("execute if predicate math:internal/exp/underflows_to_zero run return 1");
+  lines.push("execute if predicate math:internal/exp/minimum_nonzero run data modify storage math: ans set compute default math:exp/minimum/00");
+  lines.push("execute if predicate math:internal/exp/minimum_nonzero run return 1");
+  lines.push("function math:internal/exp_x");
+  lines.push("data modify storage math: ans set compute default math:common/input/x");
+  lines.push(...resultOutOfRangeLines("math:internal/exp/result_finite"));
+  lines.push("return 1");
+  emitFunction("exp", lines);
+}
+
+{
+  const lines = validationLines(["a", "b"]);
+  lines.push("data modify storage math:internal x set from storage math: a");
+  lines.push("data modify storage math:internal y set from storage math: b");
+  lines.push("execute if predicate math:internal/power/base_zero run return run function math:internal/power_zero");
+  lines.push("execute if predicate math:internal/range/negative run return run function math:internal/power_negative");
+  lines.push("return run function math:internal/power_positive");
+  emitFunction("power", lines);
 }
 
 {

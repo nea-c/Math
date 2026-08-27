@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:sum",
+  "operands": [
+    "math:log/polynomial/00",
+    {
+      "type": "minecraft:product",
+      "operands": [
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w"
+        },
+        0.6931471824645996
+      ]
+    }
+  ]
+}

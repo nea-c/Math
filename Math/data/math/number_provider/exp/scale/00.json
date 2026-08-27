@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:sum",
+  "operands": [
+    "math:exp/scale/dispatch/00",
+    "math:exp/scale/dispatch/01",
+    "math:exp/scale/dispatch/02",
+    "math:exp/scale/dispatch/03",
+    "math:exp/scale/dispatch/04",
+    "math:exp/scale/dispatch/05",
+    "math:exp/scale/dispatch/06",
+    "math:exp/scale/dispatch/07",
+    "math:exp/scale/dispatch/08"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:value_check",
+  "value": {
+    "type": "minecraft:storage",
+    "storage": "math:internal",
+    "path": "x"
+  },
+  "range": {
+    "max": 88.72283172607422
+  }
+}
