@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { runFunction } from "./mcfunction-test-harness.mjs";
+import { loadGeneratedGraph, staticFunctionCost } from "./runtime-cost.mjs";
 
 const FINAL_BRACKET_WIDTH = 2 ** -20;
 const BRACKET_TOLERANCE = 2 ** -23;
@@ -173,6 +174,12 @@ test("bezier keeps its certified final bracket private and observable", () => {
     assert.ok(bezierX(internal.w_bezier_low, curve) <= u + BRACKET_TOLERANCE, name);
     assert.ok(bezierX(internal.w_bezier_high, curve) >= u - BRACKET_TOLERANCE, name);
   }
+});
+
+test("bezier avoids provider-dispatch overhead when updating its bracket", () => {
+  const cost = staticFunctionCost("bezier/0.start", loadGeneratedGraph(), { recursionLimit: 320 });
+  assert.ok(cost.commands <= 191, JSON.stringify(cost));
+  assert.ok(cost.providerNodes < 6_240, JSON.stringify(cost));
 });
 
 test("safeguarded Newton feasibility gate retains bisection when no safe win exists", (t) => {

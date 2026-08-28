@@ -312,14 +312,11 @@ emit("bezier/midpoint", product(0.5, sum(bezierLow, bezierHigh)));
 emit("bezier/x", bezierCurveX);
 emit("bezier/y", cubicBezier(bezierMidpoint, bezierCurveY1, bezierCurveY2));
 emit("bezier/compare_x", floatComparison(subtractExpression(bezierCurveX, bezierInput), 0));
-emit("bezier/next_low", numberDispatcher([{
-  condition: inlineValueCheck(storage("math:internal", "w_comparison.bezier_x"), undefined, -1),
-  number_provider: bezierMidpoint,
-}], bezierLow));
-emit("bezier/next_high", numberDispatcher([{
-  condition: inlineValueCheck(storage("math:internal", "w_comparison.bezier_x"), 0, undefined),
-  number_provider: bezierMidpoint,
-}], bezierHigh));
+emitPredicate("bezier/x_before_input", inlineValueCheck(
+  storage("math:internal", "w_comparison.bezier_x"),
+  undefined,
+  -1,
+));
 emit("bezier/result", sum(publicA, product(
   storage("math:internal", "w_bezier_y"),
   sum(publicB, product(-1, publicA)),
@@ -899,8 +896,8 @@ emitFunction(FUNCTION_PATHS.bezierValidateCurve, [
   for (let iteration = 0; iteration < 20; iteration += 1) {
     lines.push("data modify storage math:internal w_bezier_midpoint set compute default math:bezier/midpoint");
     lines.push("data modify storage math:internal w_comparison.bezier_x set compute default math:bezier/compare_x");
-    lines.push("data modify storage math:internal w_bezier_low set compute default math:bezier/next_low");
-    lines.push("data modify storage math:internal w_bezier_high set compute default math:bezier/next_high");
+    lines.push("execute if predicate math:internal/bezier/x_before_input run data modify storage math:internal w_bezier_low set from storage math:internal w_bezier_midpoint");
+    lines.push("execute unless predicate math:internal/bezier/x_before_input run data modify storage math:internal w_bezier_high set from storage math:internal w_bezier_midpoint");
   }
   lines.push("return 1");
   emitFunction(FUNCTION_PATHS.bezierSolve, lines);
