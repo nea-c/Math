@@ -1,8 +1,8 @@
 data remove storage math: error
 data modify storage math:internal w_validation_a set compute default math:internal/comparison/finite/a
-execute unless data storage math:internal {w_validation_a:0.0f} run return run function math:.common/invalid_number/0.start
+execute unless data storage math:internal {w_validation_a:0.0f} run return run function math:.common/_error/invalid_number
 data modify storage math:internal w_validation_b set compute default math:internal/comparison/finite/b
-execute unless data storage math:internal {w_validation_b:0.0f} run return run function math:.common/invalid_number/0.start
+execute unless data storage math:internal {w_validation_b:0.0f} run return run function math:.common/_error/invalid_number
 data modify storage math:internal x set from storage math: b
 execute if data storage math:internal {x:0.0f} run data remove storage math: ans
 execute if data storage math:internal {x:0.0f} run data modify storage math: error set value "division_by_zero"
@@ -32,10 +32,10 @@ data modify storage math:internal w_divide_b_mantissa set from storage math:inte
 data modify storage math:internal w_divide_b_exponent set from storage math:internal y
 data modify storage math:internal w_divide_exponent set compute default math:internal/divide/exponent_difference
 data modify storage math:internal w_comparison.predicate.divide_exponent_definitely_overflows.minimum set compute default math:internal/comparison/predicate/divide/exponent_definitely_overflows/minimum
-execute if predicate math:internal/divide/exponent_definitely_overflows run return run function math:.common/result_out_of_range/0.start
+execute if predicate math:internal/divide/exponent_definitely_overflows run return run function math:.common/_error/result_out_of_range
 data modify storage math:internal w_comparison.predicate.divide_exponent_at_overflow_boundary.value set compute default math:internal/comparison/predicate/divide/exponent_at_overflow_boundary/value
 data modify storage math:internal w_comparison.predicate.divide_significand_at_or_above_overflow_boundary.minimum set compute default math:internal/comparison/predicate/divide/significand_at_or_above_overflow_boundary/minimum
-execute if predicate math:internal/divide/overflow_boundary run return run function math:.common/result_out_of_range/0.start
+execute if predicate math:internal/divide/overflow_boundary run return run function math:.common/_error/result_out_of_range
 data modify storage math:internal x set compute default math:internal/divide/normalized_reciprocal
 data modify storage math:internal w_divide_reciprocal set from storage math:internal x
 data modify storage math:internal y set from storage math:internal w_divide_a_mantissa

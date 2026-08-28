@@ -60,8 +60,9 @@ function/
    ├─ normalize_period/
    │  ├─ 0.start.mcfunction
    │  └─ 1.negative.mcfunction
-   └─ invalid_number/
-      └─ 0.start.mcfunction
+   └─ _error/
+      ├─ invalid_number.mcfunction
+      └─ result_out_of_range.mcfunction
 ```
 
 `internal/` と `common/` は作らない。汎用処理の予約名は先頭にドットを付けた `.common` とする。
@@ -76,6 +77,7 @@ function/
 - role は小文字の snake_case とする。
 - ファイルとフォルダの同名併置は行わない。
 - 深い階層を作る代わりに、`2.normalize_scale_down.mcfunction` のように役割をファイル名へ含める。
+- `.common/_error/` は独立した共通終了処理を分類するフォルダなので、番号と `0.start` を付けず、エラーIDと同名のファイルを直下へ置く。
 
 既存の `00.mcfunction` 形式は関数ツリーでは使用しない。number provider、predicateなど関数以外の既存命名はこの変更の対象外とする。
 
@@ -96,7 +98,7 @@ function/
 - `normalize_period`: sin、cos、tan系から使う周期正規化
 - `sin`、`cos`、`tan`: radian版とdegree版で共有する三角関数計算核
 - `log` と `exp`: 公開関数とpowerで共有する超越関数計算核
-- `invalid_number` と `result_out_of_range`: 複数の公開関数で共有する終了処理
+- `_error/invalid_number` と `_error/result_out_of_range`: 複数の公開関数で共有する終了処理
 
 一方、divideの仮数正規化、square_rootの正規化、powerの符号・境界分類などは各公開関数専用なので、それぞれの公開フォルダへ置く。
 

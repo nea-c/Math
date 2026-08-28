@@ -433,10 +433,25 @@ test("function tags expose every public function in the generated function layou
     [],
   );
 
+  const errorDirectory = path.join(functionRoot, ".common", "_error");
+  assert.deepEqual(
+    fs.readdirSync(errorDirectory, { withFileTypes: true })
+      .map((entry) => entry.name)
+      .sort(),
+    [
+      "invalid_curve.mcfunction",
+      "invalid_duration.mcfunction",
+      "invalid_number.mcfunction",
+      "result_out_of_range.mcfunction",
+    ],
+  );
+  assert.equal(fs.existsSync(path.join(functionRoot, ".common", "invalid_number")), false);
+  assert.equal(fs.existsSync(path.join(functionRoot, ".common", "result_out_of_range")), false);
+
   const functionDirectories = [
     ...PUBLIC_FUNCTION_NAMES.map((name) => path.join(functionRoot, name)),
     ...fs.readdirSync(path.join(functionRoot, ".common"), { withFileTypes: true })
-      .filter((entry) => entry.isDirectory())
+      .filter((entry) => entry.isDirectory() && entry.name !== "_error")
       .map((entry) => path.join(functionRoot, ".common", entry.name)),
   ];
   for (const directory of functionDirectories) {

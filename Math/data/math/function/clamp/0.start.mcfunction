@@ -1,10 +1,10 @@
 data remove storage math: error
 data modify storage math:internal w_validation_a set compute default math:internal/comparison/finite/a
-execute unless data storage math:internal {w_validation_a:0.0f} run return run function math:.common/invalid_number/0.start
+execute unless data storage math:internal {w_validation_a:0.0f} run return run function math:.common/_error/invalid_number
 data modify storage math:internal w_validation_min set compute default math:internal/comparison/finite/min
-execute unless data storage math:internal {w_validation_min:0.0f} run return run function math:.common/invalid_number/0.start
+execute unless data storage math:internal {w_validation_min:0.0f} run return run function math:.common/_error/invalid_number
 data modify storage math:internal w_validation_max set compute default math:internal/comparison/finite/max
-execute unless data storage math:internal {w_validation_max:0.0f} run return run function math:.common/invalid_number/0.start
+execute unless data storage math:internal {w_validation_max:0.0f} run return run function math:.common/_error/invalid_number
 data modify storage math:internal x set from storage math: a
 data modify storage math:internal z set from storage math: min
 data modify storage math:internal w set from storage math: max

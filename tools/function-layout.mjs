@@ -11,8 +11,8 @@ export const PUBLIC_FUNCTION_PATHS = Object.freeze(Object.fromEntries(
 ));
 
 export const FUNCTION_PATHS = Object.freeze({
-  invalidNumber: ".common/invalid_number/0.start",
-  resultOutOfRange: ".common/result_out_of_range/0.start",
+  invalidNumber: ".common/_error/invalid_number",
+  resultOutOfRange: ".common/_error/result_out_of_range",
   floor: ".common/floor/0.start",
   truncate: ".common/truncate/0.start",
   reciprocal: ".common/reciprocal/0.start",

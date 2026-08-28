@@ -1,10 +1,11 @@
 {
   "command": "node tools/generate-math-providers.mjs",
   "files": [
+    "Math/data/math/function/.common/_error/invalid_number.mcfunction",
+    "Math/data/math/function/.common/_error/result_out_of_range.mcfunction",
     "Math/data/math/function/.common/cos/0.start.mcfunction",
     "Math/data/math/function/.common/exp/0.start.mcfunction",
     "Math/data/math/function/.common/floor/0.start.mcfunction",
-    "Math/data/math/function/.common/invalid_number/0.start.mcfunction",
     "Math/data/math/function/.common/log/0.start.mcfunction",
     "Math/data/math/function/.common/log/1.prepare.mcfunction",
     "Math/data/math/function/.common/log/2.normalize.mcfunction",
@@ -18,7 +19,6 @@
     "Math/data/math/function/.common/reciprocal/3.scale_down.mcfunction",
     "Math/data/math/function/.common/reciprocal/4.finish.mcfunction",
     "Math/data/math/function/.common/reduce_remainder/0.start.mcfunction",
-    "Math/data/math/function/.common/result_out_of_range/0.start.mcfunction",
     "Math/data/math/function/.common/sin/0.start.mcfunction",
     "Math/data/math/function/.common/sin/1.evaluate.mcfunction",
     "Math/data/math/function/.common/tan/0.start.mcfunction",

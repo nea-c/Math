@@ -1386,6 +1386,8 @@ function generate(targetRoot) {
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "number_provider", "divide.json"), { force: true });
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "function", "internal"), { recursive: true, force: true });
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "function", "common"), { recursive: true, force: true });
+  fs.rmSync(path.join(targetRoot, "Math", "data", "math", "function", ".common", "invalid_number"), { recursive: true, force: true });
+  fs.rmSync(path.join(targetRoot, "Math", "data", "math", "function", ".common", "result_out_of_range"), { recursive: true, force: true });
   for (const file of generatedFiles) {
     if (file.kind === "json") {
       writeGeneratedJson(targetRoot, file.relativePath.replace(/\.json$/, ""), file.value);

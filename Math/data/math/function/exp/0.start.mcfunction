@@ -1,6 +1,6 @@
 data remove storage math: error
 data modify storage math:internal w_validation_a set compute default math:internal/comparison/finite/a
-execute unless data storage math:internal {w_validation_a:0.0f} run return run function math:.common/invalid_number/0.start
+execute unless data storage math:internal {w_validation_a:0.0f} run return run function math:.common/_error/invalid_number
 data modify storage math:internal x set from storage math: a
 data modify storage math:internal w_comparison.predicate.exp_input_in_range.maximum set compute default math:internal/comparison/predicate/exp/input_in_range/maximum
 execute unless predicate math:internal/exp/input_in_range run data remove storage math: ans
