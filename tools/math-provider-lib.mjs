@@ -89,7 +89,9 @@ function getValue(values, key) {
 }
 
 function getPath(value, providerPath) {
-  return providerPath.split(".").reduce((current, segment) => getValue(current, segment), value);
+  return providerPath.replaceAll(/\[(\d+)\]/g, ".$1")
+    .split(".")
+    .reduce((current, segment) => getValue(current, segment), value);
 }
 
 function readStorage(storageId, providerPath, storageValues) {

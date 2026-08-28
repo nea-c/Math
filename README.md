@@ -16,12 +16,13 @@ Minecraft Java Edition 26.3 Snapshot 10 向けの、依存関係なしで動く 
 |---|---|
 | `a` | 単項入力、または左オペランド |
 | `b` | 右オペランド |
-| `min`, `max` | `clamp` の下限と上限 |
-| `t` | `lerp` の補間量 |
+| `min`, `max` | `clamp` の下限と上限、または `bezier` の最大tick (`max`) |
+| `t` | `lerp` の補間量、または `bezier` の経過tick |
+| `curve` | `bezier` の `[x1,y1,x2,y2]` floatリスト |
 | `ans` | 成功時の float 結果 |
 | `error` | 失敗時のエラー ID（文字列） |
 
-単項関数は `a`、二項関数は `a` と `b`、`clamp` は `a/min/max`、`lerp` は `a/b/t` を読みます。定数関数は入力を読みません。入力 `a`、`b`、`min`、`max`、`t` は変更されません。
+単項関数は `a`、二項関数は `a` と `b`、`clamp` は `a/min/max`、`lerp` は `a/b/t`、`bezier` は `a/b/t/max/curve` を読みます。定数関数は入力を読みません。公開入力は変更されません。
 
 - 成功: 古い `error` を削除し、float の `ans` を書き、function result `1` を返します。
 - 失敗: 古い `ans` を削除し、`error` を書き、function result `0` を返します。
@@ -41,11 +42,13 @@ Minecraft Java Edition 26.3 Snapshot 10 向けの、依存関係なしで動く 
 | 三角関数（degree） | `sin_degrees`, `cos_degrees`, `tan_degrees` | `a` を度として扱う |
 | 角度変換 | `rad`, `deg` | `rad`: 度 → ラジアン、`deg`: ラジアン → 度 |
 | 定数 | `pi`, `tau`, `e` | `π`, `2π`, `e`; 入力を無視する |
-| 補間 | `lerp` | `a + (b-a)*t`; `t` は範囲外でも許可 |
+| 補間 | `lerp`, `bezier` | 線形補間; CSS互換のcubic-bezier時間補間 |
 
 `round(a)` は `floor(a + 0.5)` です。たとえば `round(1.5)=2`、`round(-1.5)=-1` となります。
 
 `power` は、正の底では実数指数を扱います。負の底は `b` が正確な整数のときだけ使用でき、`power(0,0)=1`、`power(0,b>0)=0` です。ゼロの負数乗は失敗します。
+
+`bezier` は `u=clamp(t/max,0,1)` を曲線のx座標として、`curve:[x1,y1,x2,y2]` で指定したCSS `cubic-bezier(x1,y1,x2,y2)` のy座標を求め、`a` から `b` を補間します。`x1` と `x2` は `[0,1]`、`y1` と `y2` は有限floatなら範囲外も指定でき、オーバーシュートを表現できます。`t<=0` は正確に `a`、`t>=max` は正確に `b` を返します。
 
 ## エラー
 
@@ -57,6 +60,8 @@ Minecraft Java Edition 26.3 Snapshot 10 向けの、依存関係なしで動く 
 | `non_real_result` | `log(a<=0)`、または負の底に非整数指数を指定 |
 | `zero_to_negative_power` | `power(0,b<0)` |
 | `invalid_clamp_range` | `clamp` で `min>max` |
+| `invalid_duration` | `bezier` で `max<=0` |
+| `invalid_curve` | `curve` が4要素でない、または `x1` / `x2` が `[0,1]` の範囲外 |
 | `invalid_number` | 必須入力が非有限値 |
 | `result_out_of_range` | 計算結果を有限 binary32 として表現できない |
 
@@ -72,6 +77,7 @@ provider の定数、storage 読み出し、各 aggregate 演算で Java の bin
 | `log` | 相対誤差 `<= 0.00001`（ゼロ近傍は絶対誤差） | `1.90e-7`（10,000 samples） |
 | `exp` | 相対誤差 `<= 0.00001`; subnormal は最小 normal で scale した絶対誤差 | `4.11e-6`（10,000 samples） |
 | `power` | 相対誤差 `<= 0.00005`; subnormal は同じ scale 規則 | `7.57e-6`（overflow 境界帯） |
+| `bezier` | x座標の逆算に20回の二分探索を使用 | パラメータ区間幅 `<= 2^-20` |
 | `sin`, `cos` | `[-100,100]` rad で絶対誤差 `<= 0.00001` | `3.60e-6` 以下 |
 | `sin_degrees`, `cos_degrees` | `[-5000,5000]` degree で絶対誤差 `<= 0.00001` | `6.89e-6` 以下 |
 
@@ -109,6 +115,18 @@ data modify storage math: a set value -2.0f
 data modify storage math: b set value 0.5f
 function #math:power
 data get storage math: error
+```
+
+20 tickで0から100へcubic-bezier補間する例です。
+
+```mcfunction
+data modify storage math: t set value 10.0f
+data modify storage math: max set value 20.0f
+data modify storage math: a set value 0.0f
+data modify storage math: b set value 100.0f
+data modify storage math: curve set value [0.17f,0.67f,0.83f,0.67f]
+function #math:bezier
+data get storage math: ans
 ```
 
 ## 生成と検証

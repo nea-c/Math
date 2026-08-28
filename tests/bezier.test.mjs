@@ -11,6 +11,9 @@ test("bezier evaluates CSS cubic-bezier timing curves", () => {
     [[0, 0, 1, 1], 50],
     [[0.17, 0.67, 0.83, 0.67], 62.75],
     [[0.25, 1.5, 0.75, 1.5], 125],
+    [[0.25, 0.1, 0.25, 1], 80.2403387584857],
+    [[0.42, 0, 1, 1], 31.535681257253945],
+    [[0, 0, 0.58, 1], 68.46431874274606],
   ]) {
     const result = runFunction("bezier", { t: 5, max: 10, a: 0, b: 100, curve, error: "stale_error" });
     assert.equal(result.returned, 1);
@@ -47,6 +50,7 @@ test("bezier rejects malformed and non-monotonic curve data", () => {
   for (const curve of [
     [0, 0, 1],
     [0, 0, 1, 1, 2],
+    ["bad", "bad", "bad", "bad"],
     [-0.01, 0, 1, 1],
     [0, 0, 1.01, 1],
   ]) {

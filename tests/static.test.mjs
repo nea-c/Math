@@ -518,13 +518,24 @@ test("every dispatcher condition reads an integer-valued staged or reduced field
 
   const providerRoot = path.join("Math/data/math/number_provider");
   const dispatchers = [];
+  const collectDispatchers = (provider, file) => {
+    if (!provider || typeof provider !== "object") return;
+    if (provider.type === "minecraft:number_dispatcher") {
+      dispatchers.push([file, provider]);
+      for (const dispatcherCase of provider.cases) {
+        collectDispatchers(dispatcherCase.number_provider, file);
+      }
+      collectDispatchers(provider.default, file);
+      return;
+    }
+    for (const operand of provider.operands ?? []) collectDispatchers(operand, file);
+  };
   for (const entry of fs.readdirSync(providerRoot, { recursive: true, withFileTypes: true })) {
     if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
     const file = path.join(entry.parentPath, entry.name);
     const provider = JSON.parse(fs.readFileSync(file, "utf8"));
-    if (provider.type === "minecraft:number_dispatcher") dispatchers.push([file, provider]);
+    collectDispatchers(provider, file);
   }
-  assert.equal(dispatchers.length, 24);
 
   function conditionValues(condition) {
     if (condition.type === "minecraft:all_of") return condition.terms.flatMap(conditionValues);

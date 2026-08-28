@@ -1,5 +1,5 @@
 export const PUBLIC_FUNCTION_NAMES = Object.freeze([
-  "absolute", "add", "ceil", "clamp", "cos", "cos_degrees", "cube",
+  "absolute", "add", "bezier", "ceil", "clamp", "cos", "cos_degrees", "cube",
   "deg", "divide", "e", "exp", "floor", "lerp", "log", "maximum",
   "minimum", "modulo", "multiply", "pi", "power", "rad", "reciprocal",
   "remainder", "round", "sign", "sin", "sin_degrees", "square",
@@ -13,6 +13,8 @@ export const PUBLIC_FUNCTION_PATHS = Object.freeze(Object.fromEntries(
 export const FUNCTION_PATHS = Object.freeze({
   invalidNumber: ".common/_error/invalid_number",
   resultOutOfRange: ".common/_error/result_out_of_range",
+  invalidCurve: ".common/_error/invalid_curve",
+  invalidDuration: ".common/_error/invalid_duration",
   floor: ".common/floor/0.start",
   truncate: ".common/truncate/0.start",
   reciprocal: ".common/reciprocal/0.start",
@@ -33,6 +35,9 @@ export const FUNCTION_PATHS = Object.freeze({
   logNormalizeScaleUp: ".common/log/3.normalize_scale_up",
   logNormalizeScaleDown: ".common/log/4.normalize_scale_down",
   exp: ".common/exp/0.start",
+  bezierValidateCurve: "bezier/1.validate_curve",
+  bezierSolve: "bezier/2.solve",
+  bezierFinish: "bezier/3.finish",
   divideNormalize: "divide/1.normalize",
   divideNormalizeScaleUp: "divide/2.normalize_scale_up",
   divideNormalizeScaleDown: "divide/3.normalize_scale_down",

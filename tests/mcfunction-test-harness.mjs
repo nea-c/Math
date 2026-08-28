@@ -53,7 +53,9 @@ function commandsFor(functionName) {
 }
 
 function getPath(root, pathText) {
-  return pathText.split(".").reduce((value, segment) => value?.[segment], root);
+  return pathText.replaceAll(/\[(\d+)\]/g, ".$1")
+    .split(".")
+    .reduce((value, segment) => value?.[segment], root);
 }
 
 function setPath(root, pathText, value) {
@@ -78,6 +80,9 @@ export function storageFieldKey(storageId, pathText) {
 function runWithStorage(name, publicInput, internalInput) {
   const storage = { "math:": clone(publicInput), "math:internal": clone(internalInput) };
   const numericTags = new Map();
+  for (const [index, value] of (publicInput.curve ?? []).entries()) {
+    if (typeof value === "number") numericTags.set(storageFieldKey("math:", `curve[${index}]`), "float");
+  }
   let returned;
 
   function predicateMatches(id) {
@@ -115,8 +120,11 @@ function runWithStorage(name, publicInput, internalInput) {
     return value < Math.fround(truncated) ? (truncated - 1) | 0 : truncated;
   }
 
-  function runCommands(functionName) {
-    for (const command of commandsFor(functionName)) {
+  function runCommands(functionName, macros = {}) {
+    for (const sourceCommand of commandsFor(functionName)) {
+      const command = sourceCommand.startsWith("$")
+        ? sourceCommand.slice(1).replaceAll(/\$\(([A-Za-z0-9_]+)\)/g, (_, key) => `${macros[key]}`)
+        : sourceCommand;
       const result = execute(command);
       if (result !== undefined) return result;
     }
@@ -150,10 +158,28 @@ function runWithStorage(name, publicInput, internalInput) {
       setPath(storage[match[1]] ??= {}, match[2], match[3]);
       return undefined;
     }
-    match = command.match(/^data modify storage (\S+) (\S+) set value (-?\d+(?:\.\d+)?)([fFdD]?)$/);
+    match = command.match(/^data modify storage (\S+) (\S+) set value (-?\d+(?:\.\d+)?)([fFdDbB]?)$/);
     if (match) {
       setPath(storage[match[1]] ??= {}, match[2], Number(match[3]));
-      numericTags.set(storageFieldKey(match[1], match[2]), match[4].toLowerCase() === "f" ? "float" : "double");
+      const suffix = match[4].toLowerCase();
+      numericTags.set(storageFieldKey(match[1], match[2]), suffix === "f" ? "float" : suffix === "b" ? "byte" : "double");
+      return undefined;
+    }
+    match = command.match(/^data modify storage (\S+) (\S+) set value \[(-?\d+(?:\.\d+)?)f\]$/);
+    if (match) {
+      setPath(storage[match[1]] ??= {}, match[2], [Number(match[3])]);
+      numericTags.set(storageFieldKey(match[1], `${match[2]}[0]`), "float");
+      return undefined;
+    }
+    match = command.match(/^execute store success storage (\S+) (\S+) byte 1 run data modify storage (\S+) (\S+) append from storage (\S+) (\S+)$/);
+    if (match) {
+      const target = getPath(storage[match[3]], match[4]);
+      const source = getPath(storage[match[5]], match[6]);
+      const sourceType = numericTags.get(storageFieldKey(match[5], match[6]));
+      const success = Array.isArray(target) && sourceType === "float";
+      if (success) target.push(clone(source));
+      setPath(storage[match[1]] ??= {}, match[2], success ? 1 : 0);
+      numericTags.set(storageFieldKey(match[1], match[2]), "byte");
       return undefined;
     }
     match = command.match(/^execute store result storage (\S+) (\S+) float (-?\d+(?:\.\d+)?) run compute default (\S+)$/);
@@ -169,14 +195,28 @@ function runWithStorage(name, publicInput, internalInput) {
       const matches = predicateMatches(match[2]);
       return (match[1] === "if" ? matches : !matches) ? execute(match[3]) : undefined;
     }
-    match = command.match(/^execute (if|unless) data storage (\S+) \{([A-Za-z0-9_]+):(-?(?:\d+(?:\.\d+)?|Infinity)|NaN)f\} run (.+)$/);
+    match = command.match(/^execute (if|unless) data storage (\S+) \{curve:\[([^\]]+)\]\} run (.+)$/);
+    if (match) {
+      const expected = match[3].split(",").map(value => Number(value.replace(/f$/, "")));
+      const actual = storage[match[2]]?.curve;
+      const matches = Array.isArray(actual) && actual.length === expected.length
+        && actual.every((value, index) => numericTags.get(storageFieldKey(match[2], `curve[${index}]`)) === "float"
+          && Object.is(Math.fround(value), Math.fround(expected[index])));
+      return (match[1] === "if" ? matches : !matches) ? execute(match[4]) : undefined;
+    }
+    match = command.match(/^execute (if|unless) data storage (\S+) \{([A-Za-z0-9_]+):(-?(?:\d+(?:\.\d+)?|Infinity)|NaN)([fb])\} run (.+)$/);
     if (match) {
       const expected = Number(match[4]);
       const actual = getPath(storage[match[2]], match[3]);
       const matches = (Number.isNaN(expected) && Number.isNaN(actual))
         || Object.is(Math.fround(actual), Math.fround(expected))
         || (expected === 0 && actual === 0);
-      return (match[1] === "if" ? matches : !matches) ? execute(match[5]) : undefined;
+      return (match[1] === "if" ? matches : !matches) ? execute(match[6]) : undefined;
+    }
+    match = command.match(/^execute (if|unless) data storage (\S+) (\S+) run (.+)$/);
+    if (match) {
+      const matches = getPath(storage[match[2]], match[3]) !== undefined;
+      return (match[1] === "if" ? matches : !matches) ? execute(match[4]) : undefined;
     }
     match = command.match(/^return run function (\S+)$/);
     if (match) {
@@ -185,6 +225,11 @@ function runWithStorage(name, publicInput, internalInput) {
     match = command.match(/^function (\S+)$/);
     if (match) {
       runCommands(functionPath(match[1]));
+      return undefined;
+    }
+    match = command.match(/^function (\S+) with storage (\S+) (\S+)$/);
+    if (match) {
+      runCommands(functionPath(match[1]), getPath(storage[match[2]], match[3]));
       return undefined;
     }
     if (command === "return 1") {

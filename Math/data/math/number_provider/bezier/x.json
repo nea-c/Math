@@ -1,0 +1,113 @@
+{
+  "type": "minecraft:sum",
+  "operands": [
+    {
+      "type": "minecraft:product",
+      "operands": [
+        3,
+        {
+          "type": "minecraft:sum",
+          "operands": [
+            1,
+            {
+              "type": "minecraft:product",
+              "operands": [
+                -1,
+                {
+                  "type": "minecraft:storage",
+                  "storage": "math:internal",
+                  "path": "w_bezier_midpoint"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "minecraft:sum",
+          "operands": [
+            1,
+            {
+              "type": "minecraft:product",
+              "operands": [
+                -1,
+                {
+                  "type": "minecraft:storage",
+                  "storage": "math:internal",
+                  "path": "w_bezier_midpoint"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_bezier_midpoint"
+        },
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_bezier_x1"
+        }
+      ]
+    },
+    {
+      "type": "minecraft:product",
+      "operands": [
+        3,
+        {
+          "type": "minecraft:sum",
+          "operands": [
+            1,
+            {
+              "type": "minecraft:product",
+              "operands": [
+                -1,
+                {
+                  "type": "minecraft:storage",
+                  "storage": "math:internal",
+                  "path": "w_bezier_midpoint"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_bezier_midpoint"
+        },
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_bezier_midpoint"
+        },
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_bezier_x2"
+        }
+      ]
+    },
+    {
+      "type": "minecraft:product",
+      "operands": [
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_bezier_midpoint"
+        },
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_bezier_midpoint"
+        },
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_bezier_midpoint"
+        }
+      ]
+    }
+  ]
+}

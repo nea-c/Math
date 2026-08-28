@@ -66,6 +66,12 @@ const z = storage("math:internal", "z");
 const w = storage("math:internal", "w");
 const publicA = storage("math:", "a");
 const publicB = storage("math:", "b");
+const publicT = storage("math:", "t");
+const publicMax = storage("math:", "max");
+const publicCurveX1 = storage("math:", "curve[0]");
+const publicCurveY1 = storage("math:", "curve[1]");
+const publicCurveX2 = storage("math:", "curve[2]");
+const publicCurveY2 = storage("math:", "curve[3]");
 const publicAnswer = storage("math:", "ans");
 
 function inlineValueCheck(value, min, max) {
@@ -121,6 +127,17 @@ function numberDispatcher(cases, defaultValue = 0) {
   };
 }
 
+function balancedNumberLookup(entries, selectValue) {
+  if (entries.length === 1) return selectValue(entries[0]);
+  const middle = Math.floor(entries.length / 2);
+  const lower = entries.slice(0, middle);
+  const upper = entries.slice(middle);
+  return numberDispatcher([{
+    condition: inlineValueCheck(z, undefined, lower.at(-1).exponent),
+    number_provider: balancedNumberLookup(lower, selectValue),
+  }], balancedNumberLookup(upper, selectValue));
+}
+
 function subtractExpression(left, right) {
   return sum(left, product(-1, right));
 }
@@ -172,14 +189,6 @@ function nextPositiveFloat(value) {
   return view.getFloat32(0);
 }
 
-function chunk(values, size) {
-  const chunks = [];
-  for (let index = 0; index < values.length; index += size) {
-    chunks.push(values.slice(index, index + size));
-  }
-  return chunks;
-}
-
 for (const [name, provider] of Object.entries({ x, y, z, w })) emit(`common/input/${name}`, provider);
 
 emit("common/constant/pi", Math.fround(Math.PI));
@@ -197,6 +206,48 @@ emit("common/comparison/maximum", maximum(x, y));
 emit("common/comparison/clamp", maximum(minimum(x, w), z));
 emit("common/conversion/rad", product(x, Math.fround(Math.PI / 180)));
 emit("common/conversion/deg", product(x, Math.fround(180 / Math.PI)));
+
+const bezierLow = storage("math:internal", "w_bezier_low");
+const bezierHigh = storage("math:internal", "w_bezier_high");
+const bezierMidpoint = storage("math:internal", "w_bezier_midpoint");
+const bezierInput = storage("math:internal", "w_bezier_u");
+const bezierCurveX1 = storage("math:internal", "w_bezier_x1");
+const bezierCurveY1 = storage("math:internal", "w_bezier_y1");
+const bezierCurveX2 = storage("math:internal", "w_bezier_x2");
+const bezierCurveY2 = storage("math:internal", "w_bezier_y2");
+
+function cubicBezier(parameter, firstControl, secondControl) {
+  const inverse = sum(1, product(-1, parameter));
+  return sum(
+    product(3, inverse, inverse, parameter, firstControl),
+    product(3, inverse, parameter, parameter, secondControl),
+    product(parameter, parameter, parameter),
+  );
+}
+
+for (const [name, provider] of Object.entries({
+  x1: publicCurveX1,
+  y1: publicCurveY1,
+  x2: publicCurveX2,
+  y2: publicCurveY2,
+})) emit(`bezier/input/${name}`, provider);
+const bezierCurveX = cubicBezier(bezierMidpoint, bezierCurveX1, bezierCurveX2);
+emit("bezier/midpoint", product(0.5, sum(bezierLow, bezierHigh)));
+emit("bezier/x", bezierCurveX);
+emit("bezier/y", cubicBezier(bezierMidpoint, bezierCurveY1, bezierCurveY2));
+emit("bezier/compare_x", floatComparison(subtractExpression(bezierCurveX, bezierInput), 0));
+emit("bezier/next_low", numberDispatcher([{
+  condition: inlineValueCheck(storage("math:internal", "w_comparison.bezier_x"), undefined, -1),
+  number_provider: bezierMidpoint,
+}], bezierLow));
+emit("bezier/next_high", numberDispatcher([{
+  condition: inlineValueCheck(storage("math:internal", "w_comparison.bezier_x"), 0, undefined),
+  number_provider: bezierMidpoint,
+}], bezierHigh));
+emit("bezier/result", sum(publicA, product(
+  storage("math:internal", "w_bezier_y"),
+  sum(publicB, product(-1, publicA)),
+)));
 emit("common/rounding/negate", product(-1, x));
 emit("common/rounding/add_half", sum(x, 0.5));
 emit("common/rounding/quotient", product(x, w));
@@ -490,25 +541,26 @@ for (let exponent = -150; exponent <= 128; exponent += 1) {
       : exponent === 128
         ? Math.fround(2 ** 127)
         : Math.fround(2 ** exponent),
-    factor: exponent === -150 ? 0.5 : exponent === 128 ? 2 : 1,
   });
 }
-for (const [responsibility, selectValue] of [
-  ["scale", (band) => band.scale],
-  ["factor", (band) => band.factor],
-]) {
-  const chunkReferences = [];
-  for (const [index, bands] of chunk(expScaleBands, 32).entries()) {
-    const chunkName = index.toString().padStart(2, "0");
-    const providerPath = `exp/${responsibility}/dispatch/${chunkName}`;
-    chunkReferences.push(`math:${providerPath}`);
-    emit(providerPath, numberDispatcher(bands.map((band) => ({
-      condition: inlineValueCheck(z, band.exponent, band.exponent),
-      number_provider: selectValue(band),
-    }))));
-  }
-  emit(`exp/${responsibility}/00`, sum(...chunkReferences));
-}
+const supportedExpExponent = inlineValueCheck(z, -150, 128);
+emit("exp/scale/00", numberDispatcher([{
+  condition: supportedExpExponent,
+  number_provider: balancedNumberLookup(expScaleBands, (band) => band.scale),
+}]));
+emit("exp/factor/00", numberDispatcher([{
+  condition: supportedExpExponent,
+  number_provider: numberDispatcher([
+    {
+      condition: inlineValueCheck(z, -150, -150),
+      number_provider: 0.5,
+    },
+    {
+      condition: inlineValueCheck(z, 128, 128),
+      number_provider: 2,
+    },
+  ], 1),
+}]));
 emit("exp/00", product(
   "math:exp/polynomial/00",
   "math:exp/factor/00",
@@ -520,8 +572,12 @@ for (const [name, value] of [
   ["a", publicA],
   ["b", publicB],
   ["min", storage("math:", "min")],
-  ["max", storage("math:", "max")],
-  ["t", storage("math:", "t")],
+  ["max", publicMax],
+  ["t", publicT],
+  ["curve_0", publicCurveX1],
+  ["curve_1", publicCurveY1],
+  ["curve_2", publicCurveX2],
+  ["curve_3", publicCurveY2],
   ["ans", publicAnswer],
   ["x", x],
 ]) {
@@ -591,6 +647,11 @@ emitStagedPredicate(
 emitStagedPredicate("divide/exact_equal", sum(publicA, product(-1, publicB)), 0, 0);
 emitStagedPredicate("divide/a_negative", publicA, undefined, smallestNegativeFloat);
 emitStagedPredicate("divide/b_negative", publicB, undefined, smallestNegativeFloat);
+emitStagedPredicate("bezier/duration_positive", publicMax, smallestPositiveFloat, undefined);
+emitStagedPredicate("bezier/time_at_or_below_start", publicT, undefined, 0);
+emitStagedPredicate("bezier/time_at_or_after_end", subtractExpression(publicT, publicMax), 0, undefined);
+emitStagedPredicate("bezier/x1_in_range", publicCurveX1, 0, 1);
+emitStagedPredicate("bezier/x2_in_range", publicCurveX2, 0, 1);
 emitStagedPredicate("divide/exponent_definitely_overflows", divideExponent, 129, undefined);
 emitStagedPredicate("divide/exponent_at_overflow_boundary", divideExponent, 128, 128);
 emitStagedPredicate("divide/significand_at_or_above_overflow_boundary", sum(divideAMantissa, product(-1, divideBMantissa)), 0, undefined);
@@ -659,6 +720,85 @@ emitFunction(FUNCTION_PATHS.resultOutOfRange, [
   "data modify storage math: error set value \"result_out_of_range\"",
   "return fail",
 ]);
+
+emitFunction(FUNCTION_PATHS.invalidCurve, [
+  "data remove storage math: ans",
+  "data modify storage math: error set value \"invalid_curve\"",
+  "return fail",
+]);
+
+emitFunction(FUNCTION_PATHS.invalidDuration, [
+  "data remove storage math: ans",
+  "data modify storage math: error set value \"invalid_duration\"",
+  "return fail",
+]);
+
+emitFunction(FUNCTION_PATHS.bezierValidateCurve, [
+  "$execute if data storage math: {curve:[$(x1)f,$(y1)f,$(x2)f,$(y2)f]} run data modify storage math:internal w_validation_curve_type set value 1b",
+]);
+
+{
+  const lines = [];
+  for (let iteration = 0; iteration < 20; iteration += 1) {
+    lines.push("data modify storage math:internal w_bezier_midpoint set compute default math:bezier/midpoint");
+    lines.push("data modify storage math:internal w_comparison.bezier_x set compute default math:bezier/compare_x");
+    lines.push("data modify storage math:internal w_bezier_low set compute default math:bezier/next_low");
+    lines.push("data modify storage math:internal w_bezier_high set compute default math:bezier/next_high");
+  }
+  lines.push("return 1");
+  emitFunction(FUNCTION_PATHS.bezierSolve, lines);
+}
+
+emitFunction(FUNCTION_PATHS.bezierFinish, [
+  "data modify storage math:internal w_bezier_midpoint set compute default math:bezier/midpoint",
+  "data modify storage math:internal w_bezier_y set compute default math:bezier/y",
+  "data modify storage math: ans set compute default math:bezier/result",
+  "data modify storage math:internal w_validation_ans set compute default math:internal/comparison/finite/ans",
+  `execute unless data storage math:internal {w_validation_ans:0.0f} run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`,
+  "return 1",
+]);
+
+{
+  const lines = validationLines(["a", "b", "t", "max"]);
+  lines.push(`execute unless data storage math: curve[3] run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
+  lines.push(`execute if data storage math: curve[4] run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
+  for (const field of ["x1", "y1", "x2", "y2"]) {
+    lines.push(`data remove storage math:internal w_bezier_${field}`);
+    lines.push(`data modify storage math:internal w_bezier_${field} set compute default math:bezier/input/${field}`);
+    lines.push(`execute unless data storage math:internal w_bezier_${field} run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
+    lines.push(`data modify storage math:internal w_bezier_curve_macro.${field} set from storage math:internal w_bezier_${field}`);
+  }
+  lines.push("data modify storage math:internal w_validation_curve_type set value 0b");
+  lines.push(`function ${functionId(FUNCTION_PATHS.bezierValidateCurve)} with storage math:internal w_bezier_curve_macro`);
+  lines.push(`execute unless data storage math:internal {w_validation_curve_type:1b} run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
+  for (let index = 0; index < 4; index += 1) {
+    lines.push(`data remove storage math:internal w_validation_curve_${index}`);
+    lines.push(`data modify storage math:internal w_validation_curve_${index} set compute default math:internal/comparison/finite/curve_${index}`);
+    lines.push(`execute unless data storage math:internal w_validation_curve_${index} run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
+    lines.push(`execute unless data storage math:internal {w_validation_curve_${index}:0.0f} run return run function ${functionId(FUNCTION_PATHS.invalidNumber)}`);
+  }
+  lines.push(...stagePredicate("bezier/duration_positive"));
+  lines.push(`execute unless predicate math:internal/bezier/duration_positive run return run function ${functionId(FUNCTION_PATHS.invalidDuration)}`);
+  lines.push(...stagePredicate("bezier/x1_in_range"));
+  lines.push(`execute unless predicate math:internal/bezier/x1_in_range run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
+  lines.push(...stagePredicate("bezier/x2_in_range"));
+  lines.push(`execute unless predicate math:internal/bezier/x2_in_range run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
+  lines.push(...stagePredicate("bezier/time_at_or_below_start"));
+  lines.push("execute if predicate math:internal/bezier/time_at_or_below_start run data modify storage math: ans set from storage math: a");
+  lines.push("execute if predicate math:internal/bezier/time_at_or_below_start run return 1");
+  lines.push(...stagePredicate("bezier/time_at_or_after_end"));
+  lines.push("execute if predicate math:internal/bezier/time_at_or_after_end run data modify storage math: ans set from storage math: b");
+  lines.push("execute if predicate math:internal/bezier/time_at_or_after_end run return 1");
+  lines.push("data modify storage math:internal x set from storage math: max");
+  lines.push("data modify storage math:internal y set from storage math: t");
+  lines.push(`function ${functionId(FUNCTION_PATHS.reciprocal)}`);
+  lines.push("data modify storage math:internal w_bezier_u set from storage math:internal x");
+  lines.push("data modify storage math:internal w_bezier_low set value 0.0f");
+  lines.push("data modify storage math:internal w_bezier_high set value 1.0f");
+  lines.push(`function ${functionId(FUNCTION_PATHS.bezierSolve)}`);
+  lines.push(`return run function ${functionId(FUNCTION_PATHS.bezierFinish)}`);
+  emitPublicFunction("bezier", lines);
+}
 
 function wrapper(name, inputs, provider, inputMap) {
   const lines = validationLines(inputs);

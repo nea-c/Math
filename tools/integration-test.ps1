@@ -140,17 +140,42 @@ try {
         if ($Case -eq 'square_root') {
             $assertionCommands.Add('execute store result score #approx math_test run data get storage math: ans 1000000')
         }
+        elseif ($Case -eq 'bezier') {
+            $assertionCommands.Add('execute store result score #approx math_test run data get storage math: ans 1000')
+        }
         Add-Guard -Condition 'if data storage math: {error:"invalid_number"}' -Case "${Case}_invalid_number"
         Add-Guard -Condition 'if data storage math: {error:"division_by_zero"}' -Case "${Case}_division_by_zero"
         Add-Guard -Condition 'if data storage math: {error:"result_out_of_range"}' -Case "${Case}_result_out_of_range"
         if ($Case -eq 'square_root') {
             Add-Guard -Condition 'unless score #approx math_test matches 1999990..2000010' -Case "${Case}_answer"
         }
+        elseif ($Case -eq 'bezier') {
+            Add-Guard -Condition 'unless score #approx math_test matches 62748..62751' -Case "${Case}_answer"
+        }
         else {
             Add-Guard -Condition "unless data storage math: {ans:${ExpectedAnswer}}" -Case "${Case}_answer"
         }
         Add-Guard -Condition 'if data storage math: error' -Case "${Case}_stale_error"
         Add-Guard -Condition 'unless score #return math_test matches 1' -Case "${Case}_return"
+    }
+
+    function Add-ErrorCase {
+        param(
+            [Parameter(Mandatory = $true)][string] $Case,
+            [Parameter(Mandatory = $true)][string[]] $Setup,
+            [Parameter(Mandatory = $true)][string] $Function,
+            [Parameter(Mandatory = $true)][string] $ExpectedError
+        )
+
+        foreach ($command in $Setup) {
+            $assertionCommands.Add($command)
+        }
+        $assertionCommands.Add('data modify storage math: ans set value -999.0f')
+        $assertionCommands.Add('data modify storage math: error set value "stale_error"')
+        $assertionCommands.Add("execute store result score #return math_test run function #math:$Function")
+        Add-Guard -Condition 'unless score #return math_test matches 0' -Case "${Case}_return"
+        Add-Guard -Condition 'if data storage math: ans' -Case "${Case}_stale_answer"
+        Add-Guard -Condition ('unless data storage math: {{error:"{0}"}}' -f $ExpectedError) -Case "${Case}_error"
     }
 
     Add-SuccessCase -Case 'add' -Function 'add' -ExpectedAnswer '3.75f' -Setup @(
@@ -221,6 +246,48 @@ try {
     )
     Add-SuccessCase -Case 'deg' -Function 'deg' -ExpectedAnswer '180.0f' -Setup @(
         'data modify storage math: a set value 3.1415927f'
+    )
+    Add-SuccessCase -Case 'bezier' -Function 'bezier' -ExpectedAnswer '62.75f' -Setup @(
+        'data modify storage math: t set value 5.0f'
+        'data modify storage math: max set value 10.0f'
+        'data modify storage math: a set value 0.0f'
+        'data modify storage math: b set value 100.0f'
+        'data modify storage math: curve set value [0.17f,0.67f,0.83f,0.67f]'
+    )
+    Add-ErrorCase -Case 'bezier_invalid_duration' -Function 'bezier' -ExpectedError 'invalid_duration' -Setup @(
+        'data modify storage math: t set value 0.0f'
+        'data modify storage math: max set value 0.0f'
+        'data modify storage math: a set value 0.0f'
+        'data modify storage math: b set value 1.0f'
+        'data modify storage math: curve set value [0.0f,0.0f,1.0f,1.0f]'
+    )
+    Add-ErrorCase -Case 'bezier_invalid_curve' -Function 'bezier' -ExpectedError 'invalid_curve' -Setup @(
+        'data modify storage math: t set value 5.0f'
+        'data modify storage math: max set value 10.0f'
+        'data modify storage math: a set value 0.0f'
+        'data modify storage math: b set value 1.0f'
+        'data modify storage math: curve set value [0.0f,0.0f,1.0f]'
+    )
+    Add-ErrorCase -Case 'bezier_nonnumeric_curve' -Function 'bezier' -ExpectedError 'invalid_curve' -Setup @(
+        'data modify storage math: t set value 5.0f'
+        'data modify storage math: max set value 10.0f'
+        'data modify storage math: a set value 0.0f'
+        'data modify storage math: b set value 1.0f'
+        'data modify storage math: curve set value ["bad","bad","bad","bad"]'
+    )
+    Add-ErrorCase -Case 'bezier_integer_curve' -Function 'bezier' -ExpectedError 'invalid_curve' -Setup @(
+        'data modify storage math: t set value 5.0f'
+        'data modify storage math: max set value 10.0f'
+        'data modify storage math: a set value 0.0f'
+        'data modify storage math: b set value 1.0f'
+        'data modify storage math: curve set value [0,0,1,1]'
+    )
+    Add-ErrorCase -Case 'bezier_double_curve' -Function 'bezier' -ExpectedError 'invalid_curve' -Setup @(
+        'data modify storage math: t set value 5.0f'
+        'data modify storage math: max set value 10.0f'
+        'data modify storage math: a set value 0.0f'
+        'data modify storage math: b set value 1.0f'
+        'data modify storage math: curve set value [0.0d,0.0d,1.0d,1.0d]'
     )
     Add-SuccessCase -Case 'sin' -Function 'sin' -ExpectedAnswer '0.0f' -Setup @(
         'data modify storage math: a set value 0.0f'
