@@ -376,20 +376,17 @@ emit("tan/guard/degrees/compare_domain", floatComparison(maximum(publicA, produc
 // keeping every branch decision at least one integer apart.
 const stagedReciprocalAbsolute = maximum(x, product(-1, x));
 const stagedReciprocalMantissa = product(0.5, stagedReciprocalAbsolute);
-let stagedReciprocalEstimate = sum(
+const storedReciprocalMantissa = storage("math:internal", "w_reciprocal_mantissa");
+const storedReciprocalEstimate = storage("math:internal", "w_reciprocal_estimate");
+emit("internal/reciprocal/mantissa", stagedReciprocalMantissa);
+emit("internal/reciprocal/initial_estimate", sum(
   Math.fround(48 / 17),
-  product(Math.fround(-32 / 17), stagedReciprocalMantissa),
-);
-let stagedReciprocalRegularEstimate;
-for (let stage = 0; stage < 4; stage += 1) {
-  const stagePath = `internal/reciprocal/newton/${stage.toString().padStart(2, "0")}/00`;
-  emit(stagePath, product(
-    stagedReciprocalEstimate,
-    sum(2, product(-1, stagedReciprocalMantissa, stagedReciprocalEstimate)),
-  ));
-  stagedReciprocalEstimate = `math:${stagePath}`;
-  if (stage === 2) stagedReciprocalRegularEstimate = stagedReciprocalEstimate;
-}
+  product(Math.fround(-32 / 17), storedReciprocalMantissa),
+));
+emit("internal/reciprocal/newton", product(
+  storedReciprocalEstimate,
+  sum(2, product(-1, storedReciprocalMantissa, storedReciprocalEstimate)),
+));
 emit("internal/reciprocal/compare/below_one", floatComparison(stagedReciprocalAbsolute, 1));
 emit("internal/reciprocal/compare/at_least_two", product(
   sum(stagedReciprocalAbsolute, -2),
@@ -403,14 +400,8 @@ emit("internal/reciprocal/half_y", product(0.5, y));
 emit("internal/reciprocal/normalized", product(
   x,
   0.25,
-  stagedReciprocalRegularEstimate,
-  stagedReciprocalRegularEstimate,
-));
-emit("internal/reciprocal/normalized_at_scale_limit", product(
-  x,
-  0.25,
-  stagedReciprocalEstimate,
-  stagedReciprocalEstimate,
+  storedReciprocalEstimate,
+  storedReciprocalEstimate,
 ));
 const divideAMantissa = storage("math:internal", "w_divide_a_mantissa");
 const divideAExponent = storage("math:internal", "w_divide_a_exponent");
@@ -424,9 +415,19 @@ const divideProductHigh = storage("math:internal", "w_divide_product_high");
 const divideProductLow = storage("math:internal", "w_divide_product_low");
 const divideResidualHigh = storage("math:internal", "w_divide_residual_high");
 const divideResidualLow = storage("math:internal", "w_divide_residual_low");
+let divideReciprocalEstimate = sum(
+  Math.fround(48 / 17),
+  product(Math.fround(-32 / 17), stagedReciprocalMantissa),
+);
+for (let stage = 0; stage < 4; stage += 1) {
+  divideReciprocalEstimate = product(
+    divideReciprocalEstimate,
+    sum(2, product(-1, stagedReciprocalMantissa, divideReciprocalEstimate)),
+  );
+}
 emit("internal/divide/normalize/increment_exponent", sum(y, 1));
 emit("internal/divide/normalize/decrement_exponent", sum(y, -1));
-emit("internal/divide/normalized_reciprocal", product(0.5, stagedReciprocalEstimate));
+emit("internal/divide/normalized_reciprocal", product(0.5, divideReciprocalEstimate));
 emit("internal/divide/product/high", product(divideBMantissa, divideQuotient));
 emit("internal/divide/product/low", twoProductLow(divideBMantissa, divideQuotient));
 emit("internal/divide/residual/high", subtractExpression(divideAMantissa, divideProductHigh));
@@ -903,17 +904,24 @@ emitFunction(FUNCTION_PATHS.reciprocalScaleUp, [
   `return run function ${functionId(FUNCTION_PATHS.reciprocal)}`,
 ]);
 
-emitFunction(FUNCTION_PATHS.reciprocalFinish, [
-  "data modify storage math:internal x set compute default math:internal/reciprocal/normalized",
-  "data modify storage math:internal x set compute default math:common/arithmetic/multiply",
-  "return 1",
-]);
+function reciprocalFinishLines(iterations) {
+  const lines = [
+    "data modify storage math:internal w_reciprocal_mantissa set compute default math:internal/reciprocal/mantissa",
+    "data modify storage math:internal w_reciprocal_estimate set compute default math:internal/reciprocal/initial_estimate",
+  ];
+  for (let iteration = 0; iteration < iterations; iteration += 1) {
+    lines.push("data modify storage math:internal w_reciprocal_estimate set compute default math:internal/reciprocal/newton");
+  }
+  lines.push(
+    "data modify storage math:internal x set compute default math:internal/reciprocal/normalized",
+    "data modify storage math:internal x set compute default math:common/arithmetic/multiply",
+    "return 1",
+  );
+  return lines;
+}
 
-emitFunction(FUNCTION_PATHS.reciprocalFinishAtScaleLimit, [
-  "data modify storage math:internal x set compute default math:internal/reciprocal/normalized_at_scale_limit",
-  "data modify storage math:internal x set compute default math:common/arithmetic/multiply",
-  "return 1",
-]);
+emitFunction(FUNCTION_PATHS.reciprocalFinish, reciprocalFinishLines(3));
+emitFunction(FUNCTION_PATHS.reciprocalFinishAtScaleLimit, reciprocalFinishLines(4));
 
 emitFunction(FUNCTION_PATHS.reciprocalScaleDown, [
   "data modify storage math:internal x set compute default math:internal/reciprocal/half_x",
@@ -1583,3 +1591,4 @@ try {
   console.error(error.message);
   process.exitCode = 1;
 }
+

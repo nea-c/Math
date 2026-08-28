@@ -7,7 +7,15 @@
       "path": "x"
     },
     0.25,
-    "math:internal/reciprocal/newton/02/00",
-    "math:internal/reciprocal/newton/02/00"
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_reciprocal_estimate"
+    },
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_reciprocal_estimate"
+    }
   ]
 }
