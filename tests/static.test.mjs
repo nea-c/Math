@@ -549,9 +549,13 @@ test("every dispatcher condition reads an integer-valued staged or reduced field
         const reducedExponent = file.includes(`${path.sep}exp${path.sep}`)
           && value.storage === "math:internal"
           && value.path === "z";
-        const materializedExponent = value.storage === "math:internal"
-          && ["w_normalize_exponent", "w_divide_exponent"].includes(value.path);
-        assert.ok(staged || reducedExponent || materializedExponent, `${file} condition source is not proven integer-valued`);
+        const materializedInteger = value.storage === "math:internal"
+          && [
+            "w_normalize_exponent",
+            "w_divide_exponent",
+            "w_remainder_shift",
+          ].includes(value.path);
+        assert.ok(staged || reducedExponent || materializedInteger, `${file} condition source is not proven integer-valued`);
       }
     }
   }
@@ -574,8 +578,8 @@ test("every named predicate condition reads a materialized storage field", () =>
       assert.equal(value.type, "minecraft:storage", `${file} condition must read a materialized field`);
       const staged = value.storage === "math:internal" && value.path.startsWith("w_comparison.");
       const normalizedInteger = value.storage === "math:internal"
-        && ["x", "w"].includes(value.path)
-        && file.includes(`${path.sep}comparison${path.sep}`);
+        && ((["x", "w"].includes(value.path) && file.includes(`${path.sep}comparison${path.sep}`))
+          || value.path === "w_remainder_remaining_shift");
       assert.ok(staged || normalizedInteger, `${file} condition source is not proven integer-valued`);
     }
   }

@@ -330,8 +330,37 @@ emit("common/rounding/negate", product(-1, x));
 emit("common/rounding/add_half", sum(x, 0.5));
 emit("common/rounding/quotient", product(x, w));
 emit("common/rounding/reduce", sum(w, product(-1, z, y)));
-emit("common/rounding/double_y", product(2, y));
 emit("common/rounding/half_y", product(0.5, y));
+const storedRemainderXExponent = storage("math:internal", "w_remainder_x_exponent");
+const storedRemainderYExponent = storage("math:internal", "w_remainder_y_exponent");
+const storedRemainderShift = storage("math:internal", "w_remainder_shift");
+const storedRemainderRemainingShift = storage("math:internal", "w_remainder_remaining_shift");
+const storedRemainderScaledDivisor = storage("math:internal", "w_remainder_scaled_divisor");
+emit("common/reduce_remainder/shift", sum(storedRemainderXExponent, product(-1, storedRemainderYExponent)));
+const remainderShifts = Array.from({ length: 277 }, (_, shift) => ({
+  shift,
+  factors: [
+    Math.min(shift, 127),
+    Math.min(Math.max(shift - 127, 0), 127),
+    Math.max(shift - 254, 0),
+  ].filter(bits => bits > 0).map(bits => 2 ** bits),
+}));
+const remainderShiftBands = remainderShifts.map(entry => ({ ...entry, maximum: entry.shift }));
+for (let stage = 0; stage < 3; stage += 1) {
+  const factorPath = `common/reduce_remainder/factor_${stage}`;
+  emit(factorPath, balancedRangeLookup(
+    remainderShiftBands,
+    storedRemainderShift,
+    entry => entry.factors[stage] ?? 1,
+  ));
+  emit(`common/reduce_remainder/scale_${stage}`, product(
+    storedRemainderScaledDivisor,
+    `math:${factorPath}`,
+  ));
+}
+emit("common/reduce_remainder/half_scaled_divisor", product(0.5, storedRemainderScaledDivisor));
+emit("common/reduce_remainder/decrement_shift", sum(storedRemainderShift, -1));
+emit("common/reduce_remainder/decrement_remaining_shift", sum(storedRemainderRemainingShift, -1));
 const periodHalfDifference = sum(x, product(-0.5, y));
 emit("common/normalize/period/positive/00", numberDispatcher([
   {
@@ -808,6 +837,12 @@ emitStagedPredicate("rounding/remainder/can_subtract_y", sum(x, product(-1, y)),
 emitStagedPredicate("rounding/remainder/w_greater_than_x", sum(w, product(-1, x)), -smallestNegativeFloat, undefined);
 emitStagedPredicate("rounding/remainder/y_too_large_to_double", y, 2 ** 127, undefined);
 emitStagedPredicate("rounding/remainder/zero", z, 0, 0);
+emitPredicate("rounding/remainder/equal", inlineValueCheck(
+  storage("math:internal", "w_comparison.predicate.rounding_remainder_can_subtract_y.minimum"),
+  0,
+  0,
+));
+emitPredicate("rounding/remainder/shift_positive", inlineValueCheck(storedRemainderRemainingShift, 1, undefined));
 emitStagedPredicate("rounding/public/a_negative", publicA, undefined, smallestNegativeFloat);
 emitStagedPredicate("rounding/public/b_negative", publicB, undefined, smallestNegativeFloat);
 
@@ -1422,21 +1457,48 @@ emitFunction(FUNCTION_PATHS.powerNegative, [
   emitPublicFunction("divide", lines);
 }
 
+const reduceRemainderDescendingPath = ".common/reduce_remainder/1.descend";
+
+emitFunction(reduceRemainderDescendingPath, [
+  ...stagePredicate("rounding/remainder/can_subtract_y"),
+  "execute if predicate math:internal/rounding/remainder/can_subtract_y run data modify storage math:internal x set compute default math:common/arithmetic/subtract",
+  "execute unless predicate math:internal/rounding/remainder/shift_positive run return 1",
+  "data modify storage math:internal y set compute default math:common/rounding/half_y",
+  "data modify storage math:internal w_remainder_remaining_shift set compute default math:common/reduce_remainder/decrement_remaining_shift",
+  `return run function ${functionId(reduceRemainderDescendingPath)}`,
+]);
+
 emitFunction(FUNCTION_PATHS.reduceRemainder, [
   ...stagePredicate("rounding/remainder/can_subtract_y"),
   "execute unless predicate math:internal/rounding/remainder/can_subtract_y run return 1",
+  "execute if predicate math:internal/rounding/remainder/equal run data modify storage math:internal x set compute default math:common/arithmetic/subtract",
+  "execute if predicate math:internal/rounding/remainder/equal run return 1",
   ...stagePredicate("rounding/remainder/y_too_large_to_double"),
   "execute if predicate math:internal/rounding/remainder/y_too_large_to_double run data modify storage math:internal x set compute default math:common/arithmetic/subtract",
   "execute if predicate math:internal/rounding/remainder/y_too_large_to_double run return 1",
-  "data modify storage math:internal w set compute default math:common/rounding/double_y",
+  "data modify storage math:internal w_remainder_original set from storage math:internal z",
+  "data modify storage math:internal w_remainder_x set from storage math:internal x",
+  "data modify storage math:internal w_remainder_divisor set from storage math:internal y",
+  `function ${functionId(FUNCTION_PATHS.normalizeBinary32)}`,
+  "data modify storage math:internal w_remainder_x_exponent set from storage math:internal w_normalize_exponent",
+  "data modify storage math:internal x set from storage math:internal y",
+  `function ${functionId(FUNCTION_PATHS.normalizeBinary32)}`,
+  "data modify storage math:internal w_remainder_y_exponent set from storage math:internal w_normalize_exponent",
+  "data modify storage math:internal w_remainder_shift set compute default math:common/reduce_remainder/shift",
+  "data modify storage math:internal w_remainder_scaled_divisor set from storage math:internal y",
+  "data modify storage math:internal w_remainder_scaled_divisor set compute default math:common/reduce_remainder/scale_0",
+  "data modify storage math:internal w_remainder_scaled_divisor set compute default math:common/reduce_remainder/scale_1",
+  "data modify storage math:internal w_remainder_scaled_divisor set compute default math:common/reduce_remainder/scale_2",
+  "data modify storage math:internal x set from storage math:internal w_remainder_x",
+  "data modify storage math:internal w set from storage math:internal w_remainder_scaled_divisor",
   ...stagePredicate("rounding/remainder/w_greater_than_x"),
-  "execute if predicate math:internal/rounding/remainder/w_greater_than_x run data modify storage math:internal x set compute default math:common/arithmetic/subtract",
-  "execute if predicate math:internal/rounding/remainder/w_greater_than_x run return 1",
-  "data modify storage math:internal y set from storage math:internal w",
-  `function ${functionId(FUNCTION_PATHS.reduceRemainder)}`,
-  "data modify storage math:internal y set compute default math:common/rounding/half_y",
-  ...stagePredicate("rounding/remainder/can_subtract_y"),
-  "execute if predicate math:internal/rounding/remainder/can_subtract_y run data modify storage math:internal x set compute default math:common/arithmetic/subtract",
+  "execute if predicate math:internal/rounding/remainder/w_greater_than_x run data modify storage math:internal w_remainder_scaled_divisor set compute default math:common/reduce_remainder/half_scaled_divisor",
+  "execute if predicate math:internal/rounding/remainder/w_greater_than_x run data modify storage math:internal w_remainder_shift set compute default math:common/reduce_remainder/decrement_shift",
+  "data modify storage math:internal w_remainder_remaining_shift set from storage math:internal w_remainder_shift",
+  "data modify storage math:internal y set from storage math:internal w_remainder_scaled_divisor",
+  `function ${functionId(reduceRemainderDescendingPath)}`,
+  "data modify storage math:internal y set from storage math:internal w_remainder_divisor",
+  "data modify storage math:internal z set from storage math:internal w_remainder_original",
   "return 1",
 ]);
 

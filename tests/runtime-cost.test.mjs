@@ -36,8 +36,8 @@ const COMMAND_BUDGETS = {
   divide: { baseline: 91, boundary: 9 },
   square_root: { baseline: 76, boundary: 10 },
   bezier: { baseline: 190, boundary: 58 },
-  remainder: { baseline: 183, boundary: 9 },
-  modulo: { baseline: 189, boundary: 186 },
+  remainder: { baseline: 134, boundary: 9 },
+  modulo: { baseline: 140, boundary: 137 },
   power: { baseline: 76, boundary: 25 },
 };
 
@@ -166,6 +166,28 @@ test("runtime command budgets are deterministic for normal and boundary inputs",
 test("tangent shared phase executes fewer commands than the Task 1 baselines", () => {
   assert.ok(runFunction("tan", { a: 1 }).commandsExecuted < 93);
   assert.ok(runFunction("tan_degrees", { a: 45 }).commandsExecuted < 94);
+});
+
+test("direct remainder start removes ascent work from public reduction", () => {
+  assert.equal(runFunction("remainder", BASELINE_INPUTS.remainder).commandsExecuted, 134);
+  assert.equal(runFunction("modulo", BASELINE_INPUTS.modulo).commandsExecuted, 140);
+});
+
+test("large-angle trigonometry stays below its recursive-remainder phase baselines", () => {
+  const finiteLimit = Math.fround(3.4028234663852886e38);
+  for (const [name, phaseBaseline] of [
+    ["sin", 1_911],
+    ["cos", 1_914],
+    ["tan", 1_932],
+    ["sin_degrees", 1_826],
+    ["cos_degrees", 1_829],
+    ["tan_degrees", 1_847],
+  ]) {
+    assert.ok(
+      runFunction(name, { a: finiteLimit }).commandsExecuted < phaseBaseline,
+      `${name} must stay below its recursive-remainder phase baseline`,
+    );
+  }
 });
 
 test("shared normalization reduces representative log and divide command counts", () => {

@@ -38,6 +38,13 @@ function floatFromBits(bits) {
   return view.getFloat32(0);
 }
 
+function bitsFromFloat(value) {
+  const bytes = new ArrayBuffer(4);
+  const view = new DataView(bytes);
+  view.setFloat32(0, value);
+  return view.getUint32(0);
+}
+
 function floatMagnitudeParts(value) {
   const bytes = new ArrayBuffer(4);
   const view = new DataView(bytes);
@@ -448,12 +455,41 @@ test("modulo results have the divisor sign and stay within its magnitude", () =>
   }
 });
 
-test("remainder and modulo match exact binary32 reduction across deterministic finite inputs", () => {
+test("remainder and modulo match exact binary32 reduction at adversarial exponent boundaries", () => {
+  const threeSmallestFloats = Math.fround(3 * smallestFloat);
+  const cases = [
+    [finiteLimit, smallestFloat],
+    [finiteLimit, threeSmallestFloats],
+    [Math.fround(2 ** 127), smallestFloat],
+    [Math.fround(2 ** 127), threeSmallestFloats],
+    [floatFromBits(0x7f7ffffe), Math.fround(2 ** 127)],
+    [floatFromBits(0x3fffffff), 1],
+    [1, 1],
+    [-1, 1],
+    [smallestFloat, smallestFloat],
+    [smallestFloat, finiteLimit],
+    [-smallestFloat, finiteLimit],
+  ];
+
+  for (const [a, b] of cases) {
+    for (const [name, expected] of [
+      ["remainder", exactRemainderReference(a, b)],
+      ["modulo", exactModuloReference(a, b)],
+    ]) {
+      const { storage, returned } = runFunction(name, { a, b });
+      const actual = storage["math:"].ans;
+      assert.equal(returned, 1, `${name}(${a}, ${b}) must succeed`);
+      assert.equal(bitsFromFloat(actual), bitsFromFloat(expected), `${a} % ${b}`);
+    }
+  }
+});
+
+test("remainder and modulo match exact binary32 reduction across 50,000 deterministic finite pairs", () => {
   const bytes = new ArrayBuffer(4);
   const view = new DataView(bytes);
   let state = 0x9e3779b9;
   let count = 0;
-  while (count < 256) {
+  while (count < 50_000) {
     state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;
     view.setUint32(0, state);
     const a = view.getFloat32(0);
@@ -467,8 +503,9 @@ test("remainder and modulo match exact binary32 reduction across deterministic f
       ["modulo", exactModuloReference(a, b)],
     ]) {
       const { storage, returned } = runFunction(name, { a, b });
+      const actual = storage["math:"].ans;
       assert.equal(returned, 1, `${name}(${a}, ${b}) must succeed`);
-      assert.equal(storage["math:"].ans, expected, `${name}(${a}, ${b})`);
+      assert.equal(bitsFromFloat(actual), bitsFromFloat(expected), `${a} % ${b}`);
     }
     count += 1;
   }
