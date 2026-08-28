@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:number_dispatcher",
+  "cases": [
+    {
+      "condition": {
+        "type": "minecraft:value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_comparison.sqrt_estimate_at_least_two"
+        },
+        "range": {
+          "min": 0
+        }
+      },
+      "number_provider": 0.5
+    }
+  ],
+  "default": 1
+}

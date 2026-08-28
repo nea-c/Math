@@ -33,6 +33,9 @@ const tau = Math.fround(Math.PI * 2);
 const powerOverflowLogThreshold = Math.log((2 - 2 ** -24) * 2 ** 127);
 const powerOverflowThresholdHigh = Math.fround(powerOverflowLogThreshold);
 const powerOverflowThresholdLow = Math.fround(powerOverflowLogThreshold - powerOverflowThresholdHigh);
+// Widest binary32 residual threshold that keeps the adaptive square-root
+// corpus within the documented relative-error bound (bits 0x384b0000).
+const squareRootResidualThreshold = Math.fround(0.00004839897155761719);
 const generatedFiles = [];
 
 function emit(relativePath, value) {
@@ -540,23 +543,47 @@ emit("internal/reciprocal/log_denominator", product(0.25, storedLogReciprocal));
 emitPredicate("comparison/negative_integer", inlineValueCheck(w, undefined, -1));
 emitPredicate("comparison/x_negative_integer", inlineValueCheck(x, undefined, -1));
 
-emit("square_root/normalize/compare_below_one/00", product(sum(z, -1), Math.fround(2 ** 24)));
-emit("square_root/normalize/compare_at_least_four/00", product(sum(z, -4), Math.fround(2 ** 22)));
-emit("square_root/normalize/quadruple_mantissa/00", product(4, z));
-emit("square_root/normalize/quarter_mantissa/00", product(0.25, z));
-emit("square_root/normalize/half_scale/00", product(0.5, w));
-emit("square_root/normalize/double_scale/00", product(2, w));
-
-emit("square_root/approximate/00", product(0.5, sum(y, 1)));
-for (let stage = 0; stage < 3; stage += 1) {
-  emit(`square_root/newton/${stage.toString().padStart(2, "0")}/00`, product(
-    0.5,
-    sum(z, product(y, w)),
-  ));
-}
+const sqrtEstimate = storage("math:internal", "w_sqrt_estimate");
+const sqrtMantissa = storage("math:internal", "w_sqrt_mantissa");
+const sqrtReciprocal = storage("math:internal", "w_sqrt_reciprocal");
+const sqrtScale = storage("math:internal", "w_sqrt_scale");
+const sqrtResidual = storage("math:internal", "w_sqrt_residual");
+const sqrtEstimateAtLeastTwo = inlineValueCheck(
+  storage("math:internal", "w_comparison.sqrt_estimate_at_least_two"),
+  0,
+  undefined,
+);
+emit("square_root/normalize/half_exponent", product(0.5, storedNormalizeExponent));
+emit("square_root/normalize/mantissa_multiplier", sum(
+  1,
+  storedNormalizeExponent,
+  product(-2, z),
+));
+emit("square_root/normalize/mantissa", product(
+  storedNormalizeMantissa,
+  "math:square_root/normalize/mantissa_multiplier",
+));
+emit("square_root/approximate/00", product(0.5, sum(sqrtMantissa, 1)));
+emit("square_root/reciprocal/compare_at_least_two", floatComparison(sqrtEstimate, 2));
+emit("square_root/reciprocal/input", numberDispatcher([{
+  condition: sqrtEstimateAtLeastTwo,
+  number_provider: product(0.5, sqrtEstimate),
+}], sqrtEstimate));
+emit("square_root/reciprocal/numerator", numberDispatcher([{
+  condition: sqrtEstimateAtLeastTwo,
+  number_provider: 0.5,
+}], 1));
+emit("square_root/newton/update", product(0.5, sum(
+  sqrtEstimate,
+  product(sqrtMantissa, sqrtReciprocal),
+)));
+emit("square_root/residual", sum(
+  product(sqrtEstimate, sqrtEstimate),
+  product(-1, sqrtMantissa),
+));
 emit("square_root/00", product(
-  w,
-  z,
+  sqrtScale,
+  sqrtEstimate,
 ));
 
 // Center the logarithm mantissa around one. Keeping the shared normalizer's
@@ -759,6 +786,12 @@ emitPredicate("normalize_period/original_negative", inlineValueCheck(
   undefined,
   -1,
 ));
+emitStagedPredicate(
+  "square_root/needs_refine",
+  maximum(sqrtResidual, product(-1, sqrtResidual)),
+  squareRootResidualThreshold,
+  undefined,
+);
 emitStagedPredicate("square_root/result_finite", publicAnswer, -finiteLimit, finiteLimit);
 emitStagedPredicate("exp/input_finite", x, -finiteLimit, finiteLimit);
 emitStagedPredicate("exp/input_in_range", x, undefined, maximumFiniteExpInput);
@@ -1046,23 +1079,21 @@ emitFunction(FUNCTION_PATHS.divideUnderflow, [
   "return 1",
 ]);
 
-emitFunction(FUNCTION_PATHS.squareRootNormalizeScaleUp, [
-  "data modify storage math:internal z set compute default math:square_root/normalize/quadruple_mantissa/00",
-  "data modify storage math:internal w set compute default math:square_root/normalize/half_scale/00",
-  `return run function ${functionId(FUNCTION_PATHS.squareRootNormalize)}`,
-]);
+const squareRootRefinePath = "square_root/2.refine";
 
-emitFunction(FUNCTION_PATHS.squareRootNormalizeScaleDown, [
-  "data modify storage math:internal z set compute default math:square_root/normalize/quarter_mantissa/00",
-  "data modify storage math:internal w set compute default math:square_root/normalize/double_scale/00",
-  `return run function ${functionId(FUNCTION_PATHS.squareRootNormalize)}`,
-]);
+function squareRootUpdateLines() {
+  return [
+    "data modify storage math:internal w_comparison.sqrt_estimate_at_least_two set compute default math:square_root/reciprocal/compare_at_least_two",
+    "data modify storage math:internal x set compute default math:square_root/reciprocal/input",
+    "data modify storage math:internal y set compute default math:square_root/reciprocal/numerator",
+    `function ${functionId(FUNCTION_PATHS.reciprocalFinish)}`,
+    "data modify storage math:internal w_sqrt_reciprocal set from storage math:internal x",
+    "data modify storage math:internal w_sqrt_estimate set compute default math:square_root/newton/update",
+  ];
+}
 
-emitFunction(FUNCTION_PATHS.squareRootNormalize, [
-  "data modify storage math:internal x set compute default math:square_root/normalize/compare_below_one/00",
-  `execute if predicate math:internal/comparison/x_negative_integer run return run function ${functionId(FUNCTION_PATHS.squareRootNormalizeScaleUp)}`,
-  "data modify storage math:internal x set compute default math:square_root/normalize/compare_at_least_four/00",
-  `execute unless predicate math:internal/comparison/x_negative_integer run return run function ${functionId(FUNCTION_PATHS.squareRootNormalizeScaleDown)}`,
+emitFunction(squareRootRefinePath, [
+  ...squareRootUpdateLines(),
   "return 1",
 ]);
 
@@ -1101,26 +1132,15 @@ function exactRemainderLines() {
   lines.push("execute if predicate math:internal/range/negative run return fail");
   lines.push("execute if data storage math:internal {x:0.0f} run data modify storage math: ans set value 0.0f");
   lines.push("execute if data storage math:internal {x:0.0f} run return 1");
-  lines.push("data modify storage math:internal z set from storage math:internal x");
-  lines.push("data modify storage math:internal w set value 1.0f");
-  lines.push(`function ${functionId(FUNCTION_PATHS.squareRootNormalize)}`);
-  lines.push("data modify storage math:internal w_comparison.sqrt_scale set from storage math:internal w");
-  lines.push("data modify storage math:internal w_comparison.sqrt_mantissa set from storage math:internal z");
-  lines.push("data modify storage math:internal y set from storage math:internal z");
-  lines.push("data modify storage math:internal z set compute default math:square_root/approximate/00");
-  for (let stage = 0; stage < 3; stage += 1) {
-    const stageName = stage.toString().padStart(2, "0");
-    lines.push("data modify storage math:internal x set from storage math:internal z");
-    lines.push("data modify storage math:internal y set value 1.0f");
-    lines.push(`function ${functionId(FUNCTION_PATHS.reciprocal)}`);
-    lines.push("data modify storage math:internal w set from storage math:internal x");
-    lines.push("data modify storage math:internal y set from storage math:internal w_comparison.sqrt_mantissa");
-    lines.push(`data modify storage math:internal x set compute default math:square_root/newton/${stageName}/00`);
-    lines.push("data modify storage math:internal z set from storage math:internal x");
-  }
-  lines.push("data modify storage math:internal w set from storage math:internal w_comparison.sqrt_scale");
-  lines.push("data remove storage math:internal w_comparison.sqrt_scale");
-  lines.push("data remove storage math:internal w_comparison.sqrt_mantissa");
+  lines.push(`function ${functionId(FUNCTION_PATHS.normalizeBinary32)}`);
+  lines.push("execute store result storage math:internal z float 1 run compute default math:square_root/normalize/half_exponent");
+  lines.push("data modify storage math:internal w_sqrt_mantissa set compute default math:square_root/normalize/mantissa");
+  lines.push("data modify storage math:internal w_sqrt_scale set compute default math:exp/scale/00");
+  lines.push("data modify storage math:internal w_sqrt_estimate set compute default math:square_root/approximate/00");
+  for (let update = 0; update < 2; update += 1) lines.push(...squareRootUpdateLines());
+  lines.push("data modify storage math:internal w_sqrt_residual set compute default math:square_root/residual");
+  lines.push(...stagePredicate("square_root/needs_refine"));
+  lines.push(`execute if predicate math:internal/square_root/needs_refine run function ${functionId(squareRootRefinePath)}`);
   lines.push("data modify storage math: ans set compute default math:square_root/00");
   lines.push(...stagePredicate("square_root/result_finite"));
   lines.push("execute unless predicate math:internal/square_root/result_finite run data remove storage math: ans");

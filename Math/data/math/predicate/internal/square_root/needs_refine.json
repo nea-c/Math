@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:value_check",
+  "value": {
+    "type": "minecraft:storage",
+    "storage": "math:internal",
+    "path": "w_comparison.predicate.square_root_needs_refine.minimum"
+  },
+  "range": {
+    "min": 0
+  }
+}

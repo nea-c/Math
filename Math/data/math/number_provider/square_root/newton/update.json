@@ -8,7 +8,7 @@
         {
           "type": "minecraft:storage",
           "storage": "math:internal",
-          "path": "z"
+          "path": "w_sqrt_estimate"
         },
         {
           "type": "minecraft:product",
@@ -16,12 +16,12 @@
             {
               "type": "minecraft:storage",
               "storage": "math:internal",
-              "path": "y"
+              "path": "w_sqrt_mantissa"
             },
             {
               "type": "minecraft:storage",
               "storage": "math:internal",
-              "path": "w"
+              "path": "w_sqrt_reciprocal"
             }
           ]
         }

@@ -8,37 +8,26 @@ execute if predicate math:internal/range/negative run data modify storage math: 
 execute if predicate math:internal/range/negative run return fail
 execute if data storage math:internal {x:0.0f} run data modify storage math: ans set value 0.0f
 execute if data storage math:internal {x:0.0f} run return 1
-data modify storage math:internal z set from storage math:internal x
-data modify storage math:internal w set value 1.0f
-function math:square_root/1.normalize
-data modify storage math:internal w_comparison.sqrt_scale set from storage math:internal w
-data modify storage math:internal w_comparison.sqrt_mantissa set from storage math:internal z
-data modify storage math:internal y set from storage math:internal z
-data modify storage math:internal z set compute default math:square_root/approximate/00
-data modify storage math:internal x set from storage math:internal z
-data modify storage math:internal y set value 1.0f
-function math:.common/reciprocal/0.start
-data modify storage math:internal w set from storage math:internal x
-data modify storage math:internal y set from storage math:internal w_comparison.sqrt_mantissa
-data modify storage math:internal x set compute default math:square_root/newton/00/00
-data modify storage math:internal z set from storage math:internal x
-data modify storage math:internal x set from storage math:internal z
-data modify storage math:internal y set value 1.0f
-function math:.common/reciprocal/0.start
-data modify storage math:internal w set from storage math:internal x
-data modify storage math:internal y set from storage math:internal w_comparison.sqrt_mantissa
-data modify storage math:internal x set compute default math:square_root/newton/01/00
-data modify storage math:internal z set from storage math:internal x
-data modify storage math:internal x set from storage math:internal z
-data modify storage math:internal y set value 1.0f
-function math:.common/reciprocal/0.start
-data modify storage math:internal w set from storage math:internal x
-data modify storage math:internal y set from storage math:internal w_comparison.sqrt_mantissa
-data modify storage math:internal x set compute default math:square_root/newton/02/00
-data modify storage math:internal z set from storage math:internal x
-data modify storage math:internal w set from storage math:internal w_comparison.sqrt_scale
-data remove storage math:internal w_comparison.sqrt_scale
-data remove storage math:internal w_comparison.sqrt_mantissa
+function math:.common/normalize_binary32/0.start
+execute store result storage math:internal z float 1 run compute default math:square_root/normalize/half_exponent
+data modify storage math:internal w_sqrt_mantissa set compute default math:square_root/normalize/mantissa
+data modify storage math:internal w_sqrt_scale set compute default math:exp/scale/00
+data modify storage math:internal w_sqrt_estimate set compute default math:square_root/approximate/00
+data modify storage math:internal w_comparison.sqrt_estimate_at_least_two set compute default math:square_root/reciprocal/compare_at_least_two
+data modify storage math:internal x set compute default math:square_root/reciprocal/input
+data modify storage math:internal y set compute default math:square_root/reciprocal/numerator
+function math:.common/reciprocal/4.finish
+data modify storage math:internal w_sqrt_reciprocal set from storage math:internal x
+data modify storage math:internal w_sqrt_estimate set compute default math:square_root/newton/update
+data modify storage math:internal w_comparison.sqrt_estimate_at_least_two set compute default math:square_root/reciprocal/compare_at_least_two
+data modify storage math:internal x set compute default math:square_root/reciprocal/input
+data modify storage math:internal y set compute default math:square_root/reciprocal/numerator
+function math:.common/reciprocal/4.finish
+data modify storage math:internal w_sqrt_reciprocal set from storage math:internal x
+data modify storage math:internal w_sqrt_estimate set compute default math:square_root/newton/update
+data modify storage math:internal w_sqrt_residual set compute default math:square_root/residual
+data modify storage math:internal w_comparison.predicate.square_root_needs_refine.minimum set compute default math:internal/comparison/predicate/square_root/needs_refine/minimum
+execute if predicate math:internal/square_root/needs_refine run function math:square_root/2.refine
 data modify storage math: ans set compute default math:square_root/00
 data modify storage math:internal w_comparison.predicate.square_root_result_finite.minimum set compute default math:internal/comparison/predicate/square_root/result_finite/minimum
 data modify storage math:internal w_comparison.predicate.square_root_result_finite.maximum set compute default math:internal/comparison/predicate/square_root/result_finite/maximum

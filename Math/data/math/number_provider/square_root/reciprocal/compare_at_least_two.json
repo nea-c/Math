@@ -7,11 +7,17 @@
         {
           "type": "minecraft:storage",
           "storage": "math:internal",
-          "path": "z"
+          "path": "w_sqrt_estimate"
         },
-        -4
+        {
+          "type": "minecraft:product",
+          "operands": [
+            -1,
+            2
+          ]
+        }
       ]
     },
-    4194304
+    8388608
   ]
 }

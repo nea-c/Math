@@ -34,7 +34,7 @@ const COMMAND_BUDGETS = {
   tan_degrees: { baseline: 94, boundary: 69 },
   log: { baseline: 40, boundary: 11 },
   divide: { baseline: 91, boundary: 9 },
-  square_root: { baseline: 99, boundary: 10 },
+  square_root: { baseline: 76, boundary: 10 },
   bezier: { baseline: 190, boundary: 58 },
   remainder: { baseline: 183, boundary: 9 },
   modulo: { baseline: 189, boundary: 186 },
@@ -191,8 +191,9 @@ test("honest static log and divide costs stay within measured head budgets", () 
   assert.ok(divide.providerNodes <= 11_300);
 });
 
-test("square root remains strictly below its Task 1 command baseline", () => {
-  assert.ok(runFunction("square_root", { a: 3 }).commandsExecuted < 99);
+test("adaptive square root improves its Task 3 representative cost and preserves the boundary", () => {
+  assert.ok(runFunction("square_root", { a: 3 }).commandsExecuted < 96);
+  assert.equal(runFunction("square_root", { a: 0 }).commandsExecuted, 10);
 });
 
 test("active divide providers do not exceed the honestly recomputed Task 1 node maximum", () => {

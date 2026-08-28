@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    {
+      "type": "minecraft:sum",
+      "operands": [
+        {
+          "type": "minecraft:maximum",
+          "operands": [
+            {
+              "type": "minecraft:storage",
+              "storage": "math:internal",
+              "path": "w_sqrt_residual"
+            },
+            {
+              "type": "minecraft:product",
+              "operands": [
+                -1,
+                {
+                  "type": "minecraft:storage",
+                  "storage": "math:internal",
+                  "path": "w_sqrt_residual"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "minecraft:product",
+          "operands": [
+            -1,
+            0.00004839897155761719
+          ]
+        }
+      ]
+    },
+    274877906944
+  ]
+}

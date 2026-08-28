@@ -8,7 +8,7 @@
         {
           "type": "minecraft:storage",
           "storage": "math:internal",
-          "path": "y"
+          "path": "w_sqrt_mantissa"
         },
         1
       ]

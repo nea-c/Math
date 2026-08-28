@@ -4,12 +4,12 @@
     {
       "type": "minecraft:storage",
       "storage": "math:internal",
-      "path": "w"
+      "path": "w_sqrt_scale"
     },
     {
       "type": "minecraft:storage",
       "storage": "math:internal",
-      "path": "z"
+      "path": "w_sqrt_estimate"
     }
   ]
 }

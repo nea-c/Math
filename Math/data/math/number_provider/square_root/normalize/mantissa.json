@@ -1,11 +1,11 @@
 {
   "type": "minecraft:product",
   "operands": [
-    2,
     {
       "type": "minecraft:storage",
       "storage": "math:internal",
-      "path": "w"
-    }
+      "path": "w_normalize_mantissa"
+    },
+    "math:square_root/normalize/mantissa_multiplier"
   ]
 }

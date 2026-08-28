@@ -108,18 +108,21 @@ function assertPower(a, b) {
 test("square root generated graph uses responsibility subdirectories", () => {
   for (const provider of [
     "square_root/00.json",
-    "square_root/normalize/compare_below_one/00.json",
-    "square_root/normalize/compare_at_least_four/00.json",
-    "square_root/normalize/quadruple_mantissa/00.json",
-    "square_root/normalize/half_scale/00.json",
+    "square_root/normalize/half_exponent.json",
+    "square_root/normalize/mantissa_multiplier.json",
+    "square_root/normalize/mantissa.json",
     "square_root/approximate/00.json",
-    "square_root/newton/00/00.json",
-    "square_root/newton/01/00.json",
-    "square_root/newton/02/00.json",
+    "square_root/reciprocal/compare_at_least_two.json",
+    "square_root/reciprocal/input.json",
+    "square_root/reciprocal/numerator.json",
+    "square_root/newton/update.json",
+    "square_root/residual.json",
   ]) {
     assert.ok(fs.existsSync(path.join("Math/data/math/number_provider", provider)), `missing ${provider}`);
   }
   assert.ok(fs.existsSync("Math/data/math/predicate/internal/square_root/result_finite.json"));
+  assert.ok(fs.existsSync("Math/data/math/predicate/internal/square_root/needs_refine.json"));
+  assert.ok(fs.existsSync("Math/data/math/function/square_root/2.refine.mcfunction"));
 });
 
 test("square root returns exact zero and rejects negative input", () => {
@@ -160,16 +163,24 @@ test("square root handles subnormals, exponent boundaries, and hand-checked valu
     }
   }
 
+  for (let leadingBit = 0; leadingBit <= 22; leadingBit += 1) {
+    const lower = 2 ** leadingBit;
+    const upper = Math.min(0x7fffff, (2 ** (leadingBit + 1)) - 1);
+    cases.add(floatFromBits(lower));
+    cases.add(floatFromBits(Math.floor((lower + upper) / 2)));
+    cases.add(floatFromBits(upper));
+  }
+
   for (const input of cases) assertSquareRoot(input);
 });
 
-test("square root stays within tolerance for 10,000 deterministic positive binary32 samples", (t) => {
-  let state = 0x243f6a88;
+test("square root stays within tolerance for 50,000 deterministic positive binary32 samples", (t) => {
+  let state = 0x9e3779b9;
   let count = 0;
   let maximumRelativeError = 0;
   let worstInput = 0;
 
-  while (count < 10_000) {
+  while (count < 50_000) {
     state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;
     const input = floatFromBits(state & 0x7fffffff);
     if (!Number.isFinite(input) || input === 0) continue;
