@@ -1,3 +1,8 @@
+data modify storage math:internal w_comparison.predicate.power_needs_overflow_classification.minimum set compute default math:internal/comparison/predicate/power/needs_overflow_classification/minimum
+data modify storage math:internal w_comparison.predicate.power_needs_overflow_classification.maximum set compute default math:internal/comparison/predicate/power/needs_overflow_classification/maximum
+execute unless predicate math:internal/power/needs_overflow_classification run data remove storage math: ans
+execute unless predicate math:internal/power/needs_overflow_classification run data modify storage math: error set value "result_out_of_range"
+execute unless predicate math:internal/power/needs_overflow_classification run return fail
 function math:power/9.classify_overflow
 data modify storage math:internal w_comparison.predicate.power_classifier_overflow.minimum set compute default math:internal/comparison/predicate/power/classifier_overflow/minimum
 execute if predicate math:internal/power/classifier_overflow run data remove storage math: ans

@@ -7,7 +7,7 @@
         {
           "type": "minecraft:storage",
           "storage": "math:internal",
-          "path": "x"
+          "path": "w_power_delta"
         },
         {
           "type": "minecraft:product",

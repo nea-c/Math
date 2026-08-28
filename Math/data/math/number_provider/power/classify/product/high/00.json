@@ -9,7 +9,7 @@
     {
       "type": "minecraft:storage",
       "storage": "math:internal",
-      "path": "x"
+      "path": "w_power_log_high"
     }
   ]
 }

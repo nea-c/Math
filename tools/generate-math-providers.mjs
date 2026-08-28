@@ -33,6 +33,7 @@ const tau = Math.fround(Math.PI * 2);
 const powerOverflowLogThreshold = Math.log((2 - 2 ** -24) * 2 ** 127);
 const powerOverflowThresholdHigh = Math.fround(powerOverflowLogThreshold);
 const powerOverflowThresholdLow = Math.fround(powerOverflowLogThreshold - powerOverflowThresholdHigh);
+const powerClassifierDegree = 18;
 // Widest binary32 residual threshold that keeps the adaptive square-root
 // corpus within the documented relative-error bound (bits 0x384b0000).
 const squareRootResidualThreshold = Math.fround(0.00004839897155761719);
@@ -165,8 +166,7 @@ function subtractExpression(left, right) {
   return sum(left, product(-1, right));
 }
 
-function twoSumLow(left, right) {
-  const high = sum(left, right);
+function twoSumLow(left, right, high = sum(left, right)) {
   const recoveredRight = subtractExpression(high, left);
   return sum(
     subtractExpression(left, subtractExpression(high, recoveredRight)),
@@ -179,8 +179,7 @@ function splitHigh(value) {
   return subtractExpression(scaled, subtractExpression(scaled, value));
 }
 
-function twoProductLow(left, right) {
-  const high = product(left, right);
+function twoProductLow(left, right, high = product(left, right)) {
   const leftHigh = splitHigh(left);
   const leftLow = subtractExpression(left, leftHigh);
   const rightHigh = splitHigh(right);
@@ -731,8 +730,10 @@ for (const [name, value] of [
 // using error-free TwoSum/TwoProduct transforms, then compares the residual
 // against a split threshold.
 emit("power/classify/normalize/difference/00", sum(z, -1));
-emit("power/classify/polynomial/initial/00", Math.fround(-1 / 32));
-for (let degree = 31; degree >= 1; degree -= 1) {
+emit("power/classify/polynomial/initial/00", Math.fround(
+  (powerClassifierDegree % 2 === 0 ? -1 : 1) / powerClassifierDegree,
+));
+for (let degree = powerClassifierDegree - 1; degree >= 1; degree -= 1) {
   const exactCoefficient = (degree % 2 === 0 ? -1 : 1) / degree;
   const coefficient = Math.fround(exactCoefficient);
   const coefficientLow = Math.fround(exactCoefficient - coefficient);
@@ -755,6 +756,11 @@ emit("power/classify/polynomial/result/high/00", product(x, z));
 const powerLn2High = Math.fround(Math.LN2);
 const powerLn2Low = Math.fround(Math.LN2 - powerLn2High);
 const powerExponentLn2High = product(w, powerLn2High);
+const powerLogHigh = storage("math:internal", "w_power_log_high");
+const powerLogLow = storage("math:internal", "w_power_log_low");
+const powerProductHigh = storage("math:internal", "w_power_product_high");
+const powerProductLow = storage("math:internal", "w_power_product_low");
+const powerDelta = storage("math:internal", "w_power_delta");
 emit("power/classify/log/low/00", sum(
   twoSumLow(powerExponentLn2High, x),
   twoProductLow(w, powerLn2High),
@@ -762,19 +768,19 @@ emit("power/classify/log/low/00", sum(
   y,
 ));
 emit("power/classify/log/high/00", sum(powerExponentLn2High, x));
-emit("power/classify/log/renormalize/low/00", twoSumLow(x, y));
-emit("power/classify/log/renormalize/high/00", sum(x, y));
+emit("power/classify/log/renormalize/high/00", sum(x, z));
+emit("power/classify/log/renormalize/low/00", twoSumLow(x, z, powerLogHigh));
+emit("power/classify/product/high/00", product(publicB, powerLogHigh));
 emit("power/classify/product/low/00", sum(
-  twoProductLow(publicB, x),
-  product(publicB, y),
+  twoProductLow(publicB, powerLogHigh, powerProductHigh),
+  product(publicB, powerLogLow),
 ));
-emit("power/classify/product/high/00", product(publicB, x));
 emit("power/classify/delta/00", sum(
-  subtractExpression(w, powerOverflowThresholdHigh),
-  subtractExpression(z, powerOverflowThresholdLow),
+  subtractExpression(powerProductHigh, powerOverflowThresholdHigh),
+  subtractExpression(powerProductLow, powerOverflowThresholdLow),
 ));
 emit("power/classify/evaluation_exponent/00", minimum(
-  sum(w, z),
+  sum(powerProductHigh, powerProductLow),
   maximumFiniteExpInput,
 ));
 
@@ -836,8 +842,9 @@ emitStagedPredicate("exp/result_finite", publicAnswer, -finiteLimit, finiteLimit
 emitStagedPredicate("power/exponent_negative", y, undefined, smallestNegativeFloat);
 emitStagedPredicate("power/exponent_integer", sum(publicB, product(-1, z)), 0, 0);
 emitStagedPredicate("power/exponent_large_even", maximum(publicB, product(-1, publicB)), 2 ** 24, undefined);
+emitStagedPredicate("power/below_overflow_classification", x, undefined, previousPositiveFloat(Math.fround(88.7)));
 emitStagedPredicate("power/needs_overflow_classification", x, 88.7, 88.75);
-emitStagedPredicate("power/classifier_overflow", x, smallestPositiveFloat, undefined);
+emitStagedPredicate("power/classifier_overflow", powerDelta, smallestPositiveFloat, undefined);
 emitStagedPredicate("rounding/safe_command_result", maximum(x, product(-1, x)), undefined, previousPositiveFloat(2 ** 24));
 emitStagedPredicate("rounding/integer_input", maximum(x, product(-1, x)), 2 ** 23, undefined);
 emitStagedPredicate("rounding/remainder/can_subtract_y", sum(x, product(-1, y)), 0, undefined);
@@ -1241,21 +1248,20 @@ function resultOutOfRangeLines(predicate = "math:internal/exp/input_in_range") {
     "data modify storage math:internal x set compute default math:power/classify/polynomial/initial/00",
     "data modify storage math:internal y set value 0.0f",
   ];
-  for (let degree = 31; degree >= 1; degree -= 1) {
+  for (let degree = powerClassifierDegree - 1; degree >= 1; degree -= 1) {
     const stage = degree.toString().padStart(2, "0");
     lines.push(`data modify storage math:internal y set compute default math:power/classify/polynomial/${stage}/low/00`);
     lines.push(`data modify storage math:internal x set compute default math:power/classify/polynomial/${stage}/high/00`);
   }
   lines.push("data modify storage math:internal y set compute default math:power/classify/polynomial/result/low/00");
   lines.push("data modify storage math:internal x set compute default math:power/classify/polynomial/result/high/00");
-  lines.push("data modify storage math:internal y set compute default math:power/classify/log/low/00");
+  lines.push("data modify storage math:internal z set compute default math:power/classify/log/low/00");
   lines.push("data modify storage math:internal x set compute default math:power/classify/log/high/00");
-  lines.push("data modify storage math:internal w set compute default math:power/classify/log/renormalize/low/00");
-  lines.push("data modify storage math:internal x set compute default math:power/classify/log/renormalize/high/00");
-  lines.push("data modify storage math:internal y set from storage math:internal w");
-  lines.push("data modify storage math:internal z set compute default math:power/classify/product/low/00");
-  lines.push("data modify storage math:internal w set compute default math:power/classify/product/high/00");
-  lines.push("data modify storage math:internal x set compute default math:power/classify/delta/00");
+  lines.push("data modify storage math:internal w_power_log_high set compute default math:power/classify/log/renormalize/high/00");
+  lines.push("data modify storage math:internal w_power_log_low set compute default math:power/classify/log/renormalize/low/00");
+  lines.push("data modify storage math:internal w_power_product_high set compute default math:power/classify/product/high/00");
+  lines.push("data modify storage math:internal w_power_product_low set compute default math:power/classify/product/low/00");
+  lines.push("data modify storage math:internal w_power_delta set compute default math:power/classify/delta/00");
   lines.push("return 1");
   emitFunction(FUNCTION_PATHS.powerClassifyOverflow, lines);
 }
@@ -1283,6 +1289,10 @@ function powerNonfiniteLines(negativeResult) {
 
 function powerBoundaryLines(negativeResult) {
   return [
+    ...stagePredicate("power/needs_overflow_classification"),
+    "execute unless predicate math:internal/power/needs_overflow_classification run data remove storage math: ans",
+    "execute unless predicate math:internal/power/needs_overflow_classification run data modify storage math: error set value \"result_out_of_range\"",
+    "execute unless predicate math:internal/power/needs_overflow_classification run return fail",
     `function ${functionId(FUNCTION_PATHS.powerClassifyOverflow)}`,
     ...stagePredicate("power/classifier_overflow"),
     "execute if predicate math:internal/power/classifier_overflow run data remove storage math: ans",
@@ -1297,18 +1307,19 @@ function powerEvaluationLines(negativeResult) {
   const lines = [
     `function ${functionId(FUNCTION_PATHS.log)}`,
     "data modify storage math:internal x set compute default math:power/positive/00",
-    ...stagePredicate("exp/input_finite"),
-    `execute unless predicate math:internal/exp/input_finite run return run function ${functionId(negativeResult ? FUNCTION_PATHS.powerNonfiniteNegative : FUNCTION_PATHS.powerNonfinitePositive)}`,
+    ...stagePredicate("power/below_overflow_classification"),
+    `execute unless predicate math:internal/power/below_overflow_classification run return run function ${functionId(negativeResult ? FUNCTION_PATHS.powerBoundaryNegative : FUNCTION_PATHS.powerBoundaryPositive)}`,
     ...stagePredicate("exp/underflows_to_zero"),
     `execute if predicate math:internal/exp/underflows_to_zero run data modify storage math: ans set value ${negativeResult ? "-0.0f" : "0.0f"}`,
     "execute if predicate math:internal/exp/underflows_to_zero run return 1",
   ];
   lines.push(`execute if data storage math:internal {x:-103.97207641601562f} run data modify storage math: ans set compute default math:exp/minimum/${negativeResult ? "negative/" : ""}00`);
   lines.push("execute if data storage math:internal {x:-103.97207641601562f} run return 1");
-  lines.push(...stagePredicate("power/needs_overflow_classification"));
-  lines.push(`execute if predicate math:internal/power/needs_overflow_classification run return run function ${functionId(negativeResult ? FUNCTION_PATHS.powerBoundaryNegative : FUNCTION_PATHS.powerBoundaryPositive)}`);
-  lines.push(...resultOutOfRangeLines());
-  lines.push(...finalPowerResultLines(negativeResult));
+  lines.push(`function ${functionId(FUNCTION_PATHS.exp)}`);
+  lines.push(negativeResult
+    ? "data modify storage math: ans set compute default math:common/rounding/negate"
+    : "data modify storage math: ans set compute default math:common/input/x");
+  lines.push("return 1");
   return lines;
 }
 

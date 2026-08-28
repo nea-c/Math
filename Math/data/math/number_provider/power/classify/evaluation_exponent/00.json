@@ -7,12 +7,12 @@
         {
           "type": "minecraft:storage",
           "storage": "math:internal",
-          "path": "w"
+          "path": "w_power_product_high"
         },
         {
           "type": "minecraft:storage",
           "storage": "math:internal",
-          "path": "z"
+          "path": "w_power_product_low"
         }
       ]
     },

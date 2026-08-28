@@ -9,7 +9,7 @@
     {
       "type": "minecraft:storage",
       "storage": "math:internal",
-      "path": "y"
+      "path": "z"
     }
   ]
 }

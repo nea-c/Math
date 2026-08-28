@@ -69,7 +69,7 @@
                         {
                           "type": "minecraft:storage",
                           "storage": "math:internal",
-                          "path": "x"
+                          "path": "w_power_log_high"
                         }
                       ]
                     },
@@ -87,7 +87,7 @@
                                 {
                                   "type": "minecraft:storage",
                                   "storage": "math:internal",
-                                  "path": "x"
+                                  "path": "w_power_log_high"
                                 }
                               ]
                             },
@@ -98,7 +98,7 @@
                                 {
                                   "type": "minecraft:storage",
                                   "storage": "math:internal",
-                                  "path": "x"
+                                  "path": "w_power_log_high"
                                 }
                               ]
                             }
@@ -115,19 +115,9 @@
               "operands": [
                 -1,
                 {
-                  "type": "minecraft:product",
-                  "operands": [
-                    {
-                      "type": "minecraft:storage",
-                      "storage": "math:",
-                      "path": "b"
-                    },
-                    {
-                      "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "x"
-                    }
-                  ]
+                  "type": "minecraft:storage",
+                  "storage": "math:internal",
+                  "path": "w_power_product_high"
                 }
               ]
             }
@@ -191,7 +181,7 @@
                 {
                   "type": "minecraft:storage",
                   "storage": "math:internal",
-                  "path": "x"
+                  "path": "w_power_log_high"
                 },
                 {
                   "type": "minecraft:product",
@@ -207,7 +197,7 @@
                             {
                               "type": "minecraft:storage",
                               "storage": "math:internal",
-                              "path": "x"
+                              "path": "w_power_log_high"
                             }
                           ]
                         },
@@ -225,7 +215,7 @@
                                     {
                                       "type": "minecraft:storage",
                                       "storage": "math:internal",
-                                      "path": "x"
+                                      "path": "w_power_log_high"
                                     }
                                   ]
                                 },
@@ -236,7 +226,7 @@
                                     {
                                       "type": "minecraft:storage",
                                       "storage": "math:internal",
-                                      "path": "x"
+                                      "path": "w_power_log_high"
                                     }
                                   ]
                                 }
@@ -330,7 +320,7 @@
                     {
                       "type": "minecraft:storage",
                       "storage": "math:internal",
-                      "path": "x"
+                      "path": "w_power_log_high"
                     }
                   ]
                 },
@@ -348,7 +338,7 @@
                             {
                               "type": "minecraft:storage",
                               "storage": "math:internal",
-                              "path": "x"
+                              "path": "w_power_log_high"
                             }
                           ]
                         },
@@ -359,7 +349,7 @@
                             {
                               "type": "minecraft:storage",
                               "storage": "math:internal",
-                              "path": "x"
+                              "path": "w_power_log_high"
                             }
                           ]
                         }
@@ -445,7 +435,7 @@
                 {
                   "type": "minecraft:storage",
                   "storage": "math:internal",
-                  "path": "x"
+                  "path": "w_power_log_high"
                 },
                 {
                   "type": "minecraft:product",
@@ -461,7 +451,7 @@
                             {
                               "type": "minecraft:storage",
                               "storage": "math:internal",
-                              "path": "x"
+                              "path": "w_power_log_high"
                             }
                           ]
                         },
@@ -479,7 +469,7 @@
                                     {
                                       "type": "minecraft:storage",
                                       "storage": "math:internal",
-                                      "path": "x"
+                                      "path": "w_power_log_high"
                                     }
                                   ]
                                 },
@@ -490,7 +480,7 @@
                                     {
                                       "type": "minecraft:storage",
                                       "storage": "math:internal",
-                                      "path": "x"
+                                      "path": "w_power_log_high"
                                     }
                                   ]
                                 }
@@ -519,7 +509,7 @@
         {
           "type": "minecraft:storage",
           "storage": "math:internal",
-          "path": "y"
+          "path": "w_power_log_low"
         }
       ]
     }

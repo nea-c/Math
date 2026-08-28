@@ -4,34 +4,6 @@ function math:.common/log/1.prepare
 data modify storage math:internal z set compute default math:power/classify/normalize/difference/00
 data modify storage math:internal x set compute default math:power/classify/polynomial/initial/00
 data modify storage math:internal y set value 0.0f
-data modify storage math:internal y set compute default math:power/classify/polynomial/31/low/00
-data modify storage math:internal x set compute default math:power/classify/polynomial/31/high/00
-data modify storage math:internal y set compute default math:power/classify/polynomial/30/low/00
-data modify storage math:internal x set compute default math:power/classify/polynomial/30/high/00
-data modify storage math:internal y set compute default math:power/classify/polynomial/29/low/00
-data modify storage math:internal x set compute default math:power/classify/polynomial/29/high/00
-data modify storage math:internal y set compute default math:power/classify/polynomial/28/low/00
-data modify storage math:internal x set compute default math:power/classify/polynomial/28/high/00
-data modify storage math:internal y set compute default math:power/classify/polynomial/27/low/00
-data modify storage math:internal x set compute default math:power/classify/polynomial/27/high/00
-data modify storage math:internal y set compute default math:power/classify/polynomial/26/low/00
-data modify storage math:internal x set compute default math:power/classify/polynomial/26/high/00
-data modify storage math:internal y set compute default math:power/classify/polynomial/25/low/00
-data modify storage math:internal x set compute default math:power/classify/polynomial/25/high/00
-data modify storage math:internal y set compute default math:power/classify/polynomial/24/low/00
-data modify storage math:internal x set compute default math:power/classify/polynomial/24/high/00
-data modify storage math:internal y set compute default math:power/classify/polynomial/23/low/00
-data modify storage math:internal x set compute default math:power/classify/polynomial/23/high/00
-data modify storage math:internal y set compute default math:power/classify/polynomial/22/low/00
-data modify storage math:internal x set compute default math:power/classify/polynomial/22/high/00
-data modify storage math:internal y set compute default math:power/classify/polynomial/21/low/00
-data modify storage math:internal x set compute default math:power/classify/polynomial/21/high/00
-data modify storage math:internal y set compute default math:power/classify/polynomial/20/low/00
-data modify storage math:internal x set compute default math:power/classify/polynomial/20/high/00
-data modify storage math:internal y set compute default math:power/classify/polynomial/19/low/00
-data modify storage math:internal x set compute default math:power/classify/polynomial/19/high/00
-data modify storage math:internal y set compute default math:power/classify/polynomial/18/low/00
-data modify storage math:internal x set compute default math:power/classify/polynomial/18/high/00
 data modify storage math:internal y set compute default math:power/classify/polynomial/17/low/00
 data modify storage math:internal x set compute default math:power/classify/polynomial/17/high/00
 data modify storage math:internal y set compute default math:power/classify/polynomial/16/low/00
@@ -68,12 +40,11 @@ data modify storage math:internal y set compute default math:power/classify/poly
 data modify storage math:internal x set compute default math:power/classify/polynomial/01/high/00
 data modify storage math:internal y set compute default math:power/classify/polynomial/result/low/00
 data modify storage math:internal x set compute default math:power/classify/polynomial/result/high/00
-data modify storage math:internal y set compute default math:power/classify/log/low/00
+data modify storage math:internal z set compute default math:power/classify/log/low/00
 data modify storage math:internal x set compute default math:power/classify/log/high/00
-data modify storage math:internal w set compute default math:power/classify/log/renormalize/low/00
-data modify storage math:internal x set compute default math:power/classify/log/renormalize/high/00
-data modify storage math:internal y set from storage math:internal w
-data modify storage math:internal z set compute default math:power/classify/product/low/00
-data modify storage math:internal w set compute default math:power/classify/product/high/00
-data modify storage math:internal x set compute default math:power/classify/delta/00
+data modify storage math:internal w_power_log_high set compute default math:power/classify/log/renormalize/high/00
+data modify storage math:internal w_power_log_low set compute default math:power/classify/log/renormalize/low/00
+data modify storage math:internal w_power_product_high set compute default math:power/classify/product/high/00
+data modify storage math:internal w_power_product_low set compute default math:power/classify/product/low/00
+data modify storage math:internal w_power_delta set compute default math:power/classify/delta/00
 return 1

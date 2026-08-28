@@ -38,7 +38,16 @@ const COMMAND_BUDGETS = {
   bezier: { baseline: 190, boundary: 58 },
   remainder: { baseline: 134, boundary: 9 },
   modulo: { baseline: 140, boundary: 137 },
-  power: { baseline: 76, boundary: 25 },
+  power: { baseline: 62, boundary: 25 },
+};
+
+const POWER_PATH_BUDGETS = {
+  ordinary: [{ a: 3, b: 2.5 }, 62],
+  negativeInteger: [{ a: -2, b: 3 }, 98],
+  finiteBoundary: [{ a: Math.fround(6_981_463_572_480), b: 3 }, 136],
+  overflowBoundary: [{ a: Math.fround(6_981_464_096_768), b: 3 }, 115],
+  underflow: [{ a: -2, b: -151 }, 92],
+  nonfiniteResult: [{ a: Math.fround(3.4028234663852886e38), b: 2 }, 47],
 };
 
 test("runtime cost expands referenced providers", () => {
@@ -193,6 +202,13 @@ test("large-angle trigonometry stays below its recursive-remainder phase baselin
 test("shared normalization reduces representative log and divide command counts", () => {
   assert.ok(runFunction("log", { a: 3 }).commandsExecuted < 40);
   assert.ok(runFunction("divide", { a: 7, b: 3 }).commandsExecuted < 91);
+});
+
+test("power keeps explicit ordinary, negative, boundary, underflow, and nonfinite budgets", () => {
+  for (const [name, [input, budget]] of Object.entries(POWER_PATH_BUDGETS)) {
+    const commands = runFunction("power", input).commandsExecuted;
+    assert.ok(commands <= budget, `power ${name} used ${commands} commands; budget ${budget}`);
+  }
 });
 
 test("static divide cost includes both sequential normalizer calls", () => {

@@ -85,6 +85,7 @@ function runWithStorage(name, publicInput, internalInput) {
   }
   let returned;
   let commandsExecuted = 0;
+  const functionCalls = new Map();
 
   function predicateMatches(id) {
     const predicate = predicates.get(id);
@@ -122,6 +123,7 @@ function runWithStorage(name, publicInput, internalInput) {
   }
 
   function runCommands(functionName, macros = {}) {
+    functionCalls.set(functionName, (functionCalls.get(functionName) ?? 0) + 1);
     for (const sourceCommand of commandsFor(functionName)) {
       const command = sourceCommand.startsWith("$")
         ? sourceCommand.slice(1).replaceAll(/\$\(([A-Za-z0-9_]+)\)/g, (_, key) => `${macros[key]}`)
@@ -244,7 +246,7 @@ function runWithStorage(name, publicInput, internalInput) {
   }
 
   returned = runCommands(name);
-  return { storage, numericTags, returned, commandsExecuted };
+  return { storage, numericTags, returned, commandsExecuted, functionCalls };
 }
 
 export function runFunction(name, publicInput) {

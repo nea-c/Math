@@ -519,6 +519,7 @@ test("power representability matches 750 adversarial cases around the overflow b
     ]) {
       const expectedFinite = Number.isFinite(Math.fround(Math.pow(base, candidate)));
       const result = runFunction("power", { a: base, b: candidate, ans: 91, error: "stale_error" });
+      assert.equal(result.functionCalls.get("power/9.classify_overflow"), 1, `power(${base}, ${candidate}) classifier calls`);
       if (expectedFinite && result.returned !== 1) falseRejects += 1;
       if (!expectedFinite && result.returned !== 0) falseAccepts += 1;
       checked += 1;
@@ -545,6 +546,12 @@ test("power representability matches an independent 750-case base-adjacent sweep
       const base = exponent % 2 === 0 ? -magnitude : magnitude;
       const expectedFinite = Number.isFinite(Math.fround(Math.pow(base, exponent)));
       const result = runFunction("power", { a: base, b: exponent, ans: 91, error: "stale_error" });
+      const expectedClassifierCalls = exponent === 1 ? 0 : 1;
+      assert.equal(
+        result.functionCalls.get("power/9.classify_overflow") ?? 0,
+        expectedClassifierCalls,
+        `power(${base}, ${exponent}) classifier calls`,
+      );
       if (expectedFinite && result.returned !== 1) falseRejects += 1;
       if (!expectedFinite && result.returned !== 0) falseAccepts += 1;
       checked += 1;

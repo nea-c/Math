@@ -17,19 +17,9 @@
               "type": "minecraft:sum",
               "operands": [
                 {
-                  "type": "minecraft:sum",
-                  "operands": [
-                    {
-                      "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "x"
-                    },
-                    {
-                      "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "y"
-                    }
-                  ]
+                  "type": "minecraft:storage",
+                  "storage": "math:internal",
+                  "path": "w_power_log_high"
                 },
                 {
                   "type": "minecraft:product",
@@ -39,19 +29,9 @@
                       "type": "minecraft:sum",
                       "operands": [
                         {
-                          "type": "minecraft:sum",
-                          "operands": [
-                            {
-                              "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "x"
-                            },
-                            {
-                              "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "y"
-                            }
-                          ]
+                          "type": "minecraft:storage",
+                          "storage": "math:internal",
+                          "path": "w_power_log_high"
                         },
                         {
                           "type": "minecraft:product",
@@ -80,7 +60,7 @@
         {
           "type": "minecraft:storage",
           "storage": "math:internal",
-          "path": "y"
+          "path": "z"
         },
         {
           "type": "minecraft:product",
@@ -90,19 +70,9 @@
               "type": "minecraft:sum",
               "operands": [
                 {
-                  "type": "minecraft:sum",
-                  "operands": [
-                    {
-                      "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "x"
-                    },
-                    {
-                      "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "y"
-                    }
-                  ]
+                  "type": "minecraft:storage",
+                  "storage": "math:internal",
+                  "path": "w_power_log_high"
                 },
                 {
                   "type": "minecraft:product",
