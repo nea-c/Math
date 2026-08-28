@@ -89,25 +89,33 @@ test("common binary32 normalization classifies every exponent and its adjacent m
 });
 
 test("common binary32 normalization uses balanced bounded lookups", () => {
-  for (const name of ["exponent", "scale", "multiplier_a", "multiplier_b"]) {
-    const file = path.join(providerRoot, "common", "normalize", "binary32", `${name}.json`);
+  for (const [name, file, maximumDepth] of [
+    ["exponent", path.join(providerRoot, "common", "normalize", "binary32", "exponent.json"), 9],
+    ["scale", path.join(providerRoot, "exp", "scale", "00.json"), 13],
+    ["multiplier_a", path.join(providerRoot, "common", "normalize", "binary32", "multiplier_a.json"), 9],
+    ["multiplier_b", path.join(providerRoot, "common", "normalize", "binary32", "multiplier_b.json"), 9],
+  ]) {
     const provider = JSON.parse(fs.readFileSync(file, "utf8"));
     const assertFiniteConstants = (value) => {
       if (typeof value === "number") assert.ok(Number.isFinite(value), `${name} contains a non-finite constant`);
       else if (value && typeof value === "object") Object.values(value).forEach(assertFiniteConstants);
     };
     assertFiniteConstants(provider);
-    assert.ok(dispatcherDepth(provider) <= 9, `${name} lookup is deeper than nine decisions`);
+    assert.ok(dispatcherDepth(provider) <= maximumDepth, `${name} lookup is deeper than ${maximumDepth} decisions`);
     assert.ok(maximumBreadth(provider) <= 16, `${name} provider has an excessively wide expression node`);
   }
 });
 
 test("normalization and divide lookup pack growth stays within an explicit load budget", () => {
   const files = [
-    ...["exponent", "scale", "multiplier_a", "multiplier_b"].map(name =>
+    ...["exponent", "multiplier_a", "multiplier_b"].map(name =>
       path.join(providerRoot, "common", "normalize", "binary32", `${name}.json`)),
-    ...["scale", "factor"].map(name => path.join(providerRoot, "internal", "divide", `${name}.json`)),
   ];
+  for (const alias of [
+    path.join(providerRoot, "common", "normalize", "binary32", "scale.json"),
+    path.join(providerRoot, "internal", "divide", "scale.json"),
+    path.join(providerRoot, "internal", "divide", "factor.json"),
+  ]) assert.equal(fs.existsSync(alias), false, `${alias} must not duplicate a shared exp provider`);
   const serializedBytes = files.reduce((total, file) => total + fs.statSync(file).size, 0);
   const expandedNodes = files.reduce((total, file) => {
     const id = `math:${path.relative(providerRoot, file).replaceAll("\\", "/").replace(/\.json$/, "")}`;

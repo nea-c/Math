@@ -248,7 +248,6 @@ const storedNormalizeMultiplierA = storage("math:internal", "w_normalize_multipl
 const storedNormalizeMultiplierB = storage("math:internal", "w_normalize_multiplier_b");
 const storedNormalizeMantissa = storage("math:internal", "w_normalize_mantissa");
 emit("common/normalize/binary32/exponent", boundedSum([-149, ...normalizeExponentSteps]));
-emit("common/normalize/binary32/scale", "math:exp/scale/00");
 emit("common/normalize/binary32/multiplier_a", balancedRangeLookup(
   normalizeExponentEntries,
   storedNormalizeExponent,
@@ -560,8 +559,6 @@ emit("internal/divide/result", product(
   divideFactor,
   divideScale,
 ));
-emit("internal/divide/scale", "math:exp/scale/00");
-emit("internal/divide/factor", "math:exp/factor/00");
 
 const storedLogMantissa = storage("math:internal", "w_log_mantissa");
 const storedLogReciprocal = storage("math:internal", "w_log_reciprocal");
@@ -848,7 +845,10 @@ emitStagedPredicate("power/classifier_overflow", powerDelta, smallestPositiveFlo
 emitStagedPredicate("rounding/safe_command_result", maximum(x, product(-1, x)), undefined, previousPositiveFloat(2 ** 24));
 emitStagedPredicate("rounding/integer_input", maximum(x, product(-1, x)), 2 ** 23, undefined);
 emitStagedPredicate("rounding/remainder/can_subtract_y", sum(x, product(-1, y)), 0, undefined);
-emitStagedPredicate("rounding/remainder/within_double", sum(y, product(-0.5, x)), smallestPositiveFloat, undefined);
+// With x >= y, x - y is exact while x < 2y (Sterbenz's lemma), and cannot
+// round back down to y once x > 2y. This avoids the lossy 0.5*x subnormal
+// guard without overflowing at the top-end divisor-doubling boundary.
+emitStagedPredicate("rounding/remainder/within_double", subtractExpression(y, subtractExpression(x, y)), smallestPositiveFloat, undefined);
 emitStagedPredicate("rounding/remainder/near_ratio", sum(y, product(-0.125, x)), smallestPositiveFloat, undefined);
 emitStagedPredicate("rounding/remainder/w_greater_than_x", sum(w, product(-1, x)), -smallestNegativeFloat, undefined);
 emitStagedPredicate("rounding/remainder/y_too_large_to_double", y, 2 ** 127, undefined);
@@ -1055,7 +1055,7 @@ function divisionByZeroLines() {
 emitFunction(FUNCTION_PATHS.normalizeBinary32, [
   "data modify storage math:internal w_normalize_exponent set compute default math:common/normalize/binary32/exponent",
   "data modify storage math:internal z set from storage math:internal w_normalize_exponent",
-  "data modify storage math:internal w_normalize_scale set compute default math:common/normalize/binary32/scale",
+  "data modify storage math:internal w_normalize_scale set compute default math:exp/scale/00",
   "data modify storage math:internal w_normalize_multiplier_a set compute default math:common/normalize/binary32/multiplier_a",
   "data modify storage math:internal w_normalize_multiplier_b set compute default math:common/normalize/binary32/multiplier_b",
   "data modify storage math:internal w_normalize_mantissa set compute default math:common/normalize/binary32/mantissa_a",
@@ -1465,8 +1465,8 @@ emitFunction(FUNCTION_PATHS.powerNegative, [
   lines.push(...stagePredicate("divide/exponent_underflows"));
   lines.push(`execute if predicate math:internal/divide/exponent_underflows run return run function ${functionId(FUNCTION_PATHS.divideUnderflow)}`);
   lines.push("data modify storage math:internal z set from storage math:internal w_divide_exponent");
-  lines.push("data modify storage math:internal w_divide_scale set compute default math:internal/divide/scale");
-  lines.push("data modify storage math:internal w_divide_factor set compute default math:internal/divide/factor");
+  lines.push("data modify storage math:internal w_divide_scale set compute default math:exp/scale/00");
+  lines.push("data modify storage math:internal w_divide_factor set compute default math:exp/factor/00");
   lines.push("data modify storage math: ans set compute default math:internal/divide/result");
   lines.push("return 1");
   emitPublicFunction("divide", lines);

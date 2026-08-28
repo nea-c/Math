@@ -50,6 +50,7 @@ test("wide exponent gaps remove the recursive ascent command work", () => {
     maximum <= task1WideGapBaseline - minimumRemovedAscentWork,
     `wide-gap maximum ${maximum} must remove at least ${minimumRemovedAscentWork} commands from ${task1WideGapBaseline}`,
   );
+  assert.ok(maximum <= 1_727, `wide-gap maximum ${maximum} exceeds the certified 1727-command ceiling`);
 });
 
 test("same-bin and adjacent exponent gaps retain their shallow reduction budgets", () => {

@@ -507,6 +507,17 @@ test("generated value-check predicates use the format 118 type discriminator", (
   }
 });
 
+test("every number-provider document has a Snapshot-valid object or numeric root", () => {
+  const providerRoot = path.join("Math/data/math/number_provider");
+  for (const entry of fs.readdirSync(providerRoot, { recursive: true, withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
+    const file = path.join(entry.parentPath, entry.name);
+    const provider = JSON.parse(fs.readFileSync(file, "utf8"));
+    const validObject = provider !== null && typeof provider === "object" && !Array.isArray(provider);
+    assert.ok(typeof provider === "number" || validObject, `${file} has an invalid bare-string provider root`);
+  }
+});
+
 test("every dispatcher condition reads an integer-valued staged or reduced field", () => {
   assert.equal(fs.existsSync("Math/data/math/number_provider/reciprocal"), false);
   assert.equal(fs.existsSync("Math/data/math/number_provider/divide.json"), false);

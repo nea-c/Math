@@ -79,6 +79,23 @@ function exactModuloReference(a, b) {
   return Math.fround(Math.sign(b) * (Math.abs(b) - magnitude));
 }
 
+function assertExactPublicReduction(name, a, b) {
+  const expected = name === "remainder"
+    ? exactRemainderReference(a, b)
+    : exactModuloReference(a, b);
+  const { storage, returned } = runFunction(name, { a, b });
+  const actual = storage["math:"].ans;
+  const label = `${name}(${bitsFromFloat(a).toString(16)}, ${bitsFromFloat(b).toString(16)})`;
+  assert.equal(returned, 1, `${label} must succeed`);
+  assert.equal(bitsFromFloat(actual), bitsFromFloat(expected), `${label} raw result bits`);
+  if (actual === 0) {
+    assert.equal(bitsFromFloat(actual), 0, `${label} must return positive zero`);
+  } else {
+    assert.ok(Math.abs(actual) < Math.abs(b), `${label} result magnitude`);
+    if (name === "modulo") assert.equal(Math.sign(actual), Math.sign(b), `${label} divisor sign`);
+  }
+}
+
 function exactCenteredRemainderReference(value, period) {
   const magnitude = exactRemainderMagnitude(value, period);
   const halfPeriod = Math.fround(period * 0.5);
@@ -480,6 +497,72 @@ test("remainder and modulo match exact binary32 reduction at adversarial exponen
       const actual = storage["math:"].ans;
       assert.equal(returned, 1, `${name}(${a}, ${b}) must succeed`);
       assert.equal(bitsFromFloat(actual), bitsFromFloat(expected), `${a} % ${b}`);
+    }
+  }
+});
+
+test("remainder and modulo are bit-exact on the 32 by 32 smallest-subnormal grid", () => {
+  for (let aMagnitude = 1; aMagnitude <= 32; aMagnitude += 1) {
+    for (let bMagnitude = 1; bMagnitude <= 32; bMagnitude += 1) {
+      for (const aSign of [1, -1]) {
+        for (const bSign of [1, -1]) {
+          const a = Math.fround(aSign * aMagnitude * smallestFloat);
+          const b = Math.fround(bSign * bMagnitude * smallestFloat);
+          for (const name of ["remainder", "modulo"]) assertExactPublicReduction(name, a, b);
+        }
+      }
+    }
+  }
+});
+
+test("remainder and modulo keep one min-subnormal ULP below twice the divisor", () => {
+  for (const divisorBits of [0x00000002, 0x00400000, 0x007fffff, 0x00800000]) {
+    const magnitudeB = floatFromBits(divisorBits);
+    const magnitudeA = floatFromBits(bitsFromFloat(Math.fround(2 * magnitudeB)) - 1);
+    for (const aSign of [1, -1]) {
+      for (const bSign of [1, -1]) {
+        const a = Math.fround(aSign * magnitudeA);
+        const b = Math.fround(bSign * magnitudeB);
+        for (const name of ["remainder", "modulo"]) assertExactPublicReduction(name, a, b);
+      }
+    }
+  }
+});
+
+test("remainder and modulo are exact at doubled and octupled divisors", () => {
+  for (const magnitudeB of [
+    smallestFloat,
+    Math.fround(3 * smallestFloat),
+    floatFromBits(0x007fffff),
+    floatFromBits(0x00800000),
+    1,
+    Math.fround(2 ** 124),
+  ]) {
+    for (const ratio of [2, 8]) {
+      const magnitudeA = Math.fround(ratio * magnitudeB);
+      for (const aSign of [1, -1]) {
+        for (const bSign of [1, -1]) {
+          const a = Math.fround(aSign * magnitudeA);
+          const b = Math.fround(bSign * magnitudeB);
+          for (const name of ["remainder", "modulo"]) assertExactPublicReduction(name, a, b);
+        }
+      }
+    }
+  }
+});
+
+test("remainder and modulo are exact around the divisor-doubling overflow cutoff", () => {
+  for (const magnitudeB of [
+    floatFromBits(0x7effffff),
+    floatFromBits(0x7f000000),
+    floatFromBits(0x7f000001),
+  ]) {
+    for (const aSign of [1, -1]) {
+      for (const bSign of [1, -1]) {
+        const a = Math.fround(aSign * finiteLimit);
+        const b = Math.fround(bSign * magnitudeB);
+        for (const name of ["remainder", "modulo"]) assertExactPublicReduction(name, a, b);
+      }
     }
   }
 });
