@@ -3,18 +3,28 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { runFunction } from "./mcfunction-test-harness.mjs";
+import { expandedProviderNodes, loadGeneratedGraph } from "./runtime-cost.mjs";
 
 const finiteLimit = Math.fround(3.4028234663852886e38);
 const smallestFloat = Math.fround(2 ** -149);
 const task1WideGapBaseline = 4_166;
 const minimumRemovedAscentWork = 276 * 8;
 const providerDirectory = path.resolve("Math/data/math/number_provider/common/reduce_remainder");
+const graph = loadGeneratedGraph();
 
 function dispatcherDepth(provider) {
   if (!provider || typeof provider !== "object" || provider.type !== "minecraft:number_dispatcher") return 0;
   return 1 + Math.max(
     ...provider.cases.map(entry => dispatcherDepth(entry.number_provider)),
     dispatcherDepth(provider.default),
+  );
+}
+
+function dispatcherLeaves(provider) {
+  if (!provider || typeof provider !== "object" || provider.type !== "minecraft:number_dispatcher") return 1;
+  return provider.cases.reduce(
+    (total, entry) => total + dispatcherLeaves(entry.number_provider),
+    dispatcherLeaves(provider.default),
   );
 }
 
@@ -42,6 +52,17 @@ test("wide exponent gaps remove the recursive ascent command work", () => {
   );
 });
 
+test("same-bin and adjacent exponent gaps retain their shallow reduction budgets", () => {
+  for (const [label, a, b, budget] of [
+    ["same-bin", 1.5, 1, 33],
+    ["gap 1", Math.fround(2 ** 127), Math.fround(2 ** 126), 41],
+    ["gap 2", Math.fround(2 ** 127), Math.fround(2 ** 125), 56],
+  ]) {
+    const commands = runFunction("remainder", { a, b }).commandsExecuted;
+    assert.ok(commands <= budget, `${label} uses ${commands} commands; budget is ${budget}`);
+  }
+});
+
 test("direct selector stores the corrected exponent shift and scaled divisor", () => {
   for (const [a, b, expectedShift, expectedScaledDivisor] of [
     [finiteLimit, smallestFloat, 276, Math.fround(2 ** 127)],
@@ -56,14 +77,20 @@ test("direct selector stores the corrected exponent shift and scaled divisor", (
 
 test("remainder shift lookups are balanced, finite, and stay within their pack budget", () => {
   const factorFiles = [0, 1, 2].map(stage => path.join(providerDirectory, `factor_${stage}.json`));
-  for (const file of factorFiles) {
+  for (const [stage, file] of factorFiles.entries()) {
     const provider = JSON.parse(fs.readFileSync(file, "utf8"));
     assertFiniteConstants(provider, file);
-    assert.ok(dispatcherDepth(provider) <= 9, `${file} exceeds nine balanced decisions`);
+    assert.equal(dispatcherLeaves(provider), [128, 128, 23][stage], `${file} retains duplicate output bands`);
+    assert.ok(dispatcherDepth(provider) <= [7, 7, 5][stage], `${file} exceeds its compact balanced depth`);
   }
 
   const serializedBytes = fs.readdirSync(providerDirectory, { withFileTypes: true })
     .filter(entry => entry.isFile() && entry.name.endsWith(".json"))
     .reduce((total, entry) => total + fs.statSync(path.join(entry.parentPath, entry.name)).size, 0);
-  assert.ok(serializedBytes <= 704_000, `remainder lookup files use ${serializedBytes} bytes; budget is 704000`);
+  const expandedNodes = [0, 1, 2].reduce(
+    (total, stage) => total + expandedProviderNodes(`math:common/reduce_remainder/factor_${stage}`, graph),
+    0,
+  );
+  assert.ok(serializedBytes <= 245_000, `remainder lookup files use ${serializedBytes} bytes; budget is 245000`);
+  assert.ok(expandedNodes <= 1_200, `remainder factor lookups expand to ${expandedNodes} nodes; budget is 1200`);
 });

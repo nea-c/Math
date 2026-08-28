@@ -3,10 +3,9 @@
   "value": {
     "type": "minecraft:storage",
     "storage": "math:internal",
-    "path": "w_comparison.predicate.rounding_remainder_can_subtract_y.minimum"
+    "path": "w_comparison.predicate.rounding_remainder_within_double.minimum"
   },
   "range": {
-    "min": 0,
-    "max": 0
+    "min": 0
   }
 }

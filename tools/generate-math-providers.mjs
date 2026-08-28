@@ -330,6 +330,7 @@ emit("common/rounding/negate", product(-1, x));
 emit("common/rounding/add_half", sum(x, 0.5));
 emit("common/rounding/quotient", product(x, w));
 emit("common/rounding/reduce", sum(w, product(-1, z, y)));
+emit("common/rounding/double_y", product(2, y));
 emit("common/rounding/half_y", product(0.5, y));
 const storedRemainderXExponent = storage("math:internal", "w_remainder_x_exponent");
 const storedRemainderYExponent = storage("math:internal", "w_remainder_y_exponent");
@@ -345,13 +346,19 @@ const remainderShifts = Array.from({ length: 277 }, (_, shift) => ({
     Math.max(shift - 254, 0),
   ].filter(bits => bits > 0).map(bits => 2 ** bits),
 }));
-const remainderShiftBands = remainderShifts.map(entry => ({ ...entry, maximum: entry.shift }));
 for (let stage = 0; stage < 3; stage += 1) {
   const factorPath = `common/reduce_remainder/factor_${stage}`;
+  const factorBands = [];
+  for (const entry of remainderShifts) {
+    const factor = entry.factors[stage] ?? 1;
+    const previous = factorBands.at(-1);
+    if (previous && Object.is(previous.factor, factor)) previous.maximum = entry.shift;
+    else factorBands.push({ maximum: entry.shift, factor });
+  }
   emit(factorPath, balancedRangeLookup(
-    remainderShiftBands,
+    factorBands,
     storedRemainderShift,
-    entry => entry.factors[stage] ?? 1,
+    entry => entry.factor,
   ));
   emit(`common/reduce_remainder/scale_${stage}`, product(
     storedRemainderScaledDivisor,
@@ -834,14 +841,11 @@ emitStagedPredicate("power/classifier_overflow", x, smallestPositiveFloat, undef
 emitStagedPredicate("rounding/safe_command_result", maximum(x, product(-1, x)), undefined, previousPositiveFloat(2 ** 24));
 emitStagedPredicate("rounding/integer_input", maximum(x, product(-1, x)), 2 ** 23, undefined);
 emitStagedPredicate("rounding/remainder/can_subtract_y", sum(x, product(-1, y)), 0, undefined);
+emitStagedPredicate("rounding/remainder/within_double", sum(y, product(-0.5, x)), smallestPositiveFloat, undefined);
+emitStagedPredicate("rounding/remainder/near_ratio", sum(y, product(-0.125, x)), smallestPositiveFloat, undefined);
 emitStagedPredicate("rounding/remainder/w_greater_than_x", sum(w, product(-1, x)), -smallestNegativeFloat, undefined);
 emitStagedPredicate("rounding/remainder/y_too_large_to_double", y, 2 ** 127, undefined);
 emitStagedPredicate("rounding/remainder/zero", z, 0, 0);
-emitPredicate("rounding/remainder/equal", inlineValueCheck(
-  storage("math:internal", "w_comparison.predicate.rounding_remainder_can_subtract_y.minimum"),
-  0,
-  0,
-));
 emitPredicate("rounding/remainder/shift_positive", inlineValueCheck(storedRemainderRemainingShift, 1, undefined));
 emitStagedPredicate("rounding/public/a_negative", publicA, undefined, smallestNegativeFloat);
 emitStagedPredicate("rounding/public/b_negative", publicB, undefined, smallestNegativeFloat);
@@ -1457,7 +1461,55 @@ emitFunction(FUNCTION_PATHS.powerNegative, [
   emitPublicFunction("divide", lines);
 }
 
-const reduceRemainderDescendingPath = ".common/reduce_remainder/1.descend";
+const reduceRemainderNearPath = ".common/reduce_remainder/1.near";
+const reduceRemainderShallowOnePath = ".common/reduce_remainder/2.shallow_one";
+const reduceRemainderShallowTwoPath = ".common/reduce_remainder/3.shallow_two";
+const reduceRemainderFinishOnePath = ".common/reduce_remainder/4.finish_one";
+const reduceRemainderFinishTwoPath = ".common/reduce_remainder/5.finish_two";
+const reduceRemainderDescendingPath = ".common/reduce_remainder/6.descend";
+
+function fixedRemainderDescentLines(levels) {
+  const lines = [];
+  for (let level = 0; level < levels; level += 1) {
+    lines.push("data modify storage math:internal y set compute default math:common/rounding/half_y");
+    lines.push(...stagePredicate("rounding/remainder/can_subtract_y"));
+    lines.push("execute if predicate math:internal/rounding/remainder/can_subtract_y run data modify storage math:internal x set compute default math:common/arithmetic/subtract");
+  }
+  lines.push("return 1");
+  return lines;
+}
+
+function shallowRemainderLines(finishPath, nextPath) {
+  const lines = [
+    ...stagePredicate("rounding/remainder/y_too_large_to_double"),
+    "execute if predicate math:internal/rounding/remainder/y_too_large_to_double run data modify storage math:internal x set compute default math:common/arithmetic/subtract",
+    `execute if predicate math:internal/rounding/remainder/y_too_large_to_double run return run function ${functionId(finishPath)}`,
+    "data modify storage math:internal w set compute default math:common/rounding/double_y",
+    ...stagePredicate("rounding/remainder/w_greater_than_x"),
+    "execute if predicate math:internal/rounding/remainder/w_greater_than_x run data modify storage math:internal x set compute default math:common/arithmetic/subtract",
+    `execute if predicate math:internal/rounding/remainder/w_greater_than_x run return run function ${functionId(finishPath)}`,
+  ];
+  if (nextPath) {
+    lines.push("data modify storage math:internal y set from storage math:internal w");
+    lines.push(`return run function ${functionId(nextPath)}`);
+  } else {
+    lines.push("return fail");
+  }
+  return lines;
+}
+
+emitFunction(reduceRemainderFinishOnePath, fixedRemainderDescentLines(1));
+emitFunction(reduceRemainderFinishTwoPath, fixedRemainderDescentLines(2));
+emitFunction(reduceRemainderShallowOnePath, shallowRemainderLines(
+  reduceRemainderFinishOnePath,
+  reduceRemainderShallowTwoPath,
+));
+emitFunction(reduceRemainderShallowTwoPath, shallowRemainderLines(reduceRemainderFinishTwoPath));
+emitFunction(reduceRemainderNearPath, [
+  "data modify storage math:internal w set compute default math:common/rounding/double_y",
+  "data modify storage math:internal y set from storage math:internal w",
+  `return run function ${functionId(reduceRemainderShallowOnePath)}`,
+]);
 
 emitFunction(reduceRemainderDescendingPath, [
   ...stagePredicate("rounding/remainder/can_subtract_y"),
@@ -1471,11 +1523,11 @@ emitFunction(reduceRemainderDescendingPath, [
 emitFunction(FUNCTION_PATHS.reduceRemainder, [
   ...stagePredicate("rounding/remainder/can_subtract_y"),
   "execute unless predicate math:internal/rounding/remainder/can_subtract_y run return 1",
-  "execute if predicate math:internal/rounding/remainder/equal run data modify storage math:internal x set compute default math:common/arithmetic/subtract",
-  "execute if predicate math:internal/rounding/remainder/equal run return 1",
-  ...stagePredicate("rounding/remainder/y_too_large_to_double"),
-  "execute if predicate math:internal/rounding/remainder/y_too_large_to_double run data modify storage math:internal x set compute default math:common/arithmetic/subtract",
-  "execute if predicate math:internal/rounding/remainder/y_too_large_to_double run return 1",
+  ...stagePredicate("rounding/remainder/within_double"),
+  "execute if predicate math:internal/rounding/remainder/within_double run data modify storage math:internal x set compute default math:common/arithmetic/subtract",
+  "execute if predicate math:internal/rounding/remainder/within_double run return 1",
+  ...stagePredicate("rounding/remainder/near_ratio"),
+  `execute if predicate math:internal/rounding/remainder/near_ratio run return run function ${functionId(reduceRemainderNearPath)}`,
   "data modify storage math:internal w_remainder_original set from storage math:internal z",
   "data modify storage math:internal w_remainder_x set from storage math:internal x",
   "data modify storage math:internal w_remainder_divisor set from storage math:internal y",
