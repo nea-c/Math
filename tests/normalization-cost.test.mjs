@@ -3,8 +3,10 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { runImplementation } from "./mcfunction-test-harness.mjs";
+import { expandedProviderNodes, loadGeneratedGraph } from "./runtime-cost.mjs";
 
 const providerRoot = path.resolve("Math/data/math/number_provider");
+const graph = loadGeneratedGraph();
 
 function adjacentPositiveFloat(value, direction) {
   const bytes = new ArrayBuffer(4);
@@ -33,6 +35,19 @@ function dispatcherDepth(provider) {
     ...provider.cases.map(entry => dispatcherDepth(entry.number_provider)),
     dispatcherDepth(provider.default),
   );
+}
+
+function maximumBreadth(provider) {
+  if (typeof provider === "number" || typeof provider === "string") return 0;
+  assert.ok(provider && typeof provider === "object");
+  const children = [
+    ...(provider.operands ?? []),
+    ...(provider.cases ?? []).flatMap(entry => [entry.condition, entry.number_provider]),
+    ...("default" in provider ? [provider.default] : []),
+    ...("value" in provider ? [provider.value] : []),
+    ...Object.values(provider.range ?? {}),
+  ];
+  return Math.max(children.length, ...children.map(maximumBreadth));
 }
 
 test("common binary32 normalization classifies every exponent and its adjacent magnitudes", () => {
@@ -70,7 +85,7 @@ test("common binary32 normalization classifies every exponent and its adjacent m
       );
     }
   }
-  assert.deepEqual([...commandCounts], [7], "normalization command depth is fixed across exponents");
+  assert.deepEqual([...commandCounts], [8], "normalization command depth is fixed across exponents");
 });
 
 test("common binary32 normalization uses balanced bounded lookups", () => {
@@ -83,5 +98,22 @@ test("common binary32 normalization uses balanced bounded lookups", () => {
     };
     assertFiniteConstants(provider);
     assert.ok(dispatcherDepth(provider) <= 9, `${name} lookup is deeper than nine decisions`);
+    assert.ok(maximumBreadth(provider) <= 16, `${name} provider has an excessively wide expression node`);
   }
+});
+
+test("normalization and divide lookup pack growth stays within an explicit load budget", () => {
+  const files = [
+    ...["exponent", "scale", "multiplier_a", "multiplier_b"].map(name =>
+      path.join(providerRoot, "common", "normalize", "binary32", `${name}.json`)),
+    ...["scale", "factor"].map(name => path.join(providerRoot, "internal", "divide", `${name}.json`)),
+  ];
+  const serializedBytes = files.reduce((total, file) => total + fs.statSync(file).size, 0);
+  const expandedNodes = files.reduce((total, file) => {
+    const id = `math:${path.relative(providerRoot, file).replaceAll("\\", "/").replace(/\.json$/, "")}`;
+    return total + expandedProviderNodes(id, graph);
+  }, 0);
+
+  assert.ok(serializedBytes <= 520_000, `lookup files use ${serializedBytes} bytes; budget is 520000`);
+  assert.ok(expandedNodes <= 6_000, `lookup files expand to ${expandedNodes} nodes; budget is 6000`);
 });

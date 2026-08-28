@@ -54,6 +54,7 @@ data modify storage math:internal w_divide_correction set compute default math:i
 data modify storage math:internal x set compute default math:internal/divide/refined_quotient
 data modify storage math:internal w_comparison.predicate.divide_exponent_underflows.maximum set compute default math:internal/comparison/predicate/divide/exponent_underflows/maximum
 execute if predicate math:internal/divide/exponent_underflows run return run function math:divide/4.underflow
+data modify storage math:internal z set from storage math:internal w_divide_exponent
 data modify storage math:internal w_divide_scale set compute default math:internal/divide/scale
 data modify storage math:internal w_divide_factor set compute default math:internal/divide/factor
 data modify storage math: ans set compute default math:internal/divide/result

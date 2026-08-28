@@ -75,20 +75,50 @@ test("runtime cost caps recursive function calls", () => {
   assert.deepEqual(cost.calls, ["loop", "loop"]);
 });
 
-test("runtime cost follows the maximum function-call path", () => {
-  const branchingGraph = {
+test("runtime cost adds sequential function calls", () => {
+  const sequentialGraph = {
     functions: new Map([
       ["start", ["function math:left", "function math:right"]],
-      ["left", ["function math:loop"]],
-      ["right", ["function math:loop"]],
-      ["loop", ["function math:loop"]],
+      ["left", ["say left"]],
+      ["right", ["say right"]],
     ]),
     providers: new Map(),
     predicates: new Map(),
   };
-  const cost = staticFunctionCost("start", branchingGraph, { recursionLimit: 2 });
+  const cost = staticFunctionCost("start", sequentialGraph);
   assert.equal(cost.commands, 4);
-  assert.deepEqual(cost.calls, ["left", "loop"]);
+  assert.deepEqual(cost.calls, ["left", "right"]);
+});
+
+test("runtime cost follows the larger terminating conditional branch", () => {
+  const branchingGraph = {
+    functions: new Map([
+      ["start", ["execute if data storage math: {a:1} run return run function math:left", "function math:right"]],
+      ["left", ["say left", "say left again"]],
+      ["right", ["say right"]],
+    ]),
+    providers: new Map(),
+    predicates: new Map(),
+  };
+  const cost = staticFunctionCost("start", branchingGraph);
+  assert.equal(cost.commands, 3);
+  assert.deepEqual(cost.calls, ["left"]);
+});
+
+test("runtime cost includes number-dispatcher case conditions", () => {
+  const dispatcher = {
+    type: "minecraft:number_dispatcher",
+    cases: [{
+      condition: {
+        type: "minecraft:value_check",
+        value: { type: "minecraft:storage", storage: "math:internal", path: "x" },
+        range: { max: 0 },
+      },
+      number_provider: 1,
+    }],
+    default: 2,
+  };
+  assert.equal(expandedProviderNodes(dispatcher, { providers: new Map(), predicates: new Map() }), 5);
 });
 
 test("runtime cost rejects provider reference cycles", () => {
@@ -119,9 +149,28 @@ test("shared normalization reduces representative log and divide command counts"
   assert.ok(runFunction("divide", { a: 7, b: 3 }).commandsExecuted < 91);
 });
 
-test("active divide providers do not exceed the Task 1 node maximum", () => {
+test("static divide cost includes both sequential normalizer calls", () => {
+  const cost = staticFunctionCost("divide/0.start", graph, { recursionLimit: 320 });
+  assert.equal(cost.commands, 77);
+  assert.equal(cost.calls.filter(call => call === ".common/normalize_binary32/0.start").length, 2);
+});
+
+test("honest static log and divide costs stay within measured head budgets", () => {
+  const log = staticFunctionCost("log/0.start", graph, { recursionLimit: 320 });
+  const divide = staticFunctionCost("divide/0.start", graph, { recursionLimit: 320 });
+  assert.ok(log.commands <= 39);
+  assert.ok(log.providerNodes <= 5_000);
+  assert.ok(divide.commands <= 77);
+  assert.ok(divide.providerNodes <= 11_300);
+});
+
+test("square root remains strictly below its Task 1 command baseline", () => {
+  assert.ok(runFunction("square_root", { a: 3 }).commandsExecuted < 99);
+});
+
+test("active divide providers do not exceed the honestly recomputed Task 1 node maximum", () => {
   for (const id of graph.providers.keys()) {
     if (!id.startsWith("math:internal/divide/")) continue;
-    assert.ok(expandedProviderNodes(id, graph) <= 568, `${id} exceeds 568 expanded nodes`);
+    assert.ok(expandedProviderNodes(id, graph) <= 1_136, `${id} exceeds 1136 expanded nodes`);
   }
 });

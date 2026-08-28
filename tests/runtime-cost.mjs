@@ -61,7 +61,13 @@ export function expandedProviderNodes(id, graph, stack = []) {
     ...("default" in id ? [id.default] : []),
     ...("on_true" in id ? [id.on_true, id.on_false] : []),
   ];
-  return 1 + children.reduce((total, child) => total + expandedProviderNodes(child, graph, stack), 0);
+  const conditionNodes = (id.cases ?? []).reduce(
+    (total, entry) => total + predicateProviderNodes(entry.condition, graph, stack),
+    0,
+  ) + (id.condition === undefined ? 0 : predicateProviderNodes(id.condition, graph, stack));
+  return 1
+    + children.reduce((total, child) => total + expandedProviderNodes(child, graph, stack), 0)
+    + conditionNodes;
 }
 
 function predicateProviderNodes(id, graph, stack = []) {
@@ -101,11 +107,15 @@ function commandProviderNodes(command, graph) {
 function functionCall(command) {
   const normalized = command.startsWith("$") ? command.slice(1) : command;
   let match = normalized.match(/^return run function (\S+)$/);
-  if (match) return { path: normalizeFunctionPath(match[1]) };
+  if (match) return { path: normalizeFunctionPath(match[1]), conditional: false, terminal: true };
   match = normalized.match(/^function (\S+)(?:\s+with storage \S+ \S+)?$/);
-  if (match) return { path: normalizeFunctionPath(match[1]) };
-  match = normalized.match(/^execute\b.*\brun (return run )?function (\S+)$/);
-  if (match) return { path: normalizeFunctionPath(match[2]) };
+  if (match) return { path: normalizeFunctionPath(match[1]), conditional: false, terminal: false };
+  match = normalized.match(/^execute\b.*?\brun (return run )?function (\S+)$/);
+  if (match) return {
+    path: normalizeFunctionPath(match[2]),
+    conditional: true,
+    terminal: match[1] !== undefined,
+  };
   return undefined;
 }
 
@@ -137,21 +147,22 @@ export function staticFunctionCost(pathText, graph, { recursionLimit = 320 } = {
     if (cached) return cached;
     const commands = graph.functions.get(functionPath);
     assert.ok(commands, `unknown function: ${functionPath}`);
-    const own = {
-      commands: commands.length,
-      providerNodes: commands.reduce((total, command) => total + commandProviderNodes(command, graph), 0),
-      calls: [],
-    };
-    if (depth >= recursionLimit) {
-      cache.set(cacheKey, own);
-      return own;
-    }
+    const visitCommands = (index) => {
+      if (index >= commands.length) return emptyCost();
+      const command = commands[index];
+      const own = { commands: 1, providerNodes: commandProviderNodes(command, graph), calls: [] };
+      const call = depth < recursionLimit ? functionCall(command) : undefined;
+      if (!call) return addCosts(own, visitCommands(index + 1));
 
-    const children = commands
-      .map(functionCall)
-      .filter(Boolean)
-      .map(call => addCosts({ commands: 0, providerNodes: 0, calls: [call.path] }, visit(call.path, depth + 1)));
-    const cost = children.length === 0 ? own : addCosts(own, children.reduce(greaterCost));
+      const child = addCosts(
+        { commands: 0, providerNodes: 0, calls: [call.path] },
+        visit(call.path, depth + 1),
+      );
+      if (!call.terminal) return addCosts(own, child, visitCommands(index + 1));
+      if (!call.conditional) return addCosts(own, child);
+      return addCosts(own, greaterCost(child, visitCommands(index + 1)));
+    };
+    const cost = visitCommands(0);
     cache.set(cacheKey, cost);
     return cost;
   };

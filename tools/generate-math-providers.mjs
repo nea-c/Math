@@ -146,6 +146,18 @@ function balancedNumberLookup(entries, selectValue) {
   );
 }
 
+function boundedSum(operands, maximumOperands = 16) {
+  let level = operands;
+  while (level.length > maximumOperands) {
+    const next = [];
+    for (let index = 0; index < level.length; index += maximumOperands) {
+      next.push(sum(level.slice(index, index + maximumOperands)));
+    }
+    level = next;
+  }
+  return sum(level);
+}
+
 function subtractExpression(left, right) {
   return sum(left, product(-1, right));
 }
@@ -233,22 +245,22 @@ const storedNormalizeExponent = storage("math:internal", "w_normalize_exponent")
 const storedNormalizeMultiplierA = storage("math:internal", "w_normalize_multiplier_a");
 const storedNormalizeMultiplierB = storage("math:internal", "w_normalize_multiplier_b");
 const storedNormalizeMantissa = storage("math:internal", "w_normalize_mantissa");
-emit("common/normalize/binary32/exponent", sum(-149, ...normalizeExponentSteps));
-emit("common/normalize/binary32/scale", balancedRangeLookup(
-  normalizeExponentEntries,
-  storedNormalizeExponent,
-  entry => entry.scale,
-));
+emit("common/normalize/binary32/exponent", boundedSum([-149, ...normalizeExponentSteps]));
+emit("common/normalize/binary32/scale", "math:exp/scale/00");
 emit("common/normalize/binary32/multiplier_a", balancedRangeLookup(
   normalizeExponentEntries,
   storedNormalizeExponent,
   entry => entry.multiplierA,
 ));
-emit("common/normalize/binary32/multiplier_b", balancedRangeLookup(
-  normalizeExponentEntries,
-  storedNormalizeExponent,
-  entry => entry.multiplierB,
-));
+const normalizeSecondMultiplierEntries = normalizeExponentEntries.filter(entry => entry.exponent <= -128);
+emit("common/normalize/binary32/multiplier_b", numberDispatcher([{
+  condition: inlineValueCheck(storedNormalizeExponent, undefined, -128),
+  number_provider: balancedRangeLookup(
+    normalizeSecondMultiplierEntries,
+    storedNormalizeExponent,
+    entry => entry.multiplierB,
+  ),
+}], 1));
 emit("common/normalize/binary32/mantissa_a", product(x, storedNormalizeMultiplierA));
 emit("common/normalize/binary32/mantissa_b", product(storedNormalizeMantissa, storedNormalizeMultiplierB));
 
@@ -510,21 +522,8 @@ emit("internal/divide/result", product(
   divideFactor,
   divideScale,
 ));
-const divideScaleEntries = [];
-for (let exponent = -150; exponent <= 128; exponent += 1) {
-  divideScaleEntries.push({
-    exponent,
-    maximum: exponent,
-    scale: exponent === -150
-      ? smallestPositiveFloat
-      : exponent === 128
-        ? Math.fround(2 ** 127)
-        : Math.fround(2 ** exponent),
-    factor: exponent === -150 ? 0.5 : exponent === 128 ? 2 : 1,
-  });
-}
-emit("internal/divide/scale", balancedRangeLookup(divideScaleEntries, divideExponent, entry => entry.scale));
-emit("internal/divide/factor", balancedRangeLookup(divideScaleEntries, divideExponent, entry => entry.factor));
+emit("internal/divide/scale", "math:exp/scale/00");
+emit("internal/divide/factor", "math:exp/factor/00");
 
 const storedLogMantissa = storage("math:internal", "w_log_mantissa");
 const storedLogReciprocal = storage("math:internal", "w_log_reciprocal");
@@ -976,6 +975,7 @@ function divisionByZeroLines() {
 
 emitFunction(FUNCTION_PATHS.normalizeBinary32, [
   "data modify storage math:internal w_normalize_exponent set compute default math:common/normalize/binary32/exponent",
+  "data modify storage math:internal z set from storage math:internal w_normalize_exponent",
   "data modify storage math:internal w_normalize_scale set compute default math:common/normalize/binary32/scale",
   "data modify storage math:internal w_normalize_multiplier_a set compute default math:common/normalize/binary32/multiplier_a",
   "data modify storage math:internal w_normalize_multiplier_b set compute default math:common/normalize/binary32/multiplier_b",
@@ -1394,6 +1394,7 @@ emitFunction(FUNCTION_PATHS.powerNegative, [
   lines.push("data modify storage math:internal x set compute default math:internal/divide/refined_quotient");
   lines.push(...stagePredicate("divide/exponent_underflows"));
   lines.push(`execute if predicate math:internal/divide/exponent_underflows run return run function ${functionId(FUNCTION_PATHS.divideUnderflow)}`);
+  lines.push("data modify storage math:internal z set from storage math:internal w_divide_exponent");
   lines.push("data modify storage math:internal w_divide_scale set compute default math:internal/divide/scale");
   lines.push("data modify storage math:internal w_divide_factor set compute default math:internal/divide/factor");
   lines.push("data modify storage math: ans set compute default math:internal/divide/result");
