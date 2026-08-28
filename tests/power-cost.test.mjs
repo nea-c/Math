@@ -14,6 +14,15 @@ const overflowThresholdHigh = Math.fround(overflowLogThreshold);
 const overflowThresholdLow = Math.fround(overflowLogThreshold - overflowThresholdHigh);
 const ln2High = Math.fround(Math.LN2);
 const ln2Low = Math.fround(Math.LN2 - ln2High);
+const finiteBoundaryBase = Math.fround(6_981_463_572_480);
+const overflowBoundaryBase = Math.fround(6_981_464_096_768);
+const boundaryFields = [
+  "w_power_log_high",
+  "w_power_log_low",
+  "w_power_product_high",
+  "w_power_product_low",
+  "w_power_delta",
+];
 
 function floatFromBits(bits) {
   const buffer = new ArrayBuffer(4);
@@ -166,6 +175,7 @@ function boundaryCenters() {
     const magnitude = Math.fround(Math.exp(overflowLogThreshold / exponent));
     centers.push([exponent % 2 === 0 ? -magnitude : magnitude, exponent]);
   }
+  centers.push([-finiteBoundaryBase, 3], [-overflowBoundaryBase, 3]);
   return centers;
 }
 
@@ -192,11 +202,18 @@ function boundaryNeighborCorpus() {
 const POWER_PATHS = {
   ordinary: { input: { a: 3, b: 2.5 }, before: 75, budget: 62 },
   negativeInteger: { input: { a: -2, b: 3 }, before: 111, budget: 98 },
-  finiteBoundary: { input: { a: Math.fround(6_981_463_572_480), b: 3 }, before: 169, budget: 136 },
-  overflowBoundary: { input: { a: Math.fround(6_981_464_096_768), b: 3 }, before: 148, budget: 115 },
+  finiteBoundary: { input: { a: finiteBoundaryBase, b: 3 }, before: 169, budget: 136 },
+  overflowBoundary: { input: { a: overflowBoundaryBase, b: 3 }, before: 148, budget: 115 },
   underflow: { input: { a: -2, b: -151 }, before: 93, budget: 92 },
   nonfiniteResult: { input: { a: Math.fround(3.4028234663852886e38), b: 2 }, before: 55, budget: 47 },
 };
+
+function storagePaths(value, paths = []) {
+  if (!value || typeof value !== "object") return paths;
+  if (value.type === "minecraft:storage") paths.push(`${value.storage}|${value.path}`);
+  for (const child of Array.isArray(value) ? value : Object.values(value)) storagePaths(child, paths);
+  return paths;
+}
 
 test("power executes the overflow classifier only for the narrow boundary path", () => {
   const ordinary = runFunction("power", POWER_PATHS.ordinary.input);
@@ -205,6 +222,40 @@ test("power executes the overflow classifier only for the narrow boundary path",
   for (const name of ["finiteBoundary", "overflowBoundary"]) {
     const result = runFunction("power", POWER_PATHS[name].input);
     assert.equal(result.functionCalls.get(classifierFunction), 1, name);
+  }
+});
+
+test("power negative odd boundary corpus covers signed finite and overflow classifier paths", () => {
+  const corpus = boundaryNeighborCorpus();
+  for (const fixture of [
+    { name: "finite", a: -finiteBoundaryBase, b: 3, success: true },
+    { name: "overflow", a: -overflowBoundaryBase, b: 3, success: false },
+  ]) {
+    assert.ok(
+      corpus.some(([a, b]) => Object.is(a, fixture.a) && Object.is(b, fixture.b)),
+      `${fixture.name} negative odd boundary must be present in the exhaustive corpus`,
+    );
+
+    const result = runFunction("power", { a: fixture.a, b: fixture.b, ans: 91, error: "stale_error" });
+    const expected = Math.fround(Math.pow(fixture.a, fixture.b));
+    assert.equal(result.functionCalls.get(classifierFunction), 1, `${fixture.name} classifier calls`);
+    assert.equal(result.returned === 1, fixture.success, `${fixture.name} classification`);
+    assert.equal(Number.isFinite(expected), fixture.success, `${fixture.name} reference classification`);
+
+    if (fixture.success) {
+      const actual = result.storage["math:"].ans;
+      const modeled = classifyPower(fixture.a, fixture.b, 18);
+      const modeledAnswer = Math.fround(-evaluateExp(modeled.evaluationExponent));
+      assert.ok(actual < 0, "finite negative odd boundary must preserve its sign");
+      assert.ok(Math.abs((actual - expected) / expected) <= 0.00005, "finite signed answer must meet the power error contract");
+      assert.equal(modeled.overflow, false);
+      assert.equal(modeledAnswer, actual, "degree-18 model must match the deployed signed answer");
+      assert.equal(result.storage["math:"].error, undefined);
+    }
+    else {
+      assert.equal(result.storage["math:"].ans, undefined);
+      assert.equal(result.storage["math:"].error, "result_out_of_range");
+    }
   }
 });
 
@@ -225,35 +276,49 @@ test("power overflow-classifier provider work falls below its staged baseline", 
   assert.ok(maximum <= 177, `power classifier provider maximum is ${maximum}; budget 177`);
 });
 
-test("power boundary materializes its public classifier fields once and in dependency order", () => {
-  const fields = [
-    "w_power_log_high",
-    "w_power_log_low",
-    "w_power_product_high",
-    "w_power_product_low",
-    "w_power_delta",
-  ];
+test("power boundary fields have one classifier writer and own only preceding dependencies", () => {
   const ordinary = runFunction("power", POWER_PATHS.ordinary.input).storage["math:internal"];
-  assert.deepEqual(fields.filter((field) => field in ordinary), []);
+  assert.deepEqual(boundaryFields.filter((field) => field in ordinary), []);
 
   const boundary = runFunction("power", POWER_PATHS.finiteBoundary.input).storage["math:internal"];
-  for (const field of fields) assert.equal(typeof boundary[field], "number", `${field} must be materialized`);
+  for (const field of boundaryFields) assert.equal(typeof boundary[field], "number", `${field} must be materialized`);
 
   const commands = graph.functions.get(classifierFunction);
-  const writeIndexes = fields.map((field) => {
-    const matches = commands
-      .map((command, index) => command.includes(`math:internal ${field} set compute`) ? index : -1)
-      .filter((index) => index >= 0);
-    assert.equal(matches.length, 1, `${field} must be written once`);
-    return matches[0];
+  const writeIndexes = boundaryFields.map((field) => {
+    const writers = [];
+    for (const [functionName, functionCommands] of graph.functions) {
+      functionCommands.forEach((command, index) => {
+        if (command.startsWith(`data modify storage math:internal ${field} set `)) {
+          writers.push({ functionName, index });
+        }
+      });
+    }
+    assert.deepEqual(writers, [{ functionName: classifierFunction, index: commands.findIndex((command) => (
+      command.startsWith(`data modify storage math:internal ${field} set `)
+    )) }], `${field} must have exactly one writer in ${classifierFunction}`);
+    return writers[0].index;
   });
   assert.deepEqual(writeIndexes, [...writeIndexes].sort((left, right) => left - right));
 
-  function storagePaths(value, paths = []) {
-    if (!value || typeof value !== "object") return paths;
-    if (value.type === "minecraft:storage") paths.push(`${value.storage}|${value.path}`);
-    for (const child of Array.isArray(value) ? value : Object.values(value)) storagePaths(child, paths);
-    return paths;
+  const dependencyOwners = [
+    ["w_power_log_high", "math:power/classify/log/renormalize/high/00", ["math:internal|x", "math:internal|z"]],
+    ["w_power_log_low", "math:power/classify/log/renormalize/low/00", [
+      "math:internal|w_power_log_high", "math:internal|x", "math:internal|z",
+    ]],
+    ["w_power_product_high", "math:power/classify/product/high/00", [
+      "math:internal|w_power_log_high", "math:|b",
+    ]],
+    ["w_power_product_low", "math:power/classify/product/low/00", [
+      "math:internal|w_power_log_high", "math:internal|w_power_log_low",
+      "math:internal|w_power_product_high", "math:|b",
+    ]],
+    ["w_power_delta", "math:power/classify/delta/00", [
+      "math:internal|w_power_product_high", "math:internal|w_power_product_low",
+    ]],
+  ];
+  for (const [field, providerId, allowed] of dependencyOwners) {
+    const actual = [...new Set(storagePaths(graph.providers.get(providerId)))].sort();
+    assert.deepEqual(actual, [...allowed].sort(), `${field} dependency ownership`);
   }
 
   const stagedComparison = graph.providers.get("math:internal/comparison/predicate/power/classifier_overflow/minimum");
@@ -262,7 +327,7 @@ test("power boundary materializes its public classifier fields once and in depen
 
 test("power classifier degree is selected by the exhaustive boundary-neighbor gate", (t) => {
   const cases = boundaryNeighborCorpus();
-  assert.equal(cases.length, 4_500);
+  assert.equal(cases.length, 4_518);
 
   const deployed = cases.map(([a, b]) => {
     const result = runFunction("power", { a, b, ans: 91, error: "stale_error" });
@@ -337,5 +402,5 @@ test("power classifier degree is selected by the exhaustive boundary-neighbor ga
     .map(Number);
   const deployedDegree = Math.max(...polynomialStages) + 1;
   assert.equal(deployedDegree, selectedDegree);
-  t.diagnostic(`4500 adjacent boundary cases; selected degree ${selectedDegree}; ${JSON.stringify(candidateResults)}`);
+  t.diagnostic(`4518 adjacent boundary cases; selected degree ${selectedDegree}; ${JSON.stringify(candidateResults)}`);
 });
