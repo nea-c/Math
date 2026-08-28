@@ -116,7 +116,10 @@ test("normalization and divide lookup pack growth stays within an explicit load 
     path.join(providerRoot, "internal", "divide", "scale.json"),
     path.join(providerRoot, "internal", "divide", "factor.json"),
   ]) assert.equal(fs.existsSync(alias), false, `${alias} must not duplicate a shared exp provider`);
-  const serializedBytes = files.reduce((total, file) => total + fs.statSync(file).size, 0);
+  const serializedBytes = files.reduce((total, file) => {
+    const serialized = fs.readFileSync(file, "utf8").replaceAll("\r\n", "\n");
+    return total + Buffer.byteLength(serialized, "utf8");
+  }, 0);
   const expandedNodes = files.reduce((total, file) => {
     const id = `math:${path.relative(providerRoot, file).replaceAll("\\", "/").replace(/\.json$/, "")}`;
     return total + expandedProviderNodes(id, graph);
