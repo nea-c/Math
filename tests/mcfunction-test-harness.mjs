@@ -84,6 +84,7 @@ function runWithStorage(name, publicInput, internalInput) {
     if (typeof value === "number") numericTags.set(storageFieldKey("math:", `curve[${index}]`), "float");
   }
   let returned;
+  let commandsExecuted = 0;
 
   function predicateMatches(id) {
     const predicate = predicates.get(id);
@@ -125,6 +126,7 @@ function runWithStorage(name, publicInput, internalInput) {
       const command = sourceCommand.startsWith("$")
         ? sourceCommand.slice(1).replaceAll(/\$\(([A-Za-z0-9_]+)\)/g, (_, key) => `${macros[key]}`)
         : sourceCommand;
+      commandsExecuted += 1;
       const result = execute(command);
       if (result !== undefined) return result;
     }
@@ -242,7 +244,7 @@ function runWithStorage(name, publicInput, internalInput) {
   }
 
   returned = runCommands(name);
-  return { storage, numericTags, returned };
+  return { storage, numericTags, returned, commandsExecuted };
 }
 
 export function runFunction(name, publicInput) {
