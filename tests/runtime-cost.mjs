@@ -120,21 +120,45 @@ function functionCall(command) {
 }
 
 function emptyCost() {
-  return { commands: 0, providerNodes: 0, calls: [] };
+  return {
+    commands: 0,
+    providerNodes: 0,
+    calls: { commands: [], providerNodes: [] },
+  };
 }
 
 function addCosts(...costs) {
   return costs.reduce((total, cost) => ({
     commands: total.commands + cost.commands,
     providerNodes: total.providerNodes + cost.providerNodes,
-    calls: [...total.calls, ...cost.calls],
+    calls: {
+      commands: [...total.calls.commands, ...cost.calls.commands],
+      providerNodes: [...total.calls.providerNodes, ...cost.calls.providerNodes],
+    },
   }), emptyCost());
 }
 
-function greaterCost(left, right) {
-  if (left.commands !== right.commands) return left.commands > right.commands ? left : right;
-  if (left.providerNodes !== right.providerNodes) return left.providerNodes > right.providerNodes ? left : right;
-  return left.calls.length >= right.calls.length ? left : right;
+function metricMaximum(left, right, metric, secondaryMetric) {
+  if (left[metric] !== right[metric]) return left[metric] > right[metric] ? left : right;
+  if (left[secondaryMetric] !== right[secondaryMetric]) {
+    return left[secondaryMetric] > right[secondaryMetric] ? left : right;
+  }
+  return left.calls[metric].length >= right.calls[metric].length ? left : right;
+}
+
+function maximumCosts(left, right) {
+  // A conditional can maximize commands and provider work on different paths.
+  // Keep both maxima and the call evidence associated with each one.
+  const commandMaximum = metricMaximum(left, right, "commands", "providerNodes");
+  const providerMaximum = metricMaximum(left, right, "providerNodes", "commands");
+  return {
+    commands: commandMaximum.commands,
+    providerNodes: providerMaximum.providerNodes,
+    calls: {
+      commands: commandMaximum.calls.commands,
+      providerNodes: providerMaximum.calls.providerNodes,
+    },
+  };
 }
 
 export function staticFunctionCost(pathText, graph, { recursionLimit = 320 } = {}) {
@@ -150,17 +174,25 @@ export function staticFunctionCost(pathText, graph, { recursionLimit = 320 } = {
     const visitCommands = (index) => {
       if (index >= commands.length) return emptyCost();
       const command = commands[index];
-      const own = { commands: 1, providerNodes: commandProviderNodes(command, graph), calls: [] };
+      const own = {
+        commands: 1,
+        providerNodes: commandProviderNodes(command, graph),
+        calls: { commands: [], providerNodes: [] },
+      };
       const call = depth < recursionLimit ? functionCall(command) : undefined;
       if (!call) return addCosts(own, visitCommands(index + 1));
 
       const child = addCosts(
-        { commands: 0, providerNodes: 0, calls: [call.path] },
+        {
+          commands: 0,
+          providerNodes: 0,
+          calls: { commands: [call.path], providerNodes: [call.path] },
+        },
         visit(call.path, depth + 1),
       );
       if (!call.terminal) return addCosts(own, child, visitCommands(index + 1));
       if (!call.conditional) return addCosts(own, child);
-      return addCosts(own, greaterCost(child, visitCommands(index + 1)));
+      return addCosts(own, maximumCosts(child, visitCommands(index + 1)));
     };
     const cost = visitCommands(0);
     cache.set(cacheKey, cost);

@@ -49,7 +49,8 @@ test("runtime cost reports public command work", () => {
   const cost = staticFunctionCost("tan/0.start", graph, { recursionLimit: 320 });
   assert.ok(cost.commands > 0);
   assert.ok(cost.providerNodes > 0);
-  assert.ok(cost.calls.includes(".common/tan/0.start"));
+  assert.ok(cost.calls.commands.includes(".common/tan/0.start"));
+  assert.ok(cost.calls.providerNodes.includes(".common/tan/0.start"));
 });
 
 test("harness exposes dynamically executed command count", () => {
@@ -72,7 +73,8 @@ test("runtime cost caps recursive function calls", () => {
   };
   const cost = staticFunctionCost("loop", recursiveGraph, { recursionLimit: 2 });
   assert.equal(cost.commands, 3);
-  assert.deepEqual(cost.calls, ["loop", "loop"]);
+  assert.deepEqual(cost.calls.commands, ["loop", "loop"]);
+  assert.deepEqual(cost.calls.providerNodes, ["loop", "loop"]);
 });
 
 test("runtime cost adds sequential function calls", () => {
@@ -87,7 +89,8 @@ test("runtime cost adds sequential function calls", () => {
   };
   const cost = staticFunctionCost("start", sequentialGraph);
   assert.equal(cost.commands, 4);
-  assert.deepEqual(cost.calls, ["left", "right"]);
+  assert.deepEqual(cost.calls.commands, ["left", "right"]);
+  assert.deepEqual(cost.calls.providerNodes, ["left", "right"]);
 });
 
 test("runtime cost follows the larger terminating conditional branch", () => {
@@ -102,7 +105,28 @@ test("runtime cost follows the larger terminating conditional branch", () => {
   };
   const cost = staticFunctionCost("start", branchingGraph);
   assert.equal(cost.commands, 3);
-  assert.deepEqual(cost.calls, ["left"]);
+  assert.deepEqual(cost.calls.commands, ["left"]);
+  assert.deepEqual(cost.calls.providerNodes, ["left"]);
+});
+
+test("runtime cost retains an independent provider maximum from a shorter branch", () => {
+  const branchingGraph = {
+    functions: new Map([
+      ["start", ["execute if data storage math: {a:1} run return run function math:left", "function math:right"]],
+      ["left", ["data modify storage math:internal x set compute default math:heavy"]],
+      ["right", ["say right", "say right again"]],
+    ]),
+    providers: new Map([["math:heavy", {
+      type: "minecraft:sum",
+      operands: Array.from({ length: 20 }, () => 1),
+    }]]),
+    predicates: new Map(),
+  };
+  const cost = staticFunctionCost("start", branchingGraph);
+  assert.equal(cost.commands, 4);
+  assert.equal(cost.providerNodes, 21);
+  assert.deepEqual(cost.calls.commands, ["right"]);
+  assert.deepEqual(cost.calls.providerNodes, ["left"]);
 });
 
 test("runtime cost includes number-dispatcher case conditions", () => {
@@ -152,7 +176,10 @@ test("shared normalization reduces representative log and divide command counts"
 test("static divide cost includes both sequential normalizer calls", () => {
   const cost = staticFunctionCost("divide/0.start", graph, { recursionLimit: 320 });
   assert.equal(cost.commands, 77);
-  assert.equal(cost.calls.filter(call => call === ".common/normalize_binary32/0.start").length, 2);
+  assert.equal(
+    cost.calls.commands.filter(call => call === ".common/normalize_binary32/0.start").length,
+    2,
+  );
 });
 
 test("honest static log and divide costs stay within measured head budgets", () => {
