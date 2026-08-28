@@ -108,3 +108,8 @@ test("runtime command budgets are deterministic for normal and boundary inputs",
     }
   }
 });
+
+test("tangent shared phase executes fewer commands than the Task 1 baselines", () => {
+  assert.ok(runFunction("tan", { a: 1 }).commandsExecuted < 93);
+  assert.ok(runFunction("tan_degrees", { a: 45 }).commandsExecuted < 94);
+});

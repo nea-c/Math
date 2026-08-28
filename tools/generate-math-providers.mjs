@@ -340,7 +340,7 @@ emit("sin/compare/positive_upper", floatComparison(x, halfPiNext));
 emit("sin/compare/negative_lower", floatComparison(x, -halfPiNext));
 emit("sin/compare/negative_upper", floatComparison(x, -halfPiPrevious));
 emit("cos/00", sum(x, halfPi));
-emit("tan/00", product(publicAnswer, z));
+emit("tan/00", product(storage("math:internal", "w_tan_sin"), x));
 const tangentGuardBase = 0.00002;
 const tangentGuardBaseUp = nextPositiveFloat(tangentGuardBase);
 const tangentGuardInflation = 1 + 2 ** -20;
@@ -1442,15 +1442,23 @@ emitFunction(FUNCTION_PATHS.cos, [
 ]);
 
 emitFunction(FUNCTION_PATHS.tan, [
-  `function ${functionId(FUNCTION_PATHS.sin)}`,
-  "data modify storage math: ans set compute default math:common/input/x",
-  "data modify storage math:internal x set from storage math:internal w",
-  `function ${functionId(FUNCTION_PATHS.cos)}`,
+  "data modify storage math:internal y set compute default math:common/constant/tau",
+  `function ${functionId(FUNCTION_PATHS.normalizePeriod)}`,
+  "data modify storage math:internal w_tan_phase set from storage math:internal z",
+  "data modify storage math:internal x set from storage math:internal z",
+  `function ${functionId(FUNCTION_PATHS.sinEvaluate)}`,
+  "data modify storage math:internal w_tan_sin set from storage math:internal x",
+  "data modify storage math:internal x set from storage math:internal w_tan_phase",
+  "data modify storage math:internal x set compute default math:cos/00",
+  "data modify storage math:internal z set from storage math:internal x",
+  `function ${functionId(FUNCTION_PATHS.sinEvaluate)}`,
+  "data modify storage math:internal w_tan_cos set from storage math:internal x",
   "return 1",
 ]);
 
 function tangentResultLines(predicate, variant) {
   return [
+    "data modify storage math:internal x set from storage math:internal w_tan_cos",
     `data modify storage math:internal w_comparison.tan_domain set compute default math:tan/guard/${variant}/compare_domain`,
     ...stagePredicate(`tan/undefined_${variant}`),
     `execute if predicate ${predicate} run data remove storage math: ans`,
@@ -1458,7 +1466,6 @@ function tangentResultLines(predicate, variant) {
     `execute if predicate ${predicate} run return fail`,
     "data modify storage math:internal y set value 1.0f",
     `function ${functionId(FUNCTION_PATHS.reciprocal)}`,
-    "data modify storage math:internal z set compute default math:common/input/x",
     "data modify storage math: ans set compute default math:tan/00",
     "return 1",
   ];
@@ -1591,4 +1598,3 @@ try {
   console.error(error.message);
   process.exitCode = 1;
 }
-

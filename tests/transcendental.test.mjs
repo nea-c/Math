@@ -607,6 +607,14 @@ test("trigonometric generated graphs use shared-kernel responsibility directorie
   assert.ok(fs.existsSync("Math/data/math/predicate/internal/tan/undefined_degrees.json"));
 });
 
+test("tan normalizes its input once and reuses one phase", () => {
+  const source = fs.readFileSync("Math/data/math/function/.common/tan/0.start.mcfunction", "utf8");
+  assert.equal((source.match(/math:\.common\/normalize_period\/0\.start/g) ?? []).length, 1);
+  assert.doesNotMatch(source, /math:\.common\/(?:sin|cos)\/0\.start/);
+  assert.match(source, /w_tan_sin/);
+  assert.match(source, /w_tan_cos/);
+});
+
 test("sine and cosine snap exact axes and preserve signed zero", () => {
   const pi = Math.fround(Math.PI);
   for (const [name, input, expected, negativeZero = false] of [

@@ -3,13 +3,13 @@
   "operands": [
     {
       "type": "minecraft:storage",
-      "storage": "math:",
-      "path": "ans"
+      "storage": "math:internal",
+      "path": "w_tan_sin"
     },
     {
       "type": "minecraft:storage",
       "storage": "math:internal",
-      "path": "z"
+      "path": "x"
     }
   ]
 }
