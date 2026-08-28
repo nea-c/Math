@@ -1,15 +1,15 @@
 {
-  "type": "minecraft:sum",
+  "type": "minecraft:product",
   "operands": [
     {
       "type": "minecraft:storage",
       "storage": "math:internal",
-      "path": "w_divide_quotient"
+      "path": "y"
     },
     {
       "type": "minecraft:storage",
       "storage": "math:internal",
-      "path": "w_divide_correction"
+      "path": "w_normalize_multiplier_a"
     }
   ]
 }

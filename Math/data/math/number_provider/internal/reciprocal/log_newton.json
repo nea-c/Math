@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_log_reciprocal"
+    },
+    {
+      "type": "minecraft:sum",
+      "operands": [
+        2,
+        {
+          "type": "minecraft:product",
+          "operands": [
+            -1,
+            {
+              "type": "minecraft:storage",
+              "storage": "math:internal",
+              "path": "w_log_mantissa"
+            },
+            {
+              "type": "minecraft:storage",
+              "storage": "math:internal",
+              "path": "w_log_reciprocal"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

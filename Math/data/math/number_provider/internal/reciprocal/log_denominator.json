@@ -2,6 +2,10 @@
   "type": "minecraft:product",
   "operands": [
     0.25,
-    "math:internal/reciprocal/log_newton/02/00"
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_log_reciprocal"
+    }
   ]
 }

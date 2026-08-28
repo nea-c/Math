@@ -311,6 +311,47 @@ test("divide stays within one min-subnormal ULP on a 12,288-case boundary grid",
   assert.ok(maximumUlpError <= 1, `${overOneUlp} grid cases exceeded one min-subnormal ULP; maximum ${maximumUlpError} at ${worstCase}`);
 });
 
+test("divide compensation providers consume materialized fields in dependency order", () => {
+  const expectedDependencies = new Map([
+    ["product/high", ["w_divide_b_mantissa", "w_divide_quotient"]],
+    ["product/low", ["w_divide_b_mantissa", "w_divide_quotient"]],
+    ["residual/high", ["w_divide_a_mantissa", "w_divide_product_high"]],
+    ["residual/low", ["w_divide_a_mantissa", "w_divide_product_high", "w_divide_product_low"]],
+    ["correction", ["w_divide_reciprocal", "w_divide_residual_high", "w_divide_residual_low"]],
+    ["refined_quotient", ["w_divide_correction", "w_divide_quotient"]],
+  ]);
+
+  const storagePaths = (provider, paths = []) => {
+    if (typeof provider === "string") assert.fail(`unexpected repeated provider reference ${provider}`);
+    if (!provider || typeof provider !== "object") return paths;
+    if (provider.type === "minecraft:storage" && provider.storage === "math:internal") paths.push(provider.path);
+    for (const operand of provider.operands ?? []) storagePaths(operand, paths);
+    return paths;
+  };
+
+  for (const [name, expected] of expectedDependencies) {
+    const file = path.join(providerRoot, "internal", "divide", ...name.split("/")) + ".json";
+    const provider = JSON.parse(fs.readFileSync(file, "utf8"));
+    assert.deepEqual([...new Set(storagePaths(provider))].sort(), expected.sort(), name);
+  }
+
+  const source = fs.readFileSync("Math/data/math/function/divide/0.start.mcfunction", "utf8");
+  const fields = [
+    "w_divide_product_high",
+    "w_divide_product_low",
+    "w_divide_residual_high",
+    "w_divide_residual_low",
+    "w_divide_correction",
+    "x set compute default math:internal/divide/refined_quotient",
+  ];
+  let previous = -1;
+  for (const field of fields) {
+    const index = source.indexOf(field);
+    assert.ok(index > previous, `${field} must follow its dependencies`);
+    previous = index;
+  }
+});
+
 test("rounding wrappers honor signed half boundaries and the float integer limit", () => {
   const cases = [
     [-16_777_217, [-16_777_216, -16_777_216, -16_777_216, -16_777_216]],

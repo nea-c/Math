@@ -18,7 +18,7 @@ test("function layout defines the complete public API", () => {
 });
 
 test("function layout assigns representative owned and common helpers", () => {
-  assert.equal(Object.keys(FUNCTION_PATHS).length, 44);
+  assert.equal(Object.keys(FUNCTION_PATHS).length, 39);
   assert.equal(FUNCTION_PATHS.invalidNumber, ".common/_error/invalid_number");
   assert.equal(FUNCTION_PATHS.resultOutOfRange, ".common/_error/result_out_of_range");
   assert.equal(FUNCTION_PATHS.invalidCurve, ".common/_error/invalid_curve");
@@ -26,10 +26,23 @@ test("function layout assigns representative owned and common helpers", () => {
   assert.equal(FUNCTION_PATHS.bezierValidateCurve, "bezier/1.validate_curve");
   assert.equal(FUNCTION_PATHS.bezierSolve, "bezier/2.solve");
   assert.equal(FUNCTION_PATHS.bezierFinish, "bezier/3.finish");
-  assert.equal(FUNCTION_PATHS.divideNormalize, "divide/1.normalize");
+  assert.equal(FUNCTION_PATHS.divideUnderflow, "divide/4.underflow");
   assert.equal(FUNCTION_PATHS.powerClassifyOverflow, "power/9.classify_overflow");
   assert.equal(FUNCTION_PATHS.reciprocal, ".common/reciprocal/0.start");
-  assert.equal(FUNCTION_PATHS.logNormalizeScaleDown, ".common/log/4.normalize_scale_down");
+  assert.equal(FUNCTION_PATHS.normalizeBinary32, ".common/normalize_binary32/0.start");
+  for (const retired of [
+    "reciprocalScaleUp",
+    "reciprocalFinishAtScaleLimit",
+    "reciprocalScaleDown",
+    "logNormalizeScaleUp",
+    "logNormalizeScaleDown",
+    "logNormalize",
+    "divideNormalizeScaleUp",
+    "divideNormalizeScaleDown",
+    "divideNormalize",
+  ]) {
+    assert.equal(Object.hasOwn(FUNCTION_PATHS, retired), false, `${retired} must stay retired`);
+  }
   assert.equal(functionId(FUNCTION_PATHS.sinEvaluate), "math:.common/sin/1.evaluate");
 });
 

@@ -11,7 +11,15 @@
       "storage": "math:internal",
       "path": "w_divide_sign"
     },
-    "math:exp/factor/00",
-    "math:exp/scale/00"
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_divide_factor"
+    },
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_divide_scale"
+    }
   ]
 }

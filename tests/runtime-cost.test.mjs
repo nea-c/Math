@@ -113,3 +113,15 @@ test("tangent shared phase executes fewer commands than the Task 1 baselines", (
   assert.ok(runFunction("tan", { a: 1 }).commandsExecuted < 93);
   assert.ok(runFunction("tan_degrees", { a: 45 }).commandsExecuted < 94);
 });
+
+test("shared normalization reduces representative log and divide command counts", () => {
+  assert.ok(runFunction("log", { a: 3 }).commandsExecuted < 40);
+  assert.ok(runFunction("divide", { a: 7, b: 3 }).commandsExecuted < 91);
+});
+
+test("active divide providers do not exceed the Task 1 node maximum", () => {
+  for (const id of graph.providers.keys()) {
+    if (!id.startsWith("math:internal/divide/")) continue;
+    assert.ok(expandedProviderNodes(id, graph) <= 568, `${id} exceeds 568 expanded nodes`);
+  }
+});

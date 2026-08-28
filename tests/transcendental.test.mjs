@@ -189,9 +189,9 @@ test("square root stays within tolerance for 10,000 deterministic positive binar
 test("log exp and power generated graphs use responsibility subdirectories", () => {
   for (const provider of [
     "log/00.json",
-    "log/normalize/compare_below_one/00.json",
-    "log/normalize/compare_at_least_two/00.json",
     "log/normalize/compare_center/00.json",
+    "log/normalize/centered_mantissa/00.json",
+    "log/normalize/centered_exponent/00.json",
     "log/polynomial/00.json",
     "exp/00.json",
     "exp/reduce/quotient/00.json",
@@ -605,6 +605,32 @@ test("trigonometric generated graphs use shared-kernel responsibility directorie
   }
   assert.ok(fs.existsSync("Math/data/math/predicate/internal/tan/undefined_radians.json"));
   assert.ok(fs.existsSync("Math/data/math/predicate/internal/tan/undefined_degrees.json"));
+});
+
+test("log materializes three private Newton updates with small active providers", () => {
+  const providerRoot = path.join("Math/data/math/number_provider/internal/reciprocal");
+  for (const stage of ["00", "01", "02"]) {
+    assert.equal(fs.existsSync(path.join(providerRoot, "log_newton", stage, "00.json")), false);
+  }
+
+  const providers = new Map();
+  for (const entry of fs.readdirSync("Math/data/math/number_provider", { recursive: true, withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
+    const file = path.join(entry.parentPath, entry.name);
+    const relative = path.relative("Math/data/math/number_provider", file).replaceAll("\\", "/").replace(/\.json$/, "");
+    providers.set(`math:${relative}`, JSON.parse(fs.readFileSync(file, "utf8")));
+  }
+  const expandedNodes = (provider) => {
+    if (typeof provider === "number") return 1;
+    if (typeof provider === "string") return expandedNodes(providers.get(provider));
+    return 1 + (provider.operands ?? []).reduce((total, operand) => total + expandedNodes(operand), 0);
+  };
+  for (const name of ["log_initial", "log_newton", "log_denominator"]) {
+    assert.ok(expandedNodes(providers.get(`math:internal/reciprocal/${name}`)) < 60, `${name} is too large`);
+  }
+
+  const source = fs.readFileSync("Math/data/math/function/.common/log/0.start.mcfunction", "utf8");
+  assert.equal((source.match(/w_log_reciprocal set compute default math:internal\/reciprocal\/log_newton/g) ?? []).length, 3);
 });
 
 test("tan normalizes its input once and reuses one phase", () => {

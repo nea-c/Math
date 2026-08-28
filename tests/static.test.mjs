@@ -549,7 +549,9 @@ test("every dispatcher condition reads an integer-valued staged or reduced field
         const reducedExponent = file.includes(`${path.sep}exp${path.sep}`)
           && value.storage === "math:internal"
           && value.path === "z";
-        assert.ok(staged || reducedExponent, `${file} condition source is not proven integer-valued`);
+        const materializedExponent = value.storage === "math:internal"
+          && ["w_normalize_exponent", "w_divide_exponent"].includes(value.path);
+        assert.ok(staged || reducedExponent || materializedExponent, `${file} condition source is not proven integer-valued`);
       }
     }
   }

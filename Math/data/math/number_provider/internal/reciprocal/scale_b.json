@@ -1,15 +1,15 @@
 {
-  "type": "minecraft:sum",
+  "type": "minecraft:product",
   "operands": [
     {
       "type": "minecraft:storage",
       "storage": "math:internal",
-      "path": "z"
+      "path": "x"
     },
     {
       "type": "minecraft:storage",
       "storage": "math:internal",
-      "path": "w"
+      "path": "w_normalize_multiplier_b"
     }
   ]
 }

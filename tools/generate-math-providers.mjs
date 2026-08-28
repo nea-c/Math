@@ -127,15 +127,23 @@ function numberDispatcher(cases, defaultValue = 0) {
   };
 }
 
-function balancedNumberLookup(entries, selectValue) {
+function balancedRangeLookup(entries, selector, selectValue) {
   if (entries.length === 1) return selectValue(entries[0]);
   const middle = Math.floor(entries.length / 2);
   const lower = entries.slice(0, middle);
   const upper = entries.slice(middle);
   return numberDispatcher([{
-    condition: inlineValueCheck(z, undefined, lower.at(-1).exponent),
-    number_provider: balancedNumberLookup(lower, selectValue),
-  }], balancedNumberLookup(upper, selectValue));
+    condition: inlineValueCheck(selector, undefined, lower.at(-1).maximum),
+    number_provider: balancedRangeLookup(lower, selector, selectValue),
+  }], balancedRangeLookup(upper, selector, selectValue));
+}
+
+function balancedNumberLookup(entries, selectValue) {
+  return balancedRangeLookup(
+    entries.map(entry => ({ ...entry, maximum: entry.exponent })),
+    z,
+    selectValue,
+  );
 }
 
 function subtractExpression(left, right) {
@@ -188,6 +196,61 @@ function nextPositiveFloat(value) {
   view.setUint32(0, view.getUint32(0) + 1);
   return view.getFloat32(0);
 }
+
+// The common contract accepts a positive magnitude. Callers that retain a
+// sign (reciprocal) restore it after the shared normalization stage.
+const normalizeMagnitude = x;
+const normalizeExponentEntries = [];
+for (let exponent = -149; exponent <= 127; exponent += 1) {
+  const multiplierExponent = -exponent;
+  normalizeExponentEntries.push({
+    exponent,
+    maximum: exponent,
+    scale: Math.fround(2 ** exponent),
+    multiplierA: multiplierExponent > 127 ? Math.fround(2 ** 127) : Math.fround(2 ** multiplierExponent),
+    multiplierB: multiplierExponent > 127 ? Math.fround(2 ** (multiplierExponent - 127)) : 1,
+  });
+}
+
+// Each clipped adjacent-float comparison contributes one exact integer step.
+// Materializing the sum gives an exponent selector in [-149, 127] without an
+// infinite constant, even for the minimum subnormal input.
+const normalizeExponentSteps = [];
+for (let exponent = -148; exponent <= 127; exponent += 1) {
+  const threshold = Math.fround(2 ** exponent);
+  const previous = previousPositiveFloat(threshold);
+  const spacing = Math.fround(threshold - previous);
+  const difference = sum(normalizeMagnitude, -previous);
+  const adjacentStep = spacing < Math.fround(2 ** -127)
+    ? product(difference, Math.fround(2 ** 127), Math.fround(1 / (spacing * 2 ** 127)))
+    : product(difference, Math.fround(1 / spacing));
+  normalizeExponentSteps.push(minimum(
+    1,
+    maximum(0, adjacentStep),
+  ));
+}
+const storedNormalizeExponent = storage("math:internal", "w_normalize_exponent");
+const storedNormalizeMultiplierA = storage("math:internal", "w_normalize_multiplier_a");
+const storedNormalizeMultiplierB = storage("math:internal", "w_normalize_multiplier_b");
+const storedNormalizeMantissa = storage("math:internal", "w_normalize_mantissa");
+emit("common/normalize/binary32/exponent", sum(-149, ...normalizeExponentSteps));
+emit("common/normalize/binary32/scale", balancedRangeLookup(
+  normalizeExponentEntries,
+  storedNormalizeExponent,
+  entry => entry.scale,
+));
+emit("common/normalize/binary32/multiplier_a", balancedRangeLookup(
+  normalizeExponentEntries,
+  storedNormalizeExponent,
+  entry => entry.multiplierA,
+));
+emit("common/normalize/binary32/multiplier_b", balancedRangeLookup(
+  normalizeExponentEntries,
+  storedNormalizeExponent,
+  entry => entry.multiplierB,
+));
+emit("common/normalize/binary32/mantissa_a", product(x, storedNormalizeMultiplierA));
+emit("common/normalize/binary32/mantissa_b", product(storedNormalizeMantissa, storedNormalizeMultiplierB));
 
 for (const [name, provider] of Object.entries({ x, y, z, w })) emit(`common/input/${name}`, provider);
 
@@ -378,6 +441,7 @@ const stagedReciprocalAbsolute = maximum(x, product(-1, x));
 const stagedReciprocalMantissa = product(0.5, stagedReciprocalAbsolute);
 const storedReciprocalMantissa = storage("math:internal", "w_reciprocal_mantissa");
 const storedReciprocalEstimate = storage("math:internal", "w_reciprocal_estimate");
+const storedReciprocalSign = storage("math:internal", "w_reciprocal_sign");
 emit("internal/reciprocal/mantissa", stagedReciprocalMantissa);
 emit("internal/reciprocal/initial_estimate", sum(
   Math.fround(48 / 17),
@@ -392,11 +456,18 @@ emit("internal/reciprocal/compare/at_least_two", product(
   sum(stagedReciprocalAbsolute, -2),
   Math.fround(2 ** 24),
 ));
-emit("internal/reciprocal/compare/scale_at_limit", floatComparison(y, Math.fround(2 ** 127)));
+emit("internal/reciprocal/compare/below_half", floatComparison(stagedReciprocalAbsolute, 0.5));
+emit("internal/reciprocal/compare/at_least_four", product(
+  sum(stagedReciprocalAbsolute, -4),
+  Math.fround(2 ** 22),
+));
 emit("internal/reciprocal/double_x", product(2, x));
 emit("internal/reciprocal/double_y", product(2, y));
 emit("internal/reciprocal/half_x", product(0.5, x));
 emit("internal/reciprocal/half_y", product(0.5, y));
+emit("internal/reciprocal/scale_a", product(y, storedNormalizeMultiplierA));
+emit("internal/reciprocal/scale_b", product(x, storedNormalizeMultiplierB));
+emit("internal/reciprocal/apply_sign", product(x, storedReciprocalSign));
 emit("internal/reciprocal/normalized", product(
   x,
   0.25,
@@ -415,19 +486,10 @@ const divideProductHigh = storage("math:internal", "w_divide_product_high");
 const divideProductLow = storage("math:internal", "w_divide_product_low");
 const divideResidualHigh = storage("math:internal", "w_divide_residual_high");
 const divideResidualLow = storage("math:internal", "w_divide_residual_low");
-let divideReciprocalEstimate = sum(
-  Math.fround(48 / 17),
-  product(Math.fround(-32 / 17), stagedReciprocalMantissa),
-);
-for (let stage = 0; stage < 4; stage += 1) {
-  divideReciprocalEstimate = product(
-    divideReciprocalEstimate,
-    sum(2, product(-1, stagedReciprocalMantissa, divideReciprocalEstimate)),
-  );
-}
-emit("internal/divide/normalize/increment_exponent", sum(y, 1));
-emit("internal/divide/normalize/decrement_exponent", sum(y, -1));
-emit("internal/divide/normalized_reciprocal", product(0.5, divideReciprocalEstimate));
+const divideCorrection = storage("math:internal", "w_divide_correction");
+const divideScale = storage("math:internal", "w_divide_scale");
+const divideFactor = storage("math:internal", "w_divide_factor");
+emit("internal/divide/normalized_reciprocal", product(0.5, storedReciprocalEstimate));
 emit("internal/divide/product/high", product(divideBMantissa, divideQuotient));
 emit("internal/divide/product/low", twoProductLow(divideBMantissa, divideQuotient));
 emit("internal/divide/residual/high", subtractExpression(divideAMantissa, divideProductHigh));
@@ -439,29 +501,43 @@ emit("internal/divide/correction", product(
   sum(divideResidualHigh, divideResidualLow),
   divideReciprocal,
 ));
-emit("internal/divide/refined_quotient", sum(divideQuotient, "math:internal/divide/correction"));
+emit("internal/divide/refined_quotient", sum(divideQuotient, divideCorrection));
 emit("internal/divide/exponent_difference", sum(divideAExponent, product(-1, divideBExponent)));
 emit("internal/divide/flip_sign", product(-1, divideSign));
 emit("internal/divide/result", product(
   x,
   divideSign,
-  "math:exp/factor/00",
-  "math:exp/scale/00",
+  divideFactor,
+  divideScale,
 ));
-const logReciprocalMantissa = product(0.25, x);
-let logReciprocalEstimate = sum(
-  Math.fround(48 / 17),
-  product(Math.fround(-32 / 17), logReciprocalMantissa),
-);
-for (let stage = 0; stage < 3; stage += 1) {
-  const stagePath = `internal/reciprocal/log_newton/${stage.toString().padStart(2, "0")}/00`;
-  emit(stagePath, product(
-    logReciprocalEstimate,
-    sum(2, product(-1, logReciprocalMantissa, logReciprocalEstimate)),
-  ));
-  logReciprocalEstimate = `math:${stagePath}`;
+const divideScaleEntries = [];
+for (let exponent = -150; exponent <= 128; exponent += 1) {
+  divideScaleEntries.push({
+    exponent,
+    maximum: exponent,
+    scale: exponent === -150
+      ? smallestPositiveFloat
+      : exponent === 128
+        ? Math.fround(2 ** 127)
+        : Math.fround(2 ** exponent),
+    factor: exponent === -150 ? 0.5 : exponent === 128 ? 2 : 1,
+  });
 }
-emit("internal/reciprocal/log_denominator", product(0.25, logReciprocalEstimate));
+emit("internal/divide/scale", balancedRangeLookup(divideScaleEntries, divideExponent, entry => entry.scale));
+emit("internal/divide/factor", balancedRangeLookup(divideScaleEntries, divideExponent, entry => entry.factor));
+
+const storedLogMantissa = storage("math:internal", "w_log_mantissa");
+const storedLogReciprocal = storage("math:internal", "w_log_reciprocal");
+emit("internal/reciprocal/log_mantissa", product(0.25, x));
+emit("internal/reciprocal/log_initial", sum(
+  Math.fround(48 / 17),
+  product(Math.fround(-32 / 17), storedLogMantissa),
+));
+emit("internal/reciprocal/log_newton", product(
+  storedLogReciprocal,
+  sum(2, product(-1, storedLogMantissa, storedLogReciprocal)),
+));
+emit("internal/reciprocal/log_denominator", product(0.25, storedLogReciprocal));
 emitPredicate("comparison/negative_integer", inlineValueCheck(w, undefined, -1));
 emitPredicate("comparison/x_negative_integer", inlineValueCheck(x, undefined, -1));
 
@@ -487,17 +563,19 @@ emit("square_root/00", product(
 // Center the logarithm mantissa around one. Keeping the shared normalizer's
 // raw [1, 2) interval causes cancellation in log(m) + e*ln(2) for inputs near
 // one; [1/sqrt(2), sqrt(2)] keeps the relative error within the public bound.
-emit("log/normalize/base_exponent/00", sum(z, w));
 emit("log/normalize/compare_center/00", product(
-  sum(z, -Math.fround(Math.SQRT2)),
+  sum(storedNormalizeMantissa, -Math.fround(Math.SQRT2)),
   Math.fround(2 ** 23),
 ));
-emit("log/normalize/half_mantissa/00", product(0.5, z));
-emit("log/normalize/increment_exponent/00", sum(w, 1));
-emit("log/normalize/compare_below_one/00", product(sum(z, -1), Math.fround(2 ** 24)));
-emit("log/normalize/compare_at_least_two/00", product(sum(z, -2), Math.fround(2 ** 24)));
-emit("log/normalize/double_mantissa/00", product(2, z));
-emit("log/normalize/decrement_exponent/00", sum(w, -1));
+const logBelowCenter = inlineValueCheck(storage("math:internal", "w_comparison.log_center"), undefined, -1);
+emit("log/normalize/centered_mantissa/00", numberDispatcher([{
+  condition: logBelowCenter,
+  number_provider: storedNormalizeMantissa,
+}], product(0.5, storedNormalizeMantissa)));
+emit("log/normalize/centered_exponent/00", numberDispatcher([{
+  condition: logBelowCenter,
+  number_provider: storedNormalizeExponent,
+}], sum(storedNormalizeExponent, 1)));
 emit("log/normalize/numerator/00", sum(z, -1));
 emit("log/normalize/denominator/00", sum(z, 2));
 emit("log/normalize/u/00", product(x, z));
@@ -663,7 +741,7 @@ emitPredicate("divide/overflow_boundary", {
     inlineValueCheck(storage("math:internal", "w_comparison.predicate.divide_significand_at_or_above_overflow_boundary.minimum"), 0, undefined),
   ],
 });
-emitStagedPredicate("divide/exponent_underflows", y, undefined, -151);
+emitStagedPredicate("divide/exponent_underflows", divideExponent, undefined, -151);
 emit("internal/comparison/x_zero", floatComparison(x, 0));
 emitPredicate("range/negative", inlineValueCheck(storage("math:internal", "w_comparison.x_sign"), undefined, -1));
 emitPredicate("range/positive", inlineValueCheck(storage("math:internal", "w_comparison.x_sign"), 1, undefined));
@@ -896,12 +974,14 @@ function divisionByZeroLines() {
   ];
 }
 
-emitFunction(FUNCTION_PATHS.reciprocalScaleUp, [
-  "data modify storage math:internal w set compute default math:internal/reciprocal/compare/scale_at_limit",
-  `execute unless predicate math:internal/comparison/negative_integer run return run function ${functionId(FUNCTION_PATHS.reciprocalFinishAtScaleLimit)}`,
-  "data modify storage math:internal x set compute default math:internal/reciprocal/double_x",
-  "data modify storage math:internal y set compute default math:internal/reciprocal/double_y",
-  `return run function ${functionId(FUNCTION_PATHS.reciprocal)}`,
+emitFunction(FUNCTION_PATHS.normalizeBinary32, [
+  "data modify storage math:internal w_normalize_exponent set compute default math:common/normalize/binary32/exponent",
+  "data modify storage math:internal w_normalize_scale set compute default math:common/normalize/binary32/scale",
+  "data modify storage math:internal w_normalize_multiplier_a set compute default math:common/normalize/binary32/multiplier_a",
+  "data modify storage math:internal w_normalize_multiplier_b set compute default math:common/normalize/binary32/multiplier_b",
+  "data modify storage math:internal w_normalize_mantissa set compute default math:common/normalize/binary32/mantissa_a",
+  "data modify storage math:internal w_normalize_mantissa set compute default math:common/normalize/binary32/mantissa_b",
+  "return 1",
 ]);
 
 function reciprocalFinishLines(iterations) {
@@ -921,39 +1001,42 @@ function reciprocalFinishLines(iterations) {
 }
 
 emitFunction(FUNCTION_PATHS.reciprocalFinish, reciprocalFinishLines(3));
-emitFunction(FUNCTION_PATHS.reciprocalFinishAtScaleLimit, reciprocalFinishLines(4));
-
-emitFunction(FUNCTION_PATHS.reciprocalScaleDown, [
-  "data modify storage math:internal x set compute default math:internal/reciprocal/half_x",
-  "data modify storage math:internal y set compute default math:internal/reciprocal/half_y",
-  `return run function ${functionId(FUNCTION_PATHS.reciprocal)}`,
-]);
 
 emitFunction(FUNCTION_PATHS.reciprocal, [
   "data modify storage math:internal w set compute default math:internal/reciprocal/compare/below_one",
-  `execute if predicate math:internal/comparison/negative_integer run return run function ${functionId(FUNCTION_PATHS.reciprocalScaleUp)}`,
+  `execute if predicate math:internal/comparison/negative_integer run return run function ${functionId(FUNCTION_PATHS.reciprocalNormalizeLow)}`,
   "data modify storage math:internal w set compute default math:internal/reciprocal/compare/at_least_two",
-  `execute unless predicate math:internal/comparison/negative_integer run return run function ${functionId(FUNCTION_PATHS.reciprocalScaleDown)}`,
+  `execute unless predicate math:internal/comparison/negative_integer run return run function ${functionId(FUNCTION_PATHS.reciprocalNormalizeHigh)}`,
   `return run function ${functionId(FUNCTION_PATHS.reciprocalFinish)}`,
 ]);
 
-emitFunction(FUNCTION_PATHS.divideNormalizeScaleUp, [
+emitFunction(FUNCTION_PATHS.reciprocalNormalizeLow, [
+  "data modify storage math:internal w set compute default math:internal/reciprocal/compare/below_half",
+  `execute if predicate math:internal/comparison/negative_integer run return run function ${functionId(FUNCTION_PATHS.reciprocalNormalizeShared)}`,
   "data modify storage math:internal x set compute default math:internal/reciprocal/double_x",
-  "data modify storage math:internal y set compute default math:internal/divide/normalize/decrement_exponent",
-  `return run function ${functionId(FUNCTION_PATHS.divideNormalize)}`,
+  "data modify storage math:internal y set compute default math:internal/reciprocal/double_y",
+  `return run function ${functionId(FUNCTION_PATHS.reciprocalFinish)}`,
 ]);
 
-emitFunction(FUNCTION_PATHS.divideNormalizeScaleDown, [
+emitFunction(FUNCTION_PATHS.reciprocalNormalizeHigh, [
+  "data modify storage math:internal w set compute default math:internal/reciprocal/compare/at_least_four",
+  `execute unless predicate math:internal/comparison/negative_integer run return run function ${functionId(FUNCTION_PATHS.reciprocalNormalizeShared)}`,
   "data modify storage math:internal x set compute default math:internal/reciprocal/half_x",
-  "data modify storage math:internal y set compute default math:internal/divide/normalize/increment_exponent",
-  `return run function ${functionId(FUNCTION_PATHS.divideNormalize)}`,
+  "data modify storage math:internal y set compute default math:internal/reciprocal/half_y",
+  `return run function ${functionId(FUNCTION_PATHS.reciprocalFinish)}`,
 ]);
 
-emitFunction(FUNCTION_PATHS.divideNormalize, [
-  "data modify storage math:internal w set compute default math:internal/reciprocal/compare/below_one",
-  `execute if predicate math:internal/comparison/negative_integer run return run function ${functionId(FUNCTION_PATHS.divideNormalizeScaleUp)}`,
-  "data modify storage math:internal w set compute default math:internal/reciprocal/compare/at_least_two",
-  `execute unless predicate math:internal/comparison/negative_integer run return run function ${functionId(FUNCTION_PATHS.divideNormalizeScaleDown)}`,
+emitFunction(FUNCTION_PATHS.reciprocalNormalizeShared, [
+  "data modify storage math:internal w_reciprocal_sign set value 1.0f",
+  "data modify storage math:internal w_comparison.x_sign set compute default math:internal/comparison/x_zero",
+  "execute if predicate math:internal/range/negative run data modify storage math:internal w_reciprocal_sign set value -1.0f",
+  "data modify storage math:internal x set compute default math:common/comparison/absolute",
+  `function ${functionId(FUNCTION_PATHS.normalizeBinary32)}`,
+  "data modify storage math:internal x set from storage math:internal w_normalize_mantissa",
+  "data modify storage math:internal y set compute default math:internal/reciprocal/scale_a",
+  `function ${functionId(FUNCTION_PATHS.reciprocalFinish)}`,
+  "data modify storage math:internal x set compute default math:internal/reciprocal/scale_b",
+  "data modify storage math:internal x set compute default math:internal/reciprocal/apply_sign",
   "return 1",
 ]);
 
@@ -1047,33 +1130,11 @@ function exactRemainderLines() {
   emitPublicFunction("square_root", lines);
 }
 
-emitFunction(FUNCTION_PATHS.logNormalizeScaleUp, [
-  "data modify storage math:internal z set compute default math:log/normalize/double_mantissa/00",
-  "data modify storage math:internal w set compute default math:log/normalize/decrement_exponent/00",
-  `return run function ${functionId(FUNCTION_PATHS.logNormalize)}`,
-]);
-
-emitFunction(FUNCTION_PATHS.logNormalizeScaleDown, [
-  "data modify storage math:internal z set compute default math:log/normalize/half_mantissa/00",
-  "data modify storage math:internal w set compute default math:log/normalize/increment_exponent/00",
-  `return run function ${functionId(FUNCTION_PATHS.logNormalize)}`,
-]);
-
-emitFunction(FUNCTION_PATHS.logNormalize, [
-  "data modify storage math:internal x set compute default math:log/normalize/compare_below_one/00",
-  `execute if predicate math:internal/comparison/x_negative_integer run return run function ${functionId(FUNCTION_PATHS.logNormalizeScaleUp)}`,
-  "data modify storage math:internal x set compute default math:log/normalize/compare_at_least_two/00",
-  `execute unless predicate math:internal/comparison/x_negative_integer run return run function ${functionId(FUNCTION_PATHS.logNormalizeScaleDown)}`,
-  "return 1",
-]);
-
 emitFunction(FUNCTION_PATHS.logPrepare, [
-  "data modify storage math:internal z set from storage math:internal x",
-  "data modify storage math:internal w set value 0.0f",
-  `function ${functionId(FUNCTION_PATHS.logNormalize)}`,
-  "data modify storage math:internal x set compute default math:log/normalize/compare_center/00",
-  "execute unless predicate math:internal/comparison/x_negative_integer run data modify storage math:internal z set compute default math:log/normalize/half_mantissa/00",
-  "execute unless predicate math:internal/comparison/x_negative_integer run data modify storage math:internal w set compute default math:log/normalize/increment_exponent/00",
+  `function ${functionId(FUNCTION_PATHS.normalizeBinary32)}`,
+  "data modify storage math:internal w_comparison.log_center set compute default math:log/normalize/compare_center/00",
+  "data modify storage math:internal z set compute default math:log/normalize/centered_mantissa/00",
+  "data modify storage math:internal w set compute default math:log/normalize/centered_exponent/00",
   "return 1",
 ]);
 
@@ -1081,6 +1142,11 @@ emitFunction(FUNCTION_PATHS.log, [
   `function ${functionId(FUNCTION_PATHS.logPrepare)}`,
   "data modify storage math:internal z set compute default math:log/normalize/numerator/00",
   "data modify storage math:internal x set compute default math:log/normalize/denominator/00",
+  "data modify storage math:internal w_log_mantissa set compute default math:internal/reciprocal/log_mantissa",
+  "data modify storage math:internal w_log_reciprocal set compute default math:internal/reciprocal/log_initial",
+  "data modify storage math:internal w_log_reciprocal set compute default math:internal/reciprocal/log_newton",
+  "data modify storage math:internal w_log_reciprocal set compute default math:internal/reciprocal/log_newton",
+  "data modify storage math:internal w_log_reciprocal set compute default math:internal/reciprocal/log_newton",
   "data modify storage math:internal x set compute default math:internal/reciprocal/log_denominator",
   "data modify storage math:internal z set compute default math:log/normalize/u/00",
   "data modify storage math:internal x set compute default math:log/00",
@@ -1295,24 +1361,28 @@ emitFunction(FUNCTION_PATHS.powerNegative, [
   lines.push(...stagePredicate("divide/b_negative"));
   lines.push("execute if predicate math:internal/divide/b_negative run data modify storage math:internal w_divide_sign set compute default math:internal/divide/flip_sign");
   lines.push("data modify storage math:internal x set compute default math:common/comparison/absolute");
-  lines.push("data modify storage math:internal y set value 0.0f");
-  lines.push(`function ${functionId(FUNCTION_PATHS.divideNormalize)}`);
-  lines.push("data modify storage math:internal w_divide_a_mantissa set from storage math:internal x");
-  lines.push("data modify storage math:internal w_divide_a_exponent set from storage math:internal y");
+  lines.push(`function ${functionId(FUNCTION_PATHS.normalizeBinary32)}`);
+  lines.push("data modify storage math:internal w_divide_a_mantissa set from storage math:internal w_normalize_mantissa");
+  lines.push("data modify storage math:internal w_divide_a_exponent set from storage math:internal w_normalize_exponent");
   lines.push("data modify storage math:internal x set from storage math: b");
   lines.push("data modify storage math:internal x set compute default math:common/comparison/absolute");
-  lines.push("data modify storage math:internal y set value 0.0f");
-  lines.push(`function ${functionId(FUNCTION_PATHS.divideNormalize)}`);
-  lines.push("data modify storage math:internal w_divide_b_mantissa set from storage math:internal x");
-  lines.push("data modify storage math:internal w_divide_b_exponent set from storage math:internal y");
+  lines.push(`function ${functionId(FUNCTION_PATHS.normalizeBinary32)}`);
+  lines.push("data modify storage math:internal w_divide_b_mantissa set from storage math:internal w_normalize_mantissa");
+  lines.push("data modify storage math:internal w_divide_b_exponent set from storage math:internal w_normalize_exponent");
   lines.push("data modify storage math:internal w_divide_exponent set compute default math:internal/divide/exponent_difference");
   lines.push(...stagePredicate("divide/exponent_definitely_overflows"));
   lines.push(`execute if predicate math:internal/divide/exponent_definitely_overflows run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`);
   lines.push(...stagePredicate("divide/exponent_at_overflow_boundary"));
   lines.push(...stagePredicate("divide/significand_at_or_above_overflow_boundary"));
   lines.push(`execute if predicate math:internal/divide/overflow_boundary run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`);
-  lines.push("data modify storage math:internal x set compute default math:internal/divide/normalized_reciprocal");
-  lines.push("data modify storage math:internal w_divide_reciprocal set from storage math:internal x");
+  lines.push("data modify storage math:internal x set from storage math:internal w_divide_b_mantissa");
+  lines.push("data modify storage math:internal w_reciprocal_mantissa set compute default math:internal/reciprocal/mantissa");
+  lines.push("data modify storage math:internal w_reciprocal_estimate set compute default math:internal/reciprocal/initial_estimate");
+  for (let iteration = 0; iteration < 4; iteration += 1) {
+    lines.push("data modify storage math:internal w_reciprocal_estimate set compute default math:internal/reciprocal/newton");
+  }
+  lines.push("data modify storage math:internal w_divide_reciprocal set compute default math:internal/divide/normalized_reciprocal");
+  lines.push("data modify storage math:internal x set from storage math:internal w_divide_reciprocal");
   lines.push("data modify storage math:internal y set from storage math:internal w_divide_a_mantissa");
   lines.push("data modify storage math:internal x set compute default math:common/arithmetic/multiply");
   lines.push("data modify storage math:internal w_divide_quotient set from storage math:internal x");
@@ -1320,12 +1390,12 @@ emitFunction(FUNCTION_PATHS.powerNegative, [
   lines.push("data modify storage math:internal w_divide_product_low set compute default math:internal/divide/product/low");
   lines.push("data modify storage math:internal w_divide_residual_high set compute default math:internal/divide/residual/high");
   lines.push("data modify storage math:internal w_divide_residual_low set compute default math:internal/divide/residual/low");
+  lines.push("data modify storage math:internal w_divide_correction set compute default math:internal/divide/correction");
   lines.push("data modify storage math:internal x set compute default math:internal/divide/refined_quotient");
-  lines.push("data modify storage math:internal y set from storage math:internal w_divide_exponent");
-  lines.push(`function ${functionId(FUNCTION_PATHS.divideNormalize)}`);
   lines.push(...stagePredicate("divide/exponent_underflows"));
   lines.push(`execute if predicate math:internal/divide/exponent_underflows run return run function ${functionId(FUNCTION_PATHS.divideUnderflow)}`);
-  lines.push("data modify storage math:internal z set from storage math:internal y");
+  lines.push("data modify storage math:internal w_divide_scale set compute default math:internal/divide/scale");
+  lines.push("data modify storage math:internal w_divide_factor set compute default math:internal/divide/factor");
   lines.push("data modify storage math: ans set compute default math:internal/divide/result");
   lines.push("return 1");
   emitPublicFunction("divide", lines);

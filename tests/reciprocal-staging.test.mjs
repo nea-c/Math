@@ -50,7 +50,6 @@ function legacyFinish(x, y, iterations) {
 
 test("reciprocal finish providers stay below sixty expanded expression nodes", () => {
   assert.ok(finishProviderCost("4.finish") <= 60);
-  assert.ok(finishProviderCost("2.finish_at_scale_limit") <= 60);
 });
 
 test("reciprocal staged finishes preserve the legacy float result exactly", () => {
@@ -67,11 +66,4 @@ test("reciprocal staged finishes preserve the legacy float result exactly", () =
       assert.equal(result.storage["math:internal"].x, legacyFinish(x, y, 3), `${x}, ${y}`);
     }
   }
-
-  for (const x of [-0.9999999403953552, -0.75, -0.5, 0.5, 0.75, 0.9999999403953552]) {
-    const y = Math.fround(2 ** 127);
-    const result = runImplementation(".common/reciprocal/2.finish_at_scale_limit", {}, { x, y });
-    assert.equal(result.storage["math:internal"].x, legacyFinish(x, y, 4), `${x}, ${y}`);
-  }
 });
-

@@ -7,7 +7,7 @@
         {
           "type": "minecraft:storage",
           "storage": "math:internal",
-          "path": "y"
+          "path": "w_divide_exponent"
         },
         {
           "type": "minecraft:product",

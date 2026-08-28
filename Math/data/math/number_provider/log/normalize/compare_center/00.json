@@ -7,7 +7,7 @@
         {
           "type": "minecraft:storage",
           "storage": "math:internal",
-          "path": "z"
+          "path": "w_normalize_mantissa"
         },
         -1.4142135381698608
       ]

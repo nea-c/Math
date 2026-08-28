@@ -20,24 +20,29 @@ execute if predicate math:internal/divide/a_negative run data modify storage mat
 data modify storage math:internal w_comparison.predicate.divide_b_negative.maximum set compute default math:internal/comparison/predicate/divide/b_negative/maximum
 execute if predicate math:internal/divide/b_negative run data modify storage math:internal w_divide_sign set compute default math:internal/divide/flip_sign
 data modify storage math:internal x set compute default math:common/comparison/absolute
-data modify storage math:internal y set value 0.0f
-function math:divide/1.normalize
-data modify storage math:internal w_divide_a_mantissa set from storage math:internal x
-data modify storage math:internal w_divide_a_exponent set from storage math:internal y
+function math:.common/normalize_binary32/0.start
+data modify storage math:internal w_divide_a_mantissa set from storage math:internal w_normalize_mantissa
+data modify storage math:internal w_divide_a_exponent set from storage math:internal w_normalize_exponent
 data modify storage math:internal x set from storage math: b
 data modify storage math:internal x set compute default math:common/comparison/absolute
-data modify storage math:internal y set value 0.0f
-function math:divide/1.normalize
-data modify storage math:internal w_divide_b_mantissa set from storage math:internal x
-data modify storage math:internal w_divide_b_exponent set from storage math:internal y
+function math:.common/normalize_binary32/0.start
+data modify storage math:internal w_divide_b_mantissa set from storage math:internal w_normalize_mantissa
+data modify storage math:internal w_divide_b_exponent set from storage math:internal w_normalize_exponent
 data modify storage math:internal w_divide_exponent set compute default math:internal/divide/exponent_difference
 data modify storage math:internal w_comparison.predicate.divide_exponent_definitely_overflows.minimum set compute default math:internal/comparison/predicate/divide/exponent_definitely_overflows/minimum
 execute if predicate math:internal/divide/exponent_definitely_overflows run return run function math:.common/_error/result_out_of_range
 data modify storage math:internal w_comparison.predicate.divide_exponent_at_overflow_boundary.value set compute default math:internal/comparison/predicate/divide/exponent_at_overflow_boundary/value
 data modify storage math:internal w_comparison.predicate.divide_significand_at_or_above_overflow_boundary.minimum set compute default math:internal/comparison/predicate/divide/significand_at_or_above_overflow_boundary/minimum
 execute if predicate math:internal/divide/overflow_boundary run return run function math:.common/_error/result_out_of_range
-data modify storage math:internal x set compute default math:internal/divide/normalized_reciprocal
-data modify storage math:internal w_divide_reciprocal set from storage math:internal x
+data modify storage math:internal x set from storage math:internal w_divide_b_mantissa
+data modify storage math:internal w_reciprocal_mantissa set compute default math:internal/reciprocal/mantissa
+data modify storage math:internal w_reciprocal_estimate set compute default math:internal/reciprocal/initial_estimate
+data modify storage math:internal w_reciprocal_estimate set compute default math:internal/reciprocal/newton
+data modify storage math:internal w_reciprocal_estimate set compute default math:internal/reciprocal/newton
+data modify storage math:internal w_reciprocal_estimate set compute default math:internal/reciprocal/newton
+data modify storage math:internal w_reciprocal_estimate set compute default math:internal/reciprocal/newton
+data modify storage math:internal w_divide_reciprocal set compute default math:internal/divide/normalized_reciprocal
+data modify storage math:internal x set from storage math:internal w_divide_reciprocal
 data modify storage math:internal y set from storage math:internal w_divide_a_mantissa
 data modify storage math:internal x set compute default math:common/arithmetic/multiply
 data modify storage math:internal w_divide_quotient set from storage math:internal x
@@ -45,11 +50,11 @@ data modify storage math:internal w_divide_product_high set compute default math
 data modify storage math:internal w_divide_product_low set compute default math:internal/divide/product/low
 data modify storage math:internal w_divide_residual_high set compute default math:internal/divide/residual/high
 data modify storage math:internal w_divide_residual_low set compute default math:internal/divide/residual/low
+data modify storage math:internal w_divide_correction set compute default math:internal/divide/correction
 data modify storage math:internal x set compute default math:internal/divide/refined_quotient
-data modify storage math:internal y set from storage math:internal w_divide_exponent
-function math:divide/1.normalize
 data modify storage math:internal w_comparison.predicate.divide_exponent_underflows.maximum set compute default math:internal/comparison/predicate/divide/exponent_underflows/maximum
 execute if predicate math:internal/divide/exponent_underflows run return run function math:divide/4.underflow
-data modify storage math:internal z set from storage math:internal y
+data modify storage math:internal w_divide_scale set compute default math:internal/divide/scale
+data modify storage math:internal w_divide_factor set compute default math:internal/divide/factor
 data modify storage math: ans set compute default math:internal/divide/result
 return 1
