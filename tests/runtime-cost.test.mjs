@@ -35,7 +35,7 @@ const COMMAND_BUDGETS = {
   log: { baseline: 40, boundary: 11 },
   divide: { baseline: 91, boundary: 9 },
   square_root: { baseline: 76, boundary: 10 },
-  bezier: { baseline: 190, boundary: 58 },
+  bezier: { baseline: 189, boundary: 58 },
   remainder: { baseline: 134, boundary: 9 },
   modulo: { baseline: 140, boundary: 137 },
   power: { baseline: 62, boundary: 25 },
