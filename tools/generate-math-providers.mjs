@@ -901,6 +901,7 @@ emitStagedPredicate("elastic_decay/time_at_or_after_end", subtractExpression(pub
 emitStagedPredicate("bounce/duration_positive", publicMax, smallestPositiveFloat, undefined);
 emitStagedPredicate("bounce/time_at_or_below_start", publicT, undefined, 0);
 emitStagedPredicate("bounce/time_at_or_after_end", subtractExpression(publicT, publicMax), 0, undefined);
+emitStagedPredicate("bounce/duration_subnormal", publicMax, undefined, largestSubnormalFloat);
 emitStagedPredicate("bounce_decay/duration_positive", publicMax, smallestPositiveFloat, undefined);
 emitStagedPredicate("bounce_decay/bounces_positive", publicBounces, smallestPositiveFloat, undefined);
 emitStagedPredicate("bounce_decay/decay_nonnegative", publicDecay, 0, undefined);
@@ -1344,7 +1345,10 @@ const shiftedBounce = (offset, base) => sum(base, product(
   sum(bounceU, -offset),
 ));
 
-emit("bounce/u", product(publicT, x));
+const bounceScaledT = storage("math:internal", "w_bounce_scaled_t");
+emit("bounce/scaled_t", product(publicT, 2 ** 126));
+emit("bounce/scaled_max", product(publicMax, 2 ** 126));
+emit("bounce/u", product(bounceScaledT, x));
 const bounceComparisons = [4 / 11, 8 / 11, 10 / 11].map((threshold, index) => {
   const comparison = storage("math:internal", `w_comparison.bounce_${index}`);
   emit(`bounce/compare_${index}`, floatComparison(bounceU, Math.fround(threshold)));
@@ -1365,7 +1369,7 @@ emit("bounce/eased", numberDispatcher([
   },
 ], shiftedBounce(Math.fround(21 / 22), Math.fround(0.984375))));
 emit("bounce/result", interpolationResult(bounceEased));
-emit("bounce_decay/u", product(publicT, x));
+emit("bounce_decay/u", product(bounceScaledT, x));
 emit("bounce_decay/exponent", product(-1, publicDecay, bounceDecayU));
 emit("bounce_decay/phase", product(publicBounces, bounceDecayU));
 const bounceDecayCenteredPhase = sum(product(2, sum(x, product(-1, z))), -1);
@@ -1396,7 +1400,11 @@ emitFunction(FUNCTION_PATHS.bounceFinish, [
   lines.push(...stagePredicate("bounce/time_at_or_after_end"));
   lines.push("execute if predicate math:internal/bounce/time_at_or_after_end run data modify storage math: ans set compute default math:common/input/b");
   lines.push("execute if predicate math:internal/bounce/time_at_or_after_end run return 1");
+  lines.push("data modify storage math:internal w_bounce_scaled_t set from storage math: t");
   lines.push("data modify storage math:internal x set from storage math: max");
+  lines.push(...stagePredicate("bounce/duration_subnormal"));
+  lines.push("execute if predicate math:internal/bounce/duration_subnormal run data modify storage math:internal w_bounce_scaled_t set compute default math:bounce/scaled_t");
+  lines.push("execute if predicate math:internal/bounce/duration_subnormal run data modify storage math:internal x set compute default math:bounce/scaled_max");
   lines.push("data modify storage math:internal y set value 1.0f");
   lines.push(`function ${functionId(FUNCTION_PATHS.reciprocal)}`);
   lines.push("data modify storage math:internal w_bounce_u set compute default math:bounce/u");
@@ -1429,7 +1437,11 @@ emitFunction(FUNCTION_PATHS.bounceDecayFinish, [
   lines.push(...stagePredicate("bounce_decay/time_at_or_after_end"));
   lines.push("execute if predicate math:internal/bounce_decay/time_at_or_after_end run data modify storage math: ans set compute default math:common/input/b");
   lines.push("execute if predicate math:internal/bounce_decay/time_at_or_after_end run return 1");
+  lines.push("data modify storage math:internal w_bounce_scaled_t set from storage math: t");
   lines.push("data modify storage math:internal x set from storage math: max");
+  lines.push(...stagePredicate("bounce/duration_subnormal"));
+  lines.push("execute if predicate math:internal/bounce/duration_subnormal run data modify storage math:internal w_bounce_scaled_t set compute default math:bounce/scaled_t");
+  lines.push("execute if predicate math:internal/bounce/duration_subnormal run data modify storage math:internal x set compute default math:bounce/scaled_max");
   lines.push("data modify storage math:internal y set value 1.0f");
   lines.push(`function ${functionId(FUNCTION_PATHS.reciprocal)}`);
   lines.push("data modify storage math:internal w_bounce_decay_u set compute default math:bounce_decay/u");

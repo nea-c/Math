@@ -322,6 +322,15 @@ try {
     Add-Guard -Condition 'unless score #bounce_decay math_test matches 97784..97787' -Case 'bounce_decay_answer'
     Add-Guard -Condition 'if data storage math: error' -Case 'bounce_decay_stale_error'
 
+    Add-SuccessCase -Case 'bounce_decay_double_endpoint' -Function 'bounce_decay' -ExpectedAnswer '11.0f' -Setup @(
+        'data modify storage math: t set value 10.0d'
+        'data modify storage math: max set value 10.0d'
+        'data modify storage math: a set value 7.0d'
+        'data modify storage math: b set value 11.0d'
+        'data modify storage math: bounces set value 2.5d'
+        'data modify storage math: decay set value 3.0d'
+    )
+
     Add-ErrorCase -Case 'bounce_decay_invalid_bounces' -Function 'bounce_decay' -ExpectedError 'invalid_bounce' -Setup @(
         'data modify storage math: t set value 5.0f'
         'data modify storage math: max set value 10.0f'

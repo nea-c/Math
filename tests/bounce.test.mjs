@@ -32,6 +32,21 @@ test("bounce_decay accepts fractional bounce density with constant-cost damping"
   }
 });
 
+test("bounce functions divide positive subnormal durations without reciprocal overflow", () => {
+  const t = Math.fround(2 ** -149);
+  const max = Math.fround(2 * 2 ** -149);
+
+  const bounce = runFunction("bounce", { t, max, a: 0, b: 1 });
+  assert.equal(bounce.returned, 1);
+  assertClose(bounce.storage["math:"].ans, 0.765625);
+  assert.equal(bounce.storage["math:"].error, undefined);
+
+  const decay = runFunction("bounce_decay", { t, max, a: 0, b: 1, bounces: 2.5, decay: 3 });
+  assert.equal(decay.returned, 1);
+  assertClose(decay.storage["math:"].ans, 0.972109);
+  assert.equal(decay.storage["math:"].error, undefined);
+});
+
 for (const [name, parameters] of [
   ["bounce", {}],
   ["bounce_decay", { bounces: 3.5, decay: 2 }],

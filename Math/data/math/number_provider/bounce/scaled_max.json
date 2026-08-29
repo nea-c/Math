@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    {
+      "type": "minecraft:storage",
+      "storage": "math:",
+      "path": "max"
+    },
+    8.507059173023462e+37
+  ]
+}

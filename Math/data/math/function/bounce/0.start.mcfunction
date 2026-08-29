@@ -15,7 +15,11 @@ execute if predicate math:internal/bounce/time_at_or_below_start run return 1
 data modify storage math:internal w_comparison.predicate.bounce_time_at_or_after_end.minimum set compute default math:internal/comparison/predicate/bounce/time_at_or_after_end/minimum
 execute if predicate math:internal/bounce/time_at_or_after_end run data modify storage math: ans set compute default math:common/input/b
 execute if predicate math:internal/bounce/time_at_or_after_end run return 1
+data modify storage math:internal w_bounce_scaled_t set from storage math: t
 data modify storage math:internal x set from storage math: max
+data modify storage math:internal w_comparison.predicate.bounce_duration_subnormal.maximum set compute default math:internal/comparison/predicate/bounce/duration_subnormal/maximum
+execute if predicate math:internal/bounce/duration_subnormal run data modify storage math:internal w_bounce_scaled_t set compute default math:bounce/scaled_t
+execute if predicate math:internal/bounce/duration_subnormal run data modify storage math:internal x set compute default math:bounce/scaled_max
 data modify storage math:internal y set value 1.0f
 function math:.common/reciprocal/0.start
 data modify storage math:internal w_bounce_u set compute default math:bounce/u
