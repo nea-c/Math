@@ -9,25 +9,26 @@ data modify storage math:internal w_validation_max set compute default math:inte
 execute unless data storage math:internal {w_validation_max:0.0f} run return run function math:.common/_error/invalid_number
 execute unless data storage math: curve[3] run return run function math:.common/_error/invalid_curve
 execute if data storage math: curve[4] run return run function math:.common/_error/invalid_curve
+execute store success storage math:internal w_validation_curve_numeric_0 byte 1 run data get storage math: curve[0] 1
+execute unless data storage math:internal {w_validation_curve_numeric_0:1b} run return run function math:.common/_error/invalid_curve
+execute store success storage math:internal w_validation_curve_numeric_1 byte 1 run data get storage math: curve[1] 1
+execute unless data storage math:internal {w_validation_curve_numeric_1:1b} run return run function math:.common/_error/invalid_curve
+execute store success storage math:internal w_validation_curve_numeric_2 byte 1 run data get storage math: curve[2] 1
+execute unless data storage math:internal {w_validation_curve_numeric_2:1b} run return run function math:.common/_error/invalid_curve
+execute store success storage math:internal w_validation_curve_numeric_3 byte 1 run data get storage math: curve[3] 1
+execute unless data storage math:internal {w_validation_curve_numeric_3:1b} run return run function math:.common/_error/invalid_curve
 data remove storage math:internal w_bezier_x1
 data modify storage math:internal w_bezier_x1 set compute default math:bezier/input/x1
 execute unless data storage math:internal w_bezier_x1 run return run function math:.common/_error/invalid_curve
-data modify storage math:internal w_bezier_curve_macro.x1 set from storage math:internal w_bezier_x1
 data remove storage math:internal w_bezier_y1
 data modify storage math:internal w_bezier_y1 set compute default math:bezier/input/y1
 execute unless data storage math:internal w_bezier_y1 run return run function math:.common/_error/invalid_curve
-data modify storage math:internal w_bezier_curve_macro.y1 set from storage math:internal w_bezier_y1
 data remove storage math:internal w_bezier_x2
 data modify storage math:internal w_bezier_x2 set compute default math:bezier/input/x2
 execute unless data storage math:internal w_bezier_x2 run return run function math:.common/_error/invalid_curve
-data modify storage math:internal w_bezier_curve_macro.x2 set from storage math:internal w_bezier_x2
 data remove storage math:internal w_bezier_y2
 data modify storage math:internal w_bezier_y2 set compute default math:bezier/input/y2
 execute unless data storage math:internal w_bezier_y2 run return run function math:.common/_error/invalid_curve
-data modify storage math:internal w_bezier_curve_macro.y2 set from storage math:internal w_bezier_y2
-data modify storage math:internal w_validation_curve_type set value 0b
-function math:bezier/1.validate_curve with storage math:internal w_bezier_curve_macro
-execute unless data storage math:internal {w_validation_curve_type:1b} run return run function math:.common/_error/invalid_curve
 data remove storage math:internal w_validation_curve_0
 data modify storage math:internal w_validation_curve_0 set compute default math:internal/comparison/finite/curve_0
 execute unless data storage math:internal w_validation_curve_0 run return run function math:.common/_error/invalid_curve
@@ -64,5 +65,5 @@ function math:.common/reciprocal/0.start
 data modify storage math:internal w_bezier_u set from storage math:internal x
 data modify storage math:internal w_bezier_low set value 0.0f
 data modify storage math:internal w_bezier_high set value 1.0f
-function math:bezier/2.solve
-return run function math:bezier/3.finish
+function math:bezier/1.solve
+return run function math:bezier/2.finish

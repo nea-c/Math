@@ -18,14 +18,13 @@ test("function layout defines the complete public API", () => {
 });
 
 test("function layout assigns representative owned and common helpers", () => {
-  assert.equal(Object.keys(FUNCTION_PATHS).length, 39);
+  assert.equal(Object.keys(FUNCTION_PATHS).length, 38);
   assert.equal(FUNCTION_PATHS.invalidNumber, ".common/_error/invalid_number");
   assert.equal(FUNCTION_PATHS.resultOutOfRange, ".common/_error/result_out_of_range");
   assert.equal(FUNCTION_PATHS.invalidCurve, ".common/_error/invalid_curve");
   assert.equal(FUNCTION_PATHS.invalidDuration, ".common/_error/invalid_duration");
-  assert.equal(FUNCTION_PATHS.bezierValidateCurve, "bezier/1.validate_curve");
-  assert.equal(FUNCTION_PATHS.bezierSolve, "bezier/2.solve");
-  assert.equal(FUNCTION_PATHS.bezierFinish, "bezier/3.finish");
+  assert.equal(FUNCTION_PATHS.bezierSolve, "bezier/1.solve");
+  assert.equal(FUNCTION_PATHS.bezierFinish, "bezier/2.finish");
   assert.equal(FUNCTION_PATHS.divideUnderflow, "divide/4.underflow");
   assert.equal(FUNCTION_PATHS.powerClassifyOverflow, "power/9.classify_overflow");
   assert.equal(FUNCTION_PATHS.reciprocal, ".common/reciprocal/0.start");

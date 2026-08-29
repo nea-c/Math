@@ -275,18 +275,18 @@ try {
         'data modify storage math: b set value 1.0f'
         'data modify storage math: curve set value ["bad","bad","bad","bad"]'
     )
-    Add-ErrorCase -Case 'bezier_integer_curve' -Function 'bezier' -ExpectedError 'invalid_curve' -Setup @(
-        'data modify storage math: t set value 5.0f'
+    Add-SuccessCase -Case 'bezier_integer_curve' -Function 'bezier' -ExpectedAnswer '7.0f' -Setup @(
+        'data modify storage math: t set value 0.0f'
         'data modify storage math: max set value 10.0f'
-        'data modify storage math: a set value 0.0f'
-        'data modify storage math: b set value 1.0f'
+        'data modify storage math: a set value 7.0f'
+        'data modify storage math: b set value 11.0f'
         'data modify storage math: curve set value [0,0,1,1]'
     )
-    Add-ErrorCase -Case 'bezier_double_curve' -Function 'bezier' -ExpectedError 'invalid_curve' -Setup @(
-        'data modify storage math: t set value 5.0f'
+    Add-SuccessCase -Case 'bezier_double_curve' -Function 'bezier' -ExpectedAnswer '7.0f' -Setup @(
+        'data modify storage math: t set value 0.0f'
         'data modify storage math: max set value 10.0f'
-        'data modify storage math: a set value 0.0f'
-        'data modify storage math: b set value 1.0f'
+        'data modify storage math: a set value 7.0f'
+        'data modify storage math: b set value 11.0f'
         'data modify storage math: curve set value [0.0d,0.0d,1.0d,1.0d]'
     )
     Add-SuccessCase -Case 'sin' -Function 'sin' -ExpectedAnswer '0.0f' -Setup @(

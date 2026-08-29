@@ -887,10 +887,6 @@ emitFunction(FUNCTION_PATHS.invalidDuration, [
   "return fail",
 ]);
 
-emitFunction(FUNCTION_PATHS.bezierValidateCurve, [
-  "$execute if data storage math: {curve:[$(x1)f,$(y1)f,$(x2)f,$(y2)f]} run data modify storage math:internal w_validation_curve_type set value 1b",
-]);
-
 {
   const lines = [];
   for (let iteration = 0; iteration < 20; iteration += 1) {
@@ -916,15 +912,15 @@ emitFunction(FUNCTION_PATHS.bezierFinish, [
   const lines = validationLines(["a", "b", "t", "max"]);
   lines.push(`execute unless data storage math: curve[3] run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
   lines.push(`execute if data storage math: curve[4] run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
+  for (let index = 0; index < 4; index += 1) {
+    lines.push(`execute store success storage math:internal w_validation_curve_numeric_${index} byte 1 run data get storage math: curve[${index}] 1`);
+    lines.push(`execute unless data storage math:internal {w_validation_curve_numeric_${index}:1b} run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
+  }
   for (const field of ["x1", "y1", "x2", "y2"]) {
     lines.push(`data remove storage math:internal w_bezier_${field}`);
     lines.push(`data modify storage math:internal w_bezier_${field} set compute default math:bezier/input/${field}`);
     lines.push(`execute unless data storage math:internal w_bezier_${field} run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
-    lines.push(`data modify storage math:internal w_bezier_curve_macro.${field} set from storage math:internal w_bezier_${field}`);
   }
-  lines.push("data modify storage math:internal w_validation_curve_type set value 0b");
-  lines.push(`function ${functionId(FUNCTION_PATHS.bezierValidateCurve)} with storage math:internal w_bezier_curve_macro`);
-  lines.push(`execute unless data storage math:internal {w_validation_curve_type:1b} run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
   for (let index = 0; index < 4; index += 1) {
     lines.push(`data remove storage math:internal w_validation_curve_${index}`);
     lines.push(`data modify storage math:internal w_validation_curve_${index} set compute default math:internal/comparison/finite/curve_${index}`);

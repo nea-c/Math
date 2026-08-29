@@ -18,7 +18,7 @@ Minecraft Java Edition 26.3 Snapshot 10 向けの、依存関係なしで動く 
 | `b` | 右オペランド |
 | `min`, `max` | `clamp` の下限と上限、または `bezier` の最大tick (`max`) |
 | `t` | `lerp` の補間量、または `bezier` の経過tick |
-| `curve` | `bezier` の `[x1,y1,x2,y2]` floatリスト |
+| `curve` | `bezier` の4要素の数値リスト `[x1,y1,x2,y2]` |
 | `ans` | 成功時の float 結果 |
 | `error` | 失敗時のエラー ID（文字列） |
 
@@ -48,7 +48,7 @@ Minecraft Java Edition 26.3 Snapshot 10 向けの、依存関係なしで動く 
 
 `power` は、正の底では実数指数を扱います。負の底は `b` が正確な整数のときだけ使用でき、`power(0,0)=1`、`power(0,b>0)=0` です。ゼロの負数乗は失敗します。
 
-`bezier` は `u=clamp(t/max,0,1)` を曲線のx座標として、`curve:[x1,y1,x2,y2]` で指定したCSS `cubic-bezier(x1,y1,x2,y2)` のy座標を求め、`a` から `b` を補間します。`x1` と `x2` は `[0,1]`、`y1` と `y2` は有限floatなら範囲外も指定でき、オーバーシュートを表現できます。`t<=0` は正確に `a`、`t>=max` は正確に `b` を返します。
+`bezier` は `u=clamp(t/max,0,1)` を曲線のx座標として、`curve:[x1,y1,x2,y2]` で指定したCSS `cubic-bezier(x1,y1,x2,y2)` のy座標を求め、`a` から `b` を補間します。`curve` の各要素は任意の数値NBT型を受理し、演算時にbinary32へ変換します。`x1` と `x2` は `[0,1]`、`y1` と `y2` は有限値なら範囲外も指定でき、オーバーシュートを表現できます。`t<=0` は正確に `a`、`t>=max` は正確に `b` を返します。
 
 ## エラー
 
