@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:value_check",
+  "value": {
+    "type": "minecraft:storage",
+    "storage": "math:internal",
+    "path": "w_comparison.predicate.atan2_maximum_subnormal.maximum"
+  },
+  "range": {
+    "max": 0
+  }
+}

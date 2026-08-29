@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    {
+      "type": "minecraft:sum",
+      "operands": [
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_atan2_maximum"
+        },
+        {
+          "type": "minecraft:product",
+          "operands": [
+            -1,
+            1.1754942106924411e-38
+          ]
+        }
+      ]
+    },
+    1.7014118346046923e+38,
+    4194304
+  ]
+}

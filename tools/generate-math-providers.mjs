@@ -88,6 +88,13 @@ const quaternionComponents = Array.from({ length: 4 }, (_, index) => storage("ma
 const quaternionScaledRaw = Array.from({ length: 4 }, (_, index) => storage("math:internal", `w_quaternion_scaled_raw_${index}`));
 const quaternionScaled = Array.from({ length: 4 }, (_, index) => storage("math:internal", `w_quaternion_scaled_${index}`));
 const quaternionNormalized = Array.from({ length: 4 }, (_, index) => storage("math:internal", `w_quaternion_normalized_${index}`));
+const atanInput = storage("math:internal", "w_atan_input");
+const atanNumerator = storage("math:internal", "w_atan_numerator");
+const atanSquare = storage("math:internal", "w_atan_square");
+const atan2AbsoluteA = storage("math:internal", "w_atan2_absolute_a");
+const atan2AbsoluteB = storage("math:internal", "w_atan2_absolute_b");
+const atan2Minimum = storage("math:internal", "w_atan2_minimum");
+const atan2Maximum = storage("math:internal", "w_atan2_maximum");
 const quaternionAxis = Array.from({ length: 3 }, (_, index) => storage("math:internal", `w_quaternion_axis_${index}`));
 
 function inlineValueCheck(value, min, max) {
@@ -720,6 +727,36 @@ emit("exp/00", product(
 ));
 emit("power/positive/00", product(x, y));
 
+const atanPiFour = Math.fround(Math.PI / 4);
+const atanHalfPi = Math.fround(Math.PI / 2);
+const atanPi = Math.fround(Math.PI);
+const atanOctantBoundary = Math.fround(Math.SQRT2 - 1);
+let atanPolynomial = Math.fround(1 / 13);
+for (const coefficient of [-1 / 11, 1 / 9, -1 / 7, 1 / 5, -1 / 3]) {
+  atanPolynomial = sum(Math.fround(coefficient), product(atanSquare, atanPolynomial));
+}
+atanPolynomial = product(x, sum(1, product(atanSquare, atanPolynomial)));
+emit("common/atan/square", product(x, x));
+emit("common/atan/polynomial", atanPolynomial);
+emit("common/atan/numerator", sum(x, -1));
+emit("common/atan/denominator", sum(x, 1));
+emit("common/atan/reduced", product(atanNumerator, x));
+emit("common/atan/pi_four", atanPiFour);
+emit("common/atan/half_pi", atanHalfPi);
+emit("common/atan/pi", atanPi);
+emit("common/atan/after_pi_four", sum(atanPiFour, x));
+emit("common/atan/after_reciprocal", sum(atanHalfPi, product(-1, x)));
+
+emit("atan2/absolute_a", maximum(publicA, product(-1, publicA)));
+emit("atan2/absolute_b", maximum(publicB, product(-1, publicB)));
+emit("atan2/minimum", minimum(atan2AbsoluteA, atan2AbsoluteB));
+emit("atan2/maximum", maximum(atan2AbsoluteA, atan2AbsoluteB));
+emit("atan2/scaled_minimum", product(atan2Minimum, 2 ** 126));
+emit("atan2/scaled_maximum", product(atan2Maximum, 2 ** 126));
+emit("atan2/ratio", product(atan2Minimum, x));
+emit("atan2/from_y_axis", sum(atanHalfPi, product(-1, x)));
+emit("atan2/from_negative_x", sum(atanPi, product(-1, x)));
+
 for (const [name, value] of [
   ["a", publicA],
   ["b", publicB],
@@ -883,6 +920,14 @@ emitStagedPredicate(
 emitStagedPredicate("divide/exact_equal", sum(publicA, product(-1, publicB)), 0, 0);
 emitStagedPredicate("divide/a_negative", publicA, undefined, smallestNegativeFloat);
 emitStagedPredicate("divide/b_negative", publicB, undefined, smallestNegativeFloat);
+emitStagedPredicate("atan/x_negative", x, undefined, smallestNegativeFloat);
+emitStagedPredicate("atan/use_reciprocal", x, nextPositiveFloat(1), undefined);
+emitStagedPredicate("atan/use_pi_four", x, atanOctantBoundary, undefined);
+emitStagedPredicate("atan2/a_negative", publicA, undefined, smallestNegativeFloat);
+emitStagedPredicate("atan2/b_negative", publicB, undefined, smallestNegativeFloat);
+emitStagedPredicate("atan2/a_dominant", subtractExpression(atan2AbsoluteA, atan2AbsoluteB), smallestPositiveFloat, undefined);
+emitStagedPredicate("atan2/maximum_zero", atan2Maximum, 0, 0);
+emitStagedPredicate("atan2/maximum_subnormal", atan2Maximum, undefined, largestSubnormalFloat);
 emitStagedPredicate("bezier/duration_positive", publicMax, smallestPositiveFloat, undefined);
 emitStagedPredicate("bezier/time_at_or_below_start", publicT, undefined, 0);
 emitStagedPredicate("bezier/time_at_or_after_end", subtractExpression(publicT, publicMax), 0, undefined);
@@ -1215,6 +1260,77 @@ emitPublicFunction("asin", inverseTrigonometryPublicLines(FUNCTION_PATHS.asin));
 emitPublicFunction("asin_degrees", inverseTrigonometryPublicLines(FUNCTION_PATHS.asin, true));
 emitPublicFunction("acos", inverseTrigonometryPublicLines(FUNCTION_PATHS.acos));
 emitPublicFunction("acos_degrees", inverseTrigonometryPublicLines(FUNCTION_PATHS.acos, true));
+
+emitFunction(FUNCTION_PATHS.atanEvaluate, [
+  "data modify storage math:internal w_atan_square set compute default math:common/atan/square",
+  "data modify storage math:internal x set compute default math:common/atan/polynomial",
+  "execute if predicate math:internal/atan/use_pi_four run data modify storage math:internal x set compute default math:common/atan/after_pi_four",
+  "execute if predicate math:internal/atan/use_reciprocal run data modify storage math:internal x set compute default math:common/atan/after_reciprocal",
+  "execute if predicate math:internal/atan/x_negative run data modify storage math:internal x set compute default math:common/rounding/negate",
+  "return 1",
+]);
+
+emitFunction(FUNCTION_PATHS.atan, [
+  "data modify storage math:internal w_atan_input set from storage math:internal x",
+  "execute if data storage math:internal {w_atan_input:0.0f} run return 1",
+  ...stagePredicate("atan/x_negative"),
+  "data modify storage math:internal x set compute default math:common/comparison/absolute",
+  ...stagePredicate("atan/use_reciprocal"),
+  "execute if predicate math:internal/atan/use_reciprocal run data modify storage math:internal y set value 1.0f",
+  `execute if predicate math:internal/atan/use_reciprocal run function ${functionId(FUNCTION_PATHS.reciprocal)}`,
+  ...stagePredicate("atan/use_pi_four"),
+  "execute if predicate math:internal/atan/use_pi_four run data modify storage math:internal w_atan_numerator set compute default math:common/atan/numerator",
+  "execute if predicate math:internal/atan/use_pi_four run data modify storage math:internal x set compute default math:common/atan/denominator",
+  "execute if predicate math:internal/atan/use_pi_four run data modify storage math:internal y set value 1.0f",
+  `execute if predicate math:internal/atan/use_pi_four run function ${functionId(FUNCTION_PATHS.reciprocal)}`,
+  "execute if predicate math:internal/atan/use_pi_four run data modify storage math:internal x set compute default math:common/atan/reduced",
+  `return run function ${functionId(FUNCTION_PATHS.atanEvaluate)}`,
+]);
+
+function atanPublicLines(degrees = false) {
+  const lines = validationLines(["a"]);
+  lines.push("data modify storage math:internal x set compute default math:common/input/a");
+  lines.push(`function ${functionId(FUNCTION_PATHS.atan)}`);
+  if (degrees) lines.push("data modify storage math:internal x set compute default math:common/conversion/deg");
+  lines.push("data modify storage math: ans set from storage math:internal x");
+  lines.push("return 1");
+  return lines;
+}
+
+emitPublicFunction("atan", atanPublicLines());
+emitPublicFunction("atan_degrees", atanPublicLines(true));
+
+function atan2PublicLines(degrees = false) {
+  const lines = validationLines(["a", "b"]);
+  lines.push("data modify storage math:internal w_atan2_absolute_a set compute default math:atan2/absolute_a");
+  lines.push("data modify storage math:internal w_atan2_absolute_b set compute default math:atan2/absolute_b");
+  lines.push("data modify storage math:internal w_atan2_minimum set compute default math:atan2/minimum");
+  lines.push("data modify storage math:internal w_atan2_maximum set compute default math:atan2/maximum");
+  lines.push(...stagePredicate("atan2/maximum_zero"));
+  lines.push("execute if predicate math:internal/atan2/maximum_zero run data modify storage math: ans set value 0.0f");
+  lines.push("execute if predicate math:internal/atan2/maximum_zero run return 1");
+  lines.push(...stagePredicate("atan2/a_dominant"));
+  lines.push(...stagePredicate("atan2/a_negative"));
+  lines.push(...stagePredicate("atan2/b_negative"));
+  lines.push(...stagePredicate("atan2/maximum_subnormal"));
+  lines.push("execute if predicate math:internal/atan2/maximum_subnormal run data modify storage math:internal w_atan2_minimum set compute default math:atan2/scaled_minimum");
+  lines.push("execute if predicate math:internal/atan2/maximum_subnormal run data modify storage math:internal w_atan2_maximum set compute default math:atan2/scaled_maximum");
+  lines.push("data modify storage math:internal x set from storage math:internal w_atan2_maximum");
+  lines.push("data modify storage math:internal y set value 1.0f");
+  lines.push(`function ${functionId(FUNCTION_PATHS.reciprocal)}`);
+  lines.push("data modify storage math:internal x set compute default math:atan2/ratio");
+  lines.push(`function ${functionId(FUNCTION_PATHS.atan)}`);
+  lines.push("execute if predicate math:internal/atan2/a_dominant run data modify storage math:internal x set compute default math:atan2/from_y_axis");
+  lines.push("execute if predicate math:internal/atan2/b_negative run data modify storage math:internal x set compute default math:atan2/from_negative_x");
+  lines.push("execute if predicate math:internal/atan2/a_negative run data modify storage math:internal x set compute default math:common/rounding/negate");
+  if (degrees) lines.push("data modify storage math:internal x set compute default math:common/conversion/deg");
+  lines.push("data modify storage math: ans set from storage math:internal x");
+  lines.push("return 1");
+  return lines;
+}
+
+emitPublicFunction("atan2", atan2PublicLines());
+emitPublicFunction("atan2_degrees", atan2PublicLines(true));
 
 const elasticAmplitude = storage("math:internal", "w_elastic_amplitude");
 const elasticPhase = storage("math:internal", "w_elastic_phase");

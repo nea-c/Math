@@ -21,6 +21,10 @@ const BASELINE_INPUTS = {
   asin_degrees: { a: 0.5 },
   acos: { a: 0.5 },
   acos_degrees: { a: 0.5 },
+  atan: { a: 3 },
+  atan_degrees: { a: 3 },
+  atan2: { a: 1, b: -2 },
+  atan2_degrees: { a: 1, b: -2 },
 };
 
 const BOUNDARY_INPUTS = {
@@ -39,6 +43,10 @@ const BOUNDARY_INPUTS = {
   asin_degrees: { a: 1 },
   acos: { a: -1 },
   acos_degrees: { a: -1 },
+  atan: { a: 0 },
+  atan_degrees: { a: 0 },
+  atan2: { a: 0, b: 0 },
+  atan2_degrees: { a: 0, b: 0 },
 };
 
 const COMMAND_BUDGETS = {
@@ -57,6 +65,10 @@ const COMMAND_BUDGETS = {
   asin_degrees: { baseline: 706, boundary: 23 },
   acos: { baseline: 716, boundary: 17 },
   acos_degrees: { baseline: 717, boundary: 18 },
+  atan: { baseline: 44, boundary: 9 },
+  atan_degrees: { baseline: 45, boundary: 10 },
+  atan2: { baseline: 78, boundary: 12 },
+  atan2_degrees: { baseline: 79, boundary: 12 },
 };
 
 const POWER_PATH_BUDGETS = {
@@ -208,6 +220,10 @@ test("inverse trigonometric public wrappers call their shared implementations", 
     ["asin_degrees", ".common/asin/0.start"],
     ["acos", ".common/acos/0.start"],
     ["acos_degrees", ".common/acos/0.start"],
+    ["atan", ".common/atan/0.start"],
+    ["atan_degrees", ".common/atan/0.start"],
+    ["atan2", ".common/atan/0.start"],
+    ["atan2_degrees", ".common/atan/0.start"],
   ]) {
     assert.ok(runFunction(name, BASELINE_INPUTS[name]).functionCalls.has(common), `${name} must call ${common}`);
   }

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_atan2_minimum"
+    },
+    8.507059173023462e+37
+  ]
+}

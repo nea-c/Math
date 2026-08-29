@@ -9,7 +9,7 @@ import {
 } from "../tools/function-layout.mjs";
 
 test("function layout defines the complete public API", () => {
-  assert.equal(PUBLIC_FUNCTION_NAMES.length, 44);
+  assert.equal(PUBLIC_FUNCTION_NAMES.length, 48);
   assert.equal(PUBLIC_FUNCTION_PATHS.bezier, "bezier/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.bounce, "bounce/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.bounce_decay, "bounce_decay/0.start");
@@ -22,12 +22,16 @@ test("function layout defines the complete public API", () => {
   assert.equal(PUBLIC_FUNCTION_PATHS.asin_degrees, "asin_degrees/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.acos, "acos/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.acos_degrees, "acos_degrees/0.start");
+  assert.equal(PUBLIC_FUNCTION_PATHS.atan, "atan/0.start");
+  assert.equal(PUBLIC_FUNCTION_PATHS.atan_degrees, "atan_degrees/0.start");
+  assert.equal(PUBLIC_FUNCTION_PATHS.atan2, "atan2/0.start");
+  assert.equal(PUBLIC_FUNCTION_PATHS.atan2_degrees, "atan2_degrees/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.quaternion_to_axis_angle, "quaternion_to_axis_angle/0.start");
   assert.deepEqual(publicTag("divide"), { values: ["math:divide/0.start"] });
 });
 
 test("function layout assigns representative owned and common helpers", () => {
-  assert.equal(Object.keys(FUNCTION_PATHS).length, 57);
+  assert.equal(Object.keys(FUNCTION_PATHS).length, 59);
   assert.equal(FUNCTION_PATHS.invalidNumber, ".common/_error/invalid_number");
   assert.equal(FUNCTION_PATHS.resultOutOfRange, ".common/_error/result_out_of_range");
   assert.equal(FUNCTION_PATHS.invalidCurve, ".common/_error/invalid_curve");
@@ -40,6 +44,8 @@ test("function layout assigns representative owned and common helpers", () => {
   assert.equal(FUNCTION_PATHS.asinPositive, ".common/asin_positive/0.start");
   assert.equal(FUNCTION_PATHS.asin, ".common/asin/0.start");
   assert.equal(FUNCTION_PATHS.acos, ".common/acos/0.start");
+  assert.equal(FUNCTION_PATHS.atan, ".common/atan/0.start");
+  assert.equal(FUNCTION_PATHS.atanEvaluate, ".common/atan/1.evaluate");
   assert.equal(FUNCTION_PATHS.inverseTrigonometrySquareRoot, ".common/inverse_trigonometry/0.start");
   assert.equal(FUNCTION_PATHS.quaternionNormalize, "quaternion_to_axis_angle/1.normalize");
   assert.equal(FUNCTION_PATHS.quaternionVector, "quaternion_to_axis_angle/2.vector");

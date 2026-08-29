@@ -345,6 +345,32 @@ try {
     Add-SuccessCase -Case 'cos' -Function 'cos' -ExpectedAnswer '1.0f' -Setup @(
         'data modify storage math: a set value 0.0f'
     )
+    Add-SuccessCase -Case 'atan_one' -Function 'atan' -ExpectedAnswer '0.7853982f' -Setup @(
+        'data modify storage math: a set value 1.0f'
+    )
+    Add-SuccessCase -Case 'atan_degrees_one_double' -Function 'atan_degrees' -ExpectedAnswer '45.0f' -Setup @(
+        'data modify storage math: a set value 1.0d'
+    )
+    Add-SuccessCase -Case 'atan2_quadrant_two' -Function 'atan2' -ExpectedAnswer '2.3561945f' -Setup @(
+        'data modify storage math: a set value 1.0f'
+        'data modify storage math: b set value -1.0f'
+    )
+    Add-SuccessCase -Case 'atan2_degrees_quadrant_three' -Function 'atan2_degrees' -ExpectedAnswer '-135.0f' -Setup @(
+        'data modify storage math: a set value -1.0d'
+        'data modify storage math: b set value -1.0d'
+    )
+    Add-SuccessCase -Case 'atan2_double_origin' -Function 'atan2' -ExpectedAnswer '0.0f' -Setup @(
+        'data modify storage math: a set value 0.0d'
+        'data modify storage math: b set value 0.0d'
+    )
+    Add-SuccessCase -Case 'atan2_subnormal_ratio' -Function 'atan2' -ExpectedAnswer '0.4636476f' -Setup @(
+        'data modify storage math: a set value 1.401298464324817E-45f'
+        'data modify storage math: b set value 2.802596928649634E-45f'
+    )
+    Add-ErrorCase -Case 'atan2_invalid_number' -Function 'atan2' -ExpectedError 'invalid_number' -Setup @(
+        'data modify storage math: a set value 1.0f'
+        'data modify storage math: b set value 3.5E38d'
+    )
     Add-SuccessCase -Case 'asin_minus_one' -Function 'asin' -ExpectedAnswer '-1.5707964f' -Setup @(
         'data modify storage math: a set value -1.0f'
     )

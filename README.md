@@ -26,7 +26,7 @@ Minecraft Java Edition 26.3 Snapshot 10 向けの、依存関係なしで動く 
 | `ans` | 成功時の float 結果（`quaternion_to_axis_angle` のみ `{angle:<float>,axis:[<float>,<float>,<float>]}`） |
 | `error` | 失敗時のエラー ID（文字列） |
 
-単項関数は `a`、二項関数は `a` と `b`、`clamp` は `a/min/max`、`lerp` は `a/b/t`、`bezier` と `bounce` は `a/b/t/max`（`bezier` は加えて `curve`）、`elastic` は `a/b/t/max/amplitude/period`、`elastic_decay` は `a/b/t/max/oscillations/damping`、`bounce_decay` は `a/b/t/max/bounces/decay`、`quaternion_to_axis_angle` は `rotation` を読みます。定数関数は入力を読みません。公開入力は変更されません。
+単項関数は `a`、二項関数は `a` と `b`、`atan2` は一般的な `atan2(y,x)` に対して `a=y`, `b=x`、`clamp` は `a/min/max`、`lerp` は `a/b/t`、`bezier` と `bounce` は `a/b/t/max`（`bezier` は加えて `curve`）、`elastic` は `a/b/t/max/amplitude/period`、`elastic_decay` は `a/b/t/max/oscillations/damping`、`bounce_decay` は `a/b/t/max/bounces/decay`、`quaternion_to_axis_angle` は `rotation` を読みます。定数関数は入力を読みません。公開入力は変更されません。
 
 - 成功: 古い `error` を削除し、float の `ans` を書き、function result `1` を返します。例外として `quaternion_to_axis_angle` は compound の `ans` を書きます。
 - 失敗: 古い `ans` を削除し、`error` を書き、function result `0` を返します。
@@ -44,8 +44,8 @@ Minecraft Java Edition 26.3 Snapshot 10 向けの、依存関係なしで動く 
 | 累乗・超越 | `square`, `cube`, `square_root`, `power`, `exp`, `log` | `a²`, `a³`, `sqrt(a)`, `a^b`, `e^a`, 自然対数 `ln(a)` |
 | 三角関数（rad） | `sin`, `cos`, `tan` | `a` をラジアンとして扱う |
 | 三角関数（degree） | `sin_degrees`, `cos_degrees`, `tan_degrees` | `a` を度として扱う |
-| 逆三角関数（rad） | `asin`, `acos` | `a` を `[-1,1]` の値として扱い、ラジアンを返す |
-| 逆三角関数（degree） | `asin_degrees`, `acos_degrees` | `a` を `[-1,1]` の値として扱い、度を返す |
+| 逆三角関数（rad） | `asin`, `acos`, `atan`, `atan2` | ラジアンを返す。`atan2(a,b)` は象限を考慮 |
+| 逆三角関数（degree） | `asin_degrees`, `acos_degrees`, `atan_degrees`, `atan2_degrees` | 対応する角度を度で返す |
 | 角度変換 | `rad`, `deg` | `rad`: 度 → ラジアン、`deg`: ラジアン → 度 |
 | 定数 | `pi`, `tau`, `e` | `π`, `2π`, `e`; 入力を無視する |
 | 補間 | `lerp`, `bezier`, `elastic`, `elastic_decay`, `bounce`, `bounce_decay` | 線形補間; CSS互換cubic-bezier; Elastic Out 2種; Bounce Out 2種 |
@@ -70,6 +70,8 @@ Minecraft Java Edition 26.3 Snapshot 10 向けの、依存関係なしで動く 
 両Bounce関数とも係数を使って `a` から `b` を補間し、`t<=0` は正確に `a`、`t>=max` は正確に `b` を返します。
 
 `asin` / `acos` と degree 版は有限な `a` が `[-1,1]` にあるときだけ成功します。端点は正確に `asin(-1)=-π/2`、`asin(0)=0`、`asin(1)=π/2`、`acos(-1)=π`、`acos(0)=π/2`、`acos(1)=0`（degree 版ではそれぞれ `-90/0/90` と `180/90/0`）を返します。範囲外は `non_real_result`、非有限値は `invalid_number` です。
+
+`atan` は任意の有限な `a` を受け取り、`[-π/2,π/2]` の角度を返します。`atan2(a,b)` は `a=y`, `b=x` として象限を考慮し、実数上の規約は `(-π,π]`（degree版は `(-180,180]`）です。binary32への丸めで負のπまたは負の180度ちょうどになる場合があります。`atan2(0,0)=0` です。非常に小さい非ゼロ値はゼロへ丸めず、その符号と比を角度へ反映します。
 
 `quaternion_to_axis_angle` は `rotation:[x,y,z,w]` を受け取り、各要素には byte、short、int、long、float、double を含む任意の数値 NBT を指定できます。すべて binary32 に変換してから、有限な非ゼロ quaternion を安全に正規化します。成功時の `ans` は float の `angle` と float 3要素の `axis` を持つ compound です。角度は符号を保って `[0,2*pi]` に入り、`q` と `-q` は同一視されません。ベクトル部がゼロの scalar quaternion では軸を常に `+Y` とし、`[0,0,0,1]` は角度 `0`、`[0,0,0,-1]` は `2*pi` です。4要素以外、非数値・非有限要素、または全ゼロ quaternion は `invalid_quaternion` で失敗します。
 
@@ -111,6 +113,8 @@ provider の定数、storage 読み出し、各 aggregate 演算で Java の bin
 | `sin_degrees`, `cos_degrees` | `[-5000,5000]` degree で絶対誤差 `<= 0.00001` | `6.89e-6` 以下 |
 | `asin`, `acos` | `[-1,1]` で絶対誤差 `<= 0.00000175` rad | 20回二分探索 + binary32 丸め |
 | `asin_degrees`, `acos_degrees` | `[-1,1]` で絶対誤差 `<= 0.00011` degree | 20回二分探索 + binary32 丸め |
+| `atan`, `atan2` | 全有限入力で絶対誤差 `<= 0.000002` rad | 13次奇数多項式 + 範囲縮小; 通常44 / 78コマンド |
+| `atan_degrees`, `atan2_degrees` | 全有限入力で絶対誤差 `<= 0.00012` degree | 通常45 / 79コマンド |
 
 `tan` / `tan_degrees` は極の近くに一律の誤差上限を持ちません。保証範囲内では、近似 cosine の guard を `0.00002` とすることで、真の `abs(cos)<=0.00001` を必ず `undefined_tangent` にします。この安全側判定により、真の `abs(cos)` が最大およそ `0.00003` の値も拒否する場合があります。
 

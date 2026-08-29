@@ -1,5 +1,5 @@
 export const PUBLIC_FUNCTION_NAMES = Object.freeze([
-  "absolute", "acos", "acos_degrees", "add", "asin", "asin_degrees", "bezier", "bounce", "bounce_decay", "ceil", "clamp", "cos", "cos_degrees", "cube",
+  "absolute", "acos", "acos_degrees", "add", "asin", "asin_degrees", "atan", "atan2", "atan2_degrees", "atan_degrees", "bezier", "bounce", "bounce_decay", "ceil", "clamp", "cos", "cos_degrees", "cube",
   "deg", "divide", "e", "elastic", "elastic_decay", "exp", "floor", "lerp", "log", "maximum",
   "minimum", "modulo", "multiply", "pi", "power", "rad", "reciprocal",
   "quaternion_to_axis_angle", "remainder", "round", "sign", "sin", "sin_degrees", "square",
@@ -41,6 +41,8 @@ export const FUNCTION_PATHS = Object.freeze({
   asinPositiveStep: ".common/asin_positive/2.step",
   asin: ".common/asin/0.start",
   acos: ".common/acos/0.start",
+  atan: ".common/atan/0.start",
+  atanEvaluate: ".common/atan/1.evaluate",
   inverseTrigonometrySquareRoot: ".common/inverse_trigonometry/0.start",
   inverseTrigonometrySquareRootStep: ".common/inverse_trigonometry/1.step",
   quaternionNormalize: "quaternion_to_axis_angle/1.normalize",
