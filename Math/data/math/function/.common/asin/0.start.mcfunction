@@ -2,7 +2,8 @@ data modify storage math:internal w_inverse_trigonometry_input set from storage 
 execute if data storage math:internal {w_inverse_trigonometry_input:-1.0f} run data modify storage math:internal x set compute default math:common/inverse_trigonometry/half_pi
 execute if data storage math:internal {w_inverse_trigonometry_input:-1.0f} run data modify storage math:internal x set compute default math:common/rounding/negate
 execute if data storage math:internal {w_inverse_trigonometry_input:-1.0f} run return 1
-execute if data storage math:internal {w_inverse_trigonometry_input:0.0f} run data modify storage math:internal x set value 0.0f
+execute if data storage math:internal {w_inverse_trigonometry_input:0.0f} run data modify storage math:internal x set from storage math:internal w_inverse_trigonometry_input
+execute if data storage math:internal {w_inverse_trigonometry_input:0.0f} run data modify storage math:internal x set compute default math:common/input/x
 execute if data storage math:internal {w_inverse_trigonometry_input:0.0f} run return 1
 execute if data storage math:internal {w_inverse_trigonometry_input:1.0f} run data modify storage math:internal x set compute default math:common/inverse_trigonometry/half_pi
 execute if data storage math:internal {w_inverse_trigonometry_input:1.0f} run return 1

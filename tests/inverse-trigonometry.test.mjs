@@ -84,6 +84,14 @@ test("inverse trigonometric endpoint constants are stored exactly", () => {
   }
 });
 
+test("inverse sine preserves negative zero", () => {
+  for (const name of ["asin", "asin_degrees"]) {
+    const result = runFunction(name, { a: -0, ans: 91 });
+    assert.equal(result.returned, 1);
+    assert.ok(Object.is(result.storage["math:"].ans, -0), `${name}(-0) must return -0`);
+  }
+});
+
 test("inverse trigonometric functions reject binary32 inputs outside the real domain", () => {
   for (const input of [nextFloat(-1), nextFloat(1)]) {
     for (const [name] of implementations) {
