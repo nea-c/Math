@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    { "type": "minecraft:storage", "storage": "math:", "path": "t" },
+    { "type": "minecraft:storage", "storage": "math:internal", "path": "x" }
+  ]
+}

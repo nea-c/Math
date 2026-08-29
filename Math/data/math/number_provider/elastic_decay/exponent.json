@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    -1,
+    { "type": "minecraft:storage", "storage": "math:", "path": "damping" },
+    { "type": "minecraft:storage", "storage": "math:internal", "path": "w_elastic_decay_u" }
+  ]
+}

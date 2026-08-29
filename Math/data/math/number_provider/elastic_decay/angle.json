@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    6.2831854820251465,
+    { "type": "minecraft:storage", "storage": "math:", "path": "oscillations" },
+    { "type": "minecraft:storage", "storage": "math:internal", "path": "w_elastic_decay_u" }
+  ]
+}

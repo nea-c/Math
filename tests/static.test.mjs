@@ -441,6 +441,7 @@ test("function tags expose every public function in the generated function layou
     [
       "invalid_curve.mcfunction",
       "invalid_duration.mcfunction",
+      "invalid_elastic.mcfunction",
       "invalid_number.mcfunction",
       "result_out_of_range.mcfunction",
     ],
