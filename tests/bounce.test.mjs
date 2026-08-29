@@ -8,11 +8,11 @@ function assertClose(actual, expected, tolerance = 1e-3) {
 
 function physicalBounceDecayReference({ t, max, bounces, decay }) {
   const u = t / max;
-  const shiftedPhase = bounces * u + 0.5;
+  const shiftedPhase = (bounces + 0.5) * u + 0.5;
   const fraction = shiftedPhase - Math.floor(shiftedPhase);
   const centered = 2 * fraction - 1;
   const airborne = 1 - centered * centered;
-  return 1 - (1 - u) * Math.exp(-decay * u) * airborne;
+  return 1 - Math.exp(-decay * u) * airborne;
 }
 
 test("bounce evaluates the standard Bounce Out curve", () => {
@@ -49,6 +49,17 @@ test("bounce_decay uses sharp ground contacts and smooth airborne arcs", () => {
     const result = runFunction("bounce_decay", { ...parameters, t });
     assert.equal(result.returned, 1);
     assertClose(result.storage["math:"].ans, physicalBounceDecayReference({ ...parameters, t }), 2e-5);
+  }
+});
+
+test("bounce_decay with zero decay keeps every rebound at full height", () => {
+  const expected = [0, 1, 0, 1, 0, 1, 0, 1];
+  for (let t = 0; t <= 7; t += 1) {
+    const result = runFunction("bounce_decay", {
+      t, max: 7, a: 0, b: 1, bounces: 3, decay: 0,
+    });
+    assert.equal(result.returned, 1);
+    assertClose(result.storage["math:"].ans, expected[t], 2e-5);
   }
 });
 

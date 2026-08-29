@@ -5,9 +5,15 @@
       "type": "minecraft:product",
       "operands": [
         {
-          "type": "minecraft:storage",
-          "storage": "math:",
-          "path": "bounces"
+          "type": "minecraft:sum",
+          "operands": [
+            {
+              "type": "minecraft:storage",
+              "storage": "math:",
+              "path": "bounces"
+            },
+            0.5
+          ]
         },
         {
           "type": "minecraft:storage",
