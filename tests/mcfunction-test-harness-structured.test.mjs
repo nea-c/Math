@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  copyTypedPath,
   getPath,
   parseGeneratedSnbt,
   removeTypedPath,
@@ -67,4 +68,29 @@ test("typed paths keep bracket notation when installing root-list numeric tags",
   setTypedPath(storage, numericTags, "math:", "curve", parseGeneratedSnbt("[0.0f,1.0f]"));
   assert.equal(numericTags.get("math:|curve[0]"), "float");
   assert.equal(numericTags.get("math:|curve[1]"), "float");
+});
+
+test("structured set from storage retains list-child numeric tag paths", () => {
+  const storage = {};
+  const numericTags = new Map();
+  setTypedPath(storage, numericTags, "math:", "ans", parseGeneratedSnbt("{axis:[0.0f,1.0f]}"));
+
+  copyTypedPath(storage, numericTags, "math:", "destination", "math:", "ans.axis", getPath(storage, "ans.axis"));
+
+  assert.deepEqual(storage.destination, [0, 1]);
+  assert.equal(numericTags.get("math:|destination[0]"), "float");
+  assert.equal(numericTags.get("math:|destination[1]"), "float");
+});
+
+test("removing an indexed list path splices values and reindexes numeric tags", () => {
+  const storage = {};
+  const numericTags = new Map();
+  setTypedPath(storage, numericTags, "math:", "ans", parseGeneratedSnbt("{axis:[{value:0.0f},{value:1.0f},{value:2.0f}]}"));
+
+  removeTypedPath(storage, numericTags, "math:", "ans.axis[1]");
+
+  assert.deepEqual(storage.ans.axis, [{ value: 0 }, { value: 2 }]);
+  assert.equal(numericTags.get("math:|ans.axis[0].value"), "float");
+  assert.equal(numericTags.get("math:|ans.axis[1].value"), "float");
+  assert.equal(numericTags.has("math:|ans.axis[2].value"), false);
 });

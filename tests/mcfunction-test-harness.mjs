@@ -74,7 +74,9 @@ export function setPath(root, pathText, value) {
 export function removePath(root, pathText) {
   const segments = normalizePath(pathText).split(".");
   const target = segments.slice(0, -1).reduce((value, segment) => value?.[segment], root);
-  if (target) delete target[segments.at(-1)];
+  const finalSegment = segments.at(-1);
+  if (Array.isArray(target) && /^\d+$/.test(finalSegment)) target.splice(Number(finalSegment), 1);
+  else if (target) delete target[finalSegment];
 }
 
 export function storageFieldKey(storageId, pathText) {
@@ -204,6 +206,21 @@ function joinPath(basePath, relativePath) {
   return relativePath ? `${basePath}${relativePath.startsWith("[") ? "" : "."}${relativePath}` : basePath;
 }
 
+function reindexNumericTagsAfterListRemoval(numericTags, storageId, pathText) {
+  const match = pathText.match(/^(.*?)(?:\[(\d+)\]|\.(\d+))$/);
+  if (!match) return;
+  const parentPath = match[1];
+  const removedIndex = Number(match[2] ?? match[3]);
+  const prefix = `${storageId}|${parentPath}`;
+  for (const [key, type] of [...numericTags]) {
+    if (!key.startsWith(prefix)) continue;
+    const child = key.slice(prefix.length).match(/^\[(\d+)\](.*)$/);
+    if (!child || Number(child[1]) <= removedIndex) continue;
+    numericTags.delete(key);
+    numericTags.set(`${prefix}[${Number(child[1]) - 1}]${child[2]}`, type);
+  }
+}
+
 export function setTypedPath(root, numericTags, storageId, pathText, parsed) {
   clearNumericTagDescendants(numericTags, storageId, pathText);
   setPath(root, pathText, parsed.value);
@@ -216,9 +233,10 @@ export function setTypedPath(root, numericTags, storageId, pathText, parsed) {
 export function removeTypedPath(root, numericTags, storageId, pathText) {
   removePath(root, pathText);
   clearNumericTagDescendants(numericTags, storageId, pathText);
+  reindexNumericTagsAfterListRemoval(numericTags, storageId, pathText);
 }
 
-function copyTypedPath(root, numericTags, destinationStorageId, destinationPath, sourceStorageId, sourcePath, value) {
+export function copyTypedPath(root, numericTags, destinationStorageId, destinationPath, sourceStorageId, sourcePath, value) {
   const sourceTags = [...numericTags];
   clearNumericTagDescendants(numericTags, destinationStorageId, destinationPath);
   setPath(root, destinationPath, value);
@@ -229,7 +247,8 @@ function copyTypedPath(root, numericTags, destinationStorageId, destinationPath,
     const tagPath = key.slice(sourcePrefix.length);
     const normalizedTagPath = normalizePath(tagPath);
     if (normalizedTagPath !== normalizedSourcePath && !normalizedTagPath.startsWith(`${normalizedSourcePath}.`)) continue;
-    const relativePath = normalizedTagPath === normalizedSourcePath ? "" : tagPath.slice(sourcePath.length + 1);
+    const descendantPath = tagPath.slice(sourcePath.length);
+    const relativePath = normalizedTagPath === normalizedSourcePath ? "" : descendantPath.replace(/^\./, "");
     const destinationTagPath = joinPath(destinationPath, relativePath);
     numericTags.set(storageFieldKey(destinationStorageId, destinationTagPath), type);
   }
