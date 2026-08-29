@@ -21,12 +21,13 @@ Minecraft Java Edition 26.3 Snapshot 10 向けの、依存関係なしで動く 
 | `curve` | `bezier` の4要素の数値リスト `[x1,y1,x2,y2]` |
 | `amplitude`, `period` | `elastic` の振幅倍率と1周期のtick数 |
 | `oscillations`, `damping` | `elastic_decay` の全区間の振動回数と指数減衰率 |
-| `ans` | 成功時の float 結果 |
+| `rotation` | `quaternion_to_axis_angle` の quaternion `[x,y,z,w]` |
+| `ans` | 成功時の float 結果（`quaternion_to_axis_angle` のみ `{angle:<float>,axis:[<float>,<float>,<float>]}`） |
 | `error` | 失敗時のエラー ID（文字列） |
 
-単項関数は `a`、二項関数は `a` と `b`、`clamp` は `a/min/max`、`lerp` は `a/b/t`、`bezier` は `a/b/t/max/curve`、`elastic` は `a/b/t/max/amplitude/period`、`elastic_decay` は `a/b/t/max/oscillations/damping` を読みます。定数関数は入力を読みません。公開入力は変更されません。
+単項関数は `a`、二項関数は `a` と `b`、`clamp` は `a/min/max`、`lerp` は `a/b/t`、`bezier` は `a/b/t/max/curve`、`elastic` は `a/b/t/max/amplitude/period`、`elastic_decay` は `a/b/t/max/oscillations/damping`、`quaternion_to_axis_angle` は `rotation` を読みます。定数関数は入力を読みません。公開入力は変更されません。
 
-- 成功: 古い `error` を削除し、float の `ans` を書き、function result `1` を返します。
+- 成功: 古い `error` を削除し、float の `ans` を書き、function result `1` を返します。例外として `quaternion_to_axis_angle` は compound の `ans` を書きます。
 - 失敗: 古い `ans` を削除し、`error` を書き、function result `0` を返します。
 
 作業領域は別の `storage math:internal` にあります。ルート名が `x`、`y`、`z`、`w` で始まる値は不安定な内部 scratch state で、呼び出し後に残ることがあります。読み書きしたり、構造や値に依存したりしないでください。
@@ -42,9 +43,12 @@ Minecraft Java Edition 26.3 Snapshot 10 向けの、依存関係なしで動く 
 | 累乗・超越 | `square`, `cube`, `square_root`, `power`, `exp`, `log` | `a²`, `a³`, `sqrt(a)`, `a^b`, `e^a`, 自然対数 `ln(a)` |
 | 三角関数（rad） | `sin`, `cos`, `tan` | `a` をラジアンとして扱う |
 | 三角関数（degree） | `sin_degrees`, `cos_degrees`, `tan_degrees` | `a` を度として扱う |
+| 逆三角関数（rad） | `asin`, `acos` | `a` を `[-1,1]` の値として扱い、ラジアンを返す |
+| 逆三角関数（degree） | `asin_degrees`, `acos_degrees` | `a` を `[-1,1]` の値として扱い、度を返す |
 | 角度変換 | `rad`, `deg` | `rad`: 度 → ラジアン、`deg`: ラジアン → 度 |
 | 定数 | `pi`, `tau`, `e` | `π`, `2π`, `e`; 入力を無視する |
 | 補間 | `lerp`, `bezier`, `elastic`, `elastic_decay` | 線形補間; CSS互換cubic-bezier; 2種類のElastic Out時間補間 |
+| quaternion | `quaternion_to_axis_angle` | `rotation:[x,y,z,w]` を `{angle,axis:[x,y,z]}` へ変換 |
 
 `round(a)` は `floor(a + 0.5)` です。たとえば `round(1.5)=2`、`round(-1.5)=-1` となります。
 
@@ -58,6 +62,10 @@ Minecraft Java Edition 26.3 Snapshot 10 向けの、依存関係なしで動く 
 
 両Elastic関数とも係数を使って `a` から `b` を補間し、`t<=0` は正確に `a`、`t>=max` は正確に `b` を返します。
 
+`asin` / `acos` と degree 版は有限な `a` が `[-1,1]` にあるときだけ成功します。端点は正確に `asin(-1)=-π/2`、`asin(0)=0`、`asin(1)=π/2`、`acos(-1)=π`、`acos(0)=π/2`、`acos(1)=0`（degree 版ではそれぞれ `-90/0/90` と `180/90/0`）を返します。範囲外は `non_real_result`、非有限値は `invalid_number` です。
+
+`quaternion_to_axis_angle` は `rotation:[x,y,z,w]` を受け取り、各要素には byte、short、int、long、float、double を含む任意の数値 NBT を指定できます。すべて binary32 に変換してから、有限な非ゼロ quaternion を安全に正規化します。成功時の `ans` は float の `angle` と float 3要素の `axis` を持つ compound です。角度は符号を保って `[0,2*pi]` に入り、`q` と `-q` は同一視されません。ベクトル部がゼロの scalar quaternion では軸を常に `+Y` とし、`[0,0,0,1]` は角度 `0`、`[0,0,0,-1]` は `2*pi` です。4要素以外、非数値・非有限要素、または全ゼロ quaternion は `invalid_quaternion` で失敗します。
+
 ## エラー
 
 | `error` | 条件 |
@@ -65,13 +73,14 @@ Minecraft Java Edition 26.3 Snapshot 10 向けの、依存関係なしで動く 
 | `division_by_zero` | `divide`、`reciprocal`、`remainder`、`modulo` の除数が `+0` または `-0` |
 | `negative_square_root` | `square_root` の入力が負 |
 | `undefined_tangent` | tangent の極を安全に除外できない |
-| `non_real_result` | `log(a<=0)`、または負の底に非整数指数を指定 |
+| `non_real_result` | `log(a<=0)`、負の底に非整数指数を指定、または inverse trig の `a` が `[-1,1]` 外 |
 | `zero_to_negative_power` | `power(0,b<0)` |
 | `invalid_clamp_range` | `clamp` で `min>max` |
 | `invalid_duration` | `bezier`、`elastic`、`elastic_decay` で `max<=0` |
 | `invalid_curve` | `curve` が4要素でない、または `x1` / `x2` が `[0,1]` の範囲外 |
 | `invalid_elastic` | `elastic` または `elastic_decay` の固有パラメータが許容範囲外 |
 | `invalid_number` | 必須入力が非有限値 |
+| `invalid_quaternion` | quaternion が4要素でない、数値かつ有限な非ゼロ quaternion でない、または結果を安全に作れない |
 | `result_out_of_range` | 計算結果を有限 binary32 として表現できない |
 
 ## 数値モデルと精度
@@ -90,6 +99,8 @@ provider の定数、storage 読み出し、各 aggregate 演算で Java の bin
 | `elastic` | `asin(1/amplitude)` に20回の二分探索を使用 | 逆正弦の探索区間幅 `<= (pi/2)*2^-20` |
 | `sin`, `cos` | `[-100,100]` rad で絶対誤差 `<= 0.00001` | `3.60e-6` 以下 |
 | `sin_degrees`, `cos_degrees` | `[-5000,5000]` degree で絶対誤差 `<= 0.00001` | `6.89e-6` 以下 |
+| `asin`, `acos` | `[-1,1]` で絶対誤差 `<= 0.00000175` rad | 20回二分探索 + binary32 丸め |
+| `asin_degrees`, `acos_degrees` | `[-1,1]` で絶対誤差 `<= 0.00011` degree | 20回二分探索 + binary32 丸め |
 
 `tan` / `tan_degrees` は極の近くに一律の誤差上限を持ちません。保証範囲内では、近似 cosine の guard を `0.00002` とすることで、真の `abs(cos)<=0.00001` を必ず `undefined_tangent` にします。この安全側判定により、真の `abs(cos)` が最大およそ `0.00003` の値も拒否する場合があります。
 
@@ -115,6 +126,24 @@ data modify storage math: a set value 30.0f
 function #math:rad
 data modify storage math: a set from storage math: ans
 function #math:sin
+data get storage math: ans
+```
+
+0.5 の逆正弦をラジアンで求め、度へ変換する例です（結果は約 `30.0f`）。
+
+```mcfunction
+data modify storage math: a set value 0.5f
+function #math:asin
+data modify storage math: a set from storage math: ans
+function #math:deg
+data get storage math: ans
+```
+
+quaternion を axis-angle に変換する例です。`ans.angle` は約 `3*pi/2`、`ans.axis` は `+Y` です。
+
+```mcfunction
+data modify storage math: rotation set value [0.0f,0.70710677f,0.0f,-0.70710677f]
+function #math:quaternion_to_axis_angle
 data get storage math: ans
 ```
 
