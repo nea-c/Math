@@ -52,27 +52,187 @@ function commandsFor(functionName) {
   return commands;
 }
 
-function getPath(root, pathText) {
-  return pathText.replaceAll(/\[(\d+)\]/g, ".$1")
+function normalizePath(pathText) {
+  return pathText.replaceAll(/\[(\d+)\]/g, ".$1");
+}
+
+export function getPath(root, pathText) {
+  return normalizePath(pathText)
     .split(".")
     .reduce((value, segment) => value?.[segment], root);
 }
 
-function setPath(root, pathText, value) {
-  const segments = pathText.split(".");
+export function setPath(root, pathText, value) {
+  const segments = normalizePath(pathText).split(".");
   let target = root;
-  for (const segment of segments.slice(0, -1)) target = target[segment] ??= {};
+  for (const [index, segment] of segments.slice(0, -1).entries()) {
+    target = target[segment] ??= /^\d+$/.test(segments[index + 1]) ? [] : {};
+  }
   target[segments.at(-1)] = clone(value);
 }
 
-function removePath(root, pathText) {
-  const segments = pathText.split(".");
+export function removePath(root, pathText) {
+  const segments = normalizePath(pathText).split(".");
   const target = segments.slice(0, -1).reduce((value, segment) => value?.[segment], root);
   if (target) delete target[segments.at(-1)];
 }
 
 export function storageFieldKey(storageId, pathText) {
   return `${storageId}|${pathText}`;
+}
+
+function numericTagType(suffix) {
+  return suffix.toLowerCase() === "f" ? "float" : suffix.toLowerCase() === "b" ? "byte" : "double";
+}
+
+export function parseGeneratedSnbt(text) {
+  let index = 0;
+  const numericTags = new Map();
+  const fail = () => {
+    throw new Error(`Unsupported generated SNBT literal: ${text}`);
+  };
+  const skipWhitespace = () => {
+    while (/\s/.test(text[index] ?? "")) index += 1;
+  };
+  const childPath = (parent, child) => parent ? `${parent}.${child}` : child;
+
+  function parseString() {
+    if (text[index] !== '"') fail();
+    index += 1;
+    let value = "";
+    while (index < text.length) {
+      const character = text[index++];
+      if (character === '"') return value;
+      if (character !== "\\") {
+        value += character;
+        continue;
+      }
+      const escaped = text[index++];
+      const escapeValues = { '"': '"', "\\": "\\", "/": "/", b: "\b", f: "\f", n: "\n", r: "\r", t: "\t" };
+      if (escapeValues[escaped] === undefined) fail();
+      value += escapeValues[escaped];
+    }
+    fail();
+  }
+
+  function parseBare(pathText) {
+    const start = index;
+    while (index < text.length && !/[\s,\]\}]/.test(text[index])) index += 1;
+    const token = text.slice(start, index);
+    const match = token.match(/^-?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?([bBdDfF])?$/);
+    if (!match) fail();
+    numericTags.set(pathText, numericTagType(match[1] ?? "d"));
+    return Number(token.replace(/[bBdDfF]$/, ""));
+  }
+
+  function parseCompound(pathText) {
+    if (text[index] !== "{") fail();
+    index += 1;
+    skipWhitespace();
+    const value = {};
+    if (text[index] === "}") {
+      index += 1;
+      return value;
+    }
+    while (true) {
+      const keyMatch = text.slice(index).match(/^[A-Za-z0-9_.+-]+/);
+      if (!keyMatch) fail();
+      const key = keyMatch[0];
+      index += key.length;
+      skipWhitespace();
+      if (text[index] !== ":") fail();
+      index += 1;
+      value[key] = parseValue(childPath(pathText, key));
+      skipWhitespace();
+      if (text[index] === "}") {
+        index += 1;
+        return value;
+      }
+      if (text[index] !== ",") fail();
+      index += 1;
+      skipWhitespace();
+    }
+  }
+
+  function parseList(pathText) {
+    if (text[index] !== "[") fail();
+    index += 1;
+    skipWhitespace();
+    const value = [];
+    if (text[index] === "]") {
+      index += 1;
+      return value;
+    }
+    while (true) {
+      value.push(parseValue(`${pathText}[${value.length}]`));
+      skipWhitespace();
+      if (text[index] === "]") {
+        index += 1;
+        return value;
+      }
+      if (text[index] !== ",") fail();
+      index += 1;
+      skipWhitespace();
+    }
+  }
+
+  function parseValue(pathText) {
+    skipWhitespace();
+    if (text[index] === "{") return parseCompound(pathText);
+    if (text[index] === "[") return parseList(pathText);
+    if (text[index] === '"') return parseString();
+    return parseBare(pathText);
+  }
+
+  const value = parseValue("");
+  skipWhitespace();
+  if (index !== text.length) fail();
+  return { value, numericTags };
+}
+
+function clearNumericTagDescendants(numericTags, storageId, pathText) {
+  const normalizedPath = normalizePath(pathText);
+  const prefix = `${storageId}|`;
+  for (const key of numericTags.keys()) {
+    if (!key.startsWith(prefix)) continue;
+    const tagPath = normalizePath(key.slice(prefix.length));
+    if (tagPath === normalizedPath || tagPath.startsWith(`${normalizedPath}.`)) numericTags.delete(key);
+  }
+}
+
+function joinPath(basePath, relativePath) {
+  return relativePath ? `${basePath}${relativePath.startsWith("[") ? "" : "."}${relativePath}` : basePath;
+}
+
+export function setTypedPath(root, numericTags, storageId, pathText, parsed) {
+  clearNumericTagDescendants(numericTags, storageId, pathText);
+  setPath(root, pathText, parsed.value);
+  for (const [relativePath, type] of parsed.numericTags) {
+    const destinationPath = joinPath(pathText, relativePath);
+    numericTags.set(storageFieldKey(storageId, destinationPath), type);
+  }
+}
+
+export function removeTypedPath(root, numericTags, storageId, pathText) {
+  removePath(root, pathText);
+  clearNumericTagDescendants(numericTags, storageId, pathText);
+}
+
+function copyTypedPath(root, numericTags, destinationStorageId, destinationPath, sourceStorageId, sourcePath, value) {
+  const sourceTags = [...numericTags];
+  clearNumericTagDescendants(numericTags, destinationStorageId, destinationPath);
+  setPath(root, destinationPath, value);
+  const sourcePrefix = `${sourceStorageId}|`;
+  const normalizedSourcePath = normalizePath(sourcePath);
+  for (const [key, type] of sourceTags) {
+    if (!key.startsWith(sourcePrefix)) continue;
+    const tagPath = key.slice(sourcePrefix.length);
+    const normalizedTagPath = normalizePath(tagPath);
+    if (normalizedTagPath !== normalizedSourcePath && !normalizedTagPath.startsWith(`${normalizedSourcePath}.`)) continue;
+    const relativePath = normalizedTagPath === normalizedSourcePath ? "" : tagPath.slice(sourcePath.length + 1);
+    const destinationTagPath = joinPath(destinationPath, relativePath);
+    numericTags.set(storageFieldKey(destinationStorageId, destinationTagPath), type);
+  }
 }
 
 // A focused mcfunction interpreter: it executes only the generated command subset,
@@ -132,50 +292,45 @@ function runWithStorage(name, publicInput, internalInput) {
   function execute(command) {
     let match = command.match(/^data remove storage (\S+) (\S+)$/);
     if (match) {
-      removePath(storage[match[1]] ??= {}, match[2]);
-      numericTags.delete(storageFieldKey(match[1], match[2]));
+      removeTypedPath(storage[match[1]] ??= {}, numericTags, match[1], match[2]);
       return undefined;
     }
     match = command.match(/^data modify storage (\S+) (\S+) set from storage (\S+) (\S+)$/);
     if (match) {
-      setPath(storage[match[1]] ??= {}, match[2], getPath(storage[match[3]], match[4]));
-      const sourceType = numericTags.get(storageFieldKey(match[3], match[4]));
-      const targetKey = storageFieldKey(match[1], match[2]);
-      if (sourceType) numericTags.set(targetKey, sourceType);
-      else numericTags.delete(targetKey);
+      copyTypedPath(storage[match[1]] ??= {}, numericTags, match[1], match[2], match[3], match[4], getPath(storage[match[3]], match[4]));
       return undefined;
     }
     match = command.match(/^data modify storage (\S+) (\S+) set compute default (\S+)$/);
     if (match) {
-      setPath(storage[match[1]] ??= {}, match[2], evaluateProvider(match[3], providers, new Map(Object.entries(storage))));
-      numericTags.set(storageFieldKey(match[1], match[2]), "float");
+      setTypedPath(storage[match[1]] ??= {}, numericTags, match[1], match[2], {
+        value: evaluateProvider(match[3], providers, new Map(Object.entries(storage))),
+        numericTags: new Map([["", "float"]]),
+      });
       return undefined;
     }
-    match = command.match(/^data modify storage (\S+) (\S+) set value "([^"]*)"$/);
+    match = command.match(/^data modify storage (\S+) (\S+) set value (.+)$/);
     if (match) {
-      setPath(storage[match[1]] ??= {}, match[2], match[3]);
-      return undefined;
-    }
-    match = command.match(/^data modify storage (\S+) (\S+) set value (-?\d+(?:\.\d+)?)([fFdDbB]?)$/);
-    if (match) {
-      setPath(storage[match[1]] ??= {}, match[2], Number(match[3]));
-      const suffix = match[4].toLowerCase();
-      numericTags.set(storageFieldKey(match[1], match[2]), suffix === "f" ? "float" : suffix === "b" ? "byte" : "double");
+      const parsed = parseGeneratedSnbt(match[3]);
+      setTypedPath(storage[match[1]] ??= {}, numericTags, match[1], match[2], parsed);
       return undefined;
     }
     match = command.match(/^execute store success storage (\S+) (\S+) byte 1 run data get storage (\S+) (\S+) 1$/);
     if (match) {
       const success = typeof getPath(storage[match[3]], match[4]) === "number";
-      setPath(storage[match[1]] ??= {}, match[2], success ? 1 : 0);
-      numericTags.set(storageFieldKey(match[1], match[2]), "byte");
+      setTypedPath(storage[match[1]] ??= {}, numericTags, match[1], match[2], {
+        value: success ? 1 : 0,
+        numericTags: new Map([["", "byte"]]),
+      });
       return undefined;
     }
     match = command.match(/^execute store result storage (\S+) (\S+) float (-?\d+(?:\.\d+)?) run compute default (\S+)$/);
     if (match) {
       const value = evaluateProvider(match[4], providers, new Map(Object.entries(storage)));
       const result = computeCommandResult(value);
-      setPath(storage[match[1]] ??= {}, match[2], Math.fround(result * Number(match[3])));
-      numericTags.set(storageFieldKey(match[1], match[2]), "float");
+      setTypedPath(storage[match[1]] ??= {}, numericTags, match[1], match[2], {
+        value: Math.fround(result * Number(match[3])),
+        numericTags: new Map([["", "float"]]),
+      });
       return undefined;
     }
     match = command.match(/^execute (if|unless) predicate (\S+) run (.+)$/);

@@ -1,0 +1,70 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {
+  getPath,
+  parseGeneratedSnbt,
+  removeTypedPath,
+  setPath,
+  setTypedPath,
+} from "./mcfunction-test-harness.mjs";
+
+test("parseGeneratedSnbt parses the generated axis-angle literal and numeric tags", () => {
+  const parsed = parseGeneratedSnbt("{angle:0.0f,axis:[0.0f,0.0f,0.0f]}");
+  assert.deepEqual(parsed.value, { angle: 0, axis: [0, 0, 0] });
+  assert.deepEqual([...parsed.numericTags.entries()], [
+    ["angle", "float"],
+    ["axis[0]", "float"],
+    ["axis[1]", "float"],
+    ["axis[2]", "float"],
+  ]);
+});
+
+test("parseGeneratedSnbt supports generated nested strings and rejects trailing literals", () => {
+  assert.deepEqual(
+    parseGeneratedSnbt(' { label : "axis" , values : [ 1b , -2.5d ] } ').value,
+    { label: "axis", values: [1, -2.5] },
+  );
+  assert.throws(
+    () => parseGeneratedSnbt("{angle:0.0f} trailing"),
+    /\{angle:0\.0f\} trailing/,
+  );
+});
+
+test("bracket-aware paths read and write nested list values", () => {
+  const storage = { ans: { axis: [0, 0, 0] } };
+  setPath(storage, "ans.axis[1]", 7);
+  assert.equal(getPath(storage, "ans.axis[1]"), 7);
+});
+
+test("typed paths install structured numeric tags and clear descendants on overwrite or removal", () => {
+  const storage = {};
+  const numericTags = new Map();
+  const axisAngle = parseGeneratedSnbt("{angle:0.0f,axis:[0.0f,0.0f,0.0f]}");
+
+  setTypedPath(storage, numericTags, "math:", "ans", axisAngle);
+  assert.equal(numericTags.get("math:|ans.axis[1]"), "float");
+
+  setTypedPath(storage, numericTags, "math:", "ans.axis[1]", parseGeneratedSnbt("1b"));
+  assert.equal(getPath(storage, "ans.axis[1]"), 1);
+  assert.equal(numericTags.get("math:|ans.axis[1]"), "byte");
+  assert.equal(numericTags.get("math:|ans.angle"), "float");
+  assert.equal(numericTags.get("math:|ans.axis[0]"), "float");
+  assert.equal(numericTags.get("math:|ans.axis[2]"), "float");
+
+  setTypedPath(storage, numericTags, "math:", "ans", parseGeneratedSnbt('"replaced"'));
+  assert.equal(numericTags.has("math:|ans.axis[0]"), false);
+  assert.equal(numericTags.has("math:|ans.axis[1]"), false);
+
+  setTypedPath(storage, numericTags, "math:", "ans", axisAngle);
+  removeTypedPath(storage, numericTags, "math:", "ans");
+  assert.equal(numericTags.has("math:|ans.angle"), false);
+  assert.equal(numericTags.has("math:|ans.axis[2]"), false);
+});
+
+test("typed paths keep bracket notation when installing root-list numeric tags", () => {
+  const storage = {};
+  const numericTags = new Map();
+  setTypedPath(storage, numericTags, "math:", "curve", parseGeneratedSnbt("[0.0f,1.0f]"));
+  assert.equal(numericTags.get("math:|curve[0]"), "float");
+  assert.equal(numericTags.get("math:|curve[1]"), "float");
+});
