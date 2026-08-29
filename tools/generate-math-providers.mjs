@@ -77,6 +77,10 @@ const publicCurveY1 = storage("math:", "curve[1]");
 const publicCurveX2 = storage("math:", "curve[2]");
 const publicCurveY2 = storage("math:", "curve[3]");
 const publicAnswer = storage("math:", "ans");
+const publicAmplitude = storage("math:", "amplitude");
+const publicPeriod = storage("math:", "period");
+const publicOscillations = storage("math:", "oscillations");
+const publicDamping = storage("math:", "damping");
 
 function inlineValueCheck(value, min, max) {
   return floatRange(value, min, max);
@@ -713,6 +717,10 @@ for (const [name, value] of [
   ["curve_2", publicCurveX2],
   ["curve_3", publicCurveY2],
   ["ans", publicAnswer],
+  ["amplitude", publicAmplitude],
+  ["period", publicPeriod],
+  ["oscillations", publicOscillations],
+  ["damping", publicDamping],
   ["x", x],
 ]) {
   emit(`internal/comparison/finite/${name}`, sum(value, product(-1, value)));
@@ -793,6 +801,16 @@ emitStagedPredicate("bezier/time_at_or_below_start", publicT, undefined, 0);
 emitStagedPredicate("bezier/time_at_or_after_end", subtractExpression(publicT, publicMax), 0, undefined);
 emitStagedPredicate("bezier/x1_in_range", publicCurveX1, 0, 1);
 emitStagedPredicate("bezier/x2_in_range", publicCurveX2, 0, 1);
+emitStagedPredicate("elastic/duration_positive", publicMax, smallestPositiveFloat, undefined);
+emitStagedPredicate("elastic/amplitude_valid", publicAmplitude, 1, undefined);
+emitStagedPredicate("elastic/period_positive", publicPeriod, smallestPositiveFloat, undefined);
+emitStagedPredicate("elastic/time_at_or_below_start", publicT, undefined, 0);
+emitStagedPredicate("elastic/time_at_or_after_end", subtractExpression(publicT, publicMax), 0, undefined);
+emitStagedPredicate("elastic_decay/duration_positive", publicMax, smallestPositiveFloat, undefined);
+emitStagedPredicate("elastic_decay/oscillations_positive", publicOscillations, smallestPositiveFloat, undefined);
+emitStagedPredicate("elastic_decay/damping_positive", publicDamping, smallestPositiveFloat, undefined);
+emitStagedPredicate("elastic_decay/time_at_or_below_start", publicT, undefined, 0);
+emitStagedPredicate("elastic_decay/time_at_or_after_end", subtractExpression(publicT, publicMax), 0, undefined);
 emitStagedPredicate("divide/exponent_definitely_overflows", divideExponent, 129, undefined);
 emitStagedPredicate("divide/exponent_at_overflow_boundary", divideExponent, 128, 128);
 emitStagedPredicate("divide/significand_at_or_above_overflow_boundary", sum(divideAMantissa, product(-1, divideBMantissa)), 0, undefined);
@@ -819,6 +837,11 @@ for (const [variant, guard] of [
 }
 emitPredicate("normalize_period/original_negative", inlineValueCheck(
   storage("math:internal", "w_comparison.period_original"),
+  undefined,
+  -1,
+));
+emitPredicate("asin_positive/before_target", inlineValueCheck(
+  storage("math:internal", "w_comparison.asin_positive_before_target"),
   undefined,
   -1,
 ));
@@ -886,6 +909,170 @@ emitFunction(FUNCTION_PATHS.invalidDuration, [
   "data modify storage math: error set value \"invalid_duration\"",
   "return fail",
 ]);
+
+emitFunction(FUNCTION_PATHS.invalidElastic, [
+  "data remove storage math: ans",
+  "data modify storage math: error set value \"invalid_elastic\"",
+  "return fail",
+]);
+
+emit("common/asin_positive/half_pi", halfPi);
+emit("common/asin_positive/midpoint", product(0.5, sum(
+  storage("math:internal", "w_asin_low"),
+  storage("math:internal", "w_asin_high"),
+)));
+emit("common/asin_positive/compare", floatComparison(
+  sum(
+    storage("math:internal", "w_asin_sine"),
+    product(-1, storage("math:internal", "w_asin_target")),
+  ),
+  0,
+));
+
+emitFunction(FUNCTION_PATHS.asinPositive, [
+  "data modify storage math:internal w_asin_target set from storage math:internal x",
+  "data modify storage math:internal w_asin_low set value 0.0f",
+  "data modify storage math:internal w_asin_high set compute default math:common/asin_positive/half_pi",
+  `function ${functionId(FUNCTION_PATHS.asinPositiveSolve)}`,
+  "data modify storage math:internal x set compute default math:common/asin_positive/midpoint",
+  "return 1",
+]);
+
+{
+  const lines = [];
+  for (let iteration = 0; iteration < 20; iteration += 1) {
+    lines.push(`function ${functionId(FUNCTION_PATHS.asinPositiveStep)}`);
+  }
+  lines.push("return 1");
+  emitFunction(FUNCTION_PATHS.asinPositiveSolve, lines);
+}
+
+emitFunction(FUNCTION_PATHS.asinPositiveStep, [
+  "data modify storage math:internal w_asin_midpoint set compute default math:common/asin_positive/midpoint",
+  "data modify storage math:internal x set from storage math:internal w_asin_midpoint",
+  `function ${functionId(FUNCTION_PATHS.sin)}`,
+  "data modify storage math:internal w_asin_sine set from storage math:internal x",
+  "data modify storage math:internal w_comparison.asin_positive_before_target set compute default math:common/asin_positive/compare",
+  "execute if predicate math:internal/asin_positive/before_target run data modify storage math:internal w_asin_low set from storage math:internal w_asin_midpoint",
+  "execute unless predicate math:internal/asin_positive/before_target run data modify storage math:internal w_asin_high set from storage math:internal w_asin_midpoint",
+  "return 1",
+]);
+
+const elasticAmplitude = storage("math:internal", "w_elastic_amplitude");
+const elasticPhase = storage("math:internal", "w_elastic_phase");
+const elasticInversePeriod = storage("math:internal", "w_elastic_inverse_period");
+const elasticU = storage("math:internal", "w_elastic_u");
+const elasticDecay = storage("math:internal", "w_elastic_decay");
+const elasticSine = storage("math:internal", "w_elastic_sine");
+const elasticEased = storage("math:internal", "w_elastic_eased");
+const elasticDecayU = storage("math:internal", "w_elastic_decay_u");
+const elasticDecayFactor = storage("math:internal", "w_elastic_decay_factor");
+const elasticDecayCosine = storage("math:internal", "w_elastic_decay_cosine");
+const elasticDecayEased = storage("math:internal", "w_elastic_decay_eased");
+const interpolationResult = (eased) => sum(publicA, product(eased, sum(publicB, product(-1, publicA))));
+
+emit("elastic/input/amplitude", publicAmplitude);
+emit("elastic/phase", product(publicPeriod, x, Math.fround(1 / (Math.PI * 2))));
+emit("elastic/u", product(publicT, x));
+emit("elastic/exponent", product(Math.fround(-10 * Math.LN2), elasticU));
+emit("elastic/angle", product(sum(publicT, product(-1, elasticPhase)), tau, elasticInversePeriod));
+emit("elastic/eased", sum(1, product(elasticAmplitude, elasticDecay, elasticSine)));
+emit("elastic/result", interpolationResult(elasticEased));
+emit("elastic_decay/u", product(publicT, x));
+emit("elastic_decay/exponent", product(-1, publicDamping, elasticDecayU));
+emit("elastic_decay/angle", product(tau, publicOscillations, elasticDecayU));
+emit("elastic_decay/eased", sum(1, product(-1, elasticDecayFactor, elasticDecayCosine)));
+emit("elastic_decay/result", interpolationResult(elasticDecayEased));
+
+emitFunction(FUNCTION_PATHS.elasticFinish, [
+  "data modify storage math:internal w_elastic_eased set compute default math:elastic/eased",
+  "data modify storage math: ans set compute default math:elastic/result",
+  "data modify storage math:internal w_validation_ans set compute default math:internal/comparison/finite/ans",
+  `execute unless data storage math:internal {w_validation_ans:0.0f} run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`,
+  "return 1",
+]);
+
+emitFunction(FUNCTION_PATHS.elasticPhase, [
+  "data modify storage math:internal w_elastic_phase set compute default math:elastic/phase",
+  "data modify storage math:internal x set from storage math: max",
+  "data modify storage math:internal y set value 1.0f",
+  `function ${functionId(FUNCTION_PATHS.reciprocal)}`,
+  "data modify storage math:internal w_elastic_u set compute default math:elastic/u",
+  "data modify storage math:internal x set compute default math:elastic/exponent",
+  `function ${functionId(FUNCTION_PATHS.exp)}`,
+  "data modify storage math:internal w_elastic_decay set from storage math:internal x",
+  "data modify storage math:internal x set from storage math: period",
+  "data modify storage math:internal y set value 1.0f",
+  `function ${functionId(FUNCTION_PATHS.reciprocal)}`,
+  "data modify storage math:internal w_elastic_inverse_period set from storage math:internal x",
+  "data modify storage math:internal x set compute default math:elastic/angle",
+  `function ${functionId(FUNCTION_PATHS.sin)}`,
+  "data modify storage math:internal w_elastic_sine set from storage math:internal x",
+  `return run function ${functionId(FUNCTION_PATHS.elasticFinish)}`,
+]);
+
+{
+  const lines = validationLines(["a", "b", "t", "max", "amplitude"]);
+  lines.push("data modify storage math:internal w_elastic_amplitude set compute default math:elastic/input/amplitude");
+  lines.push("data modify storage math:internal w_validation_period set compute default math:internal/comparison/finite/period");
+  lines.push(`execute unless data storage math:internal {w_validation_period:0.0f} run return run function ${functionId(FUNCTION_PATHS.invalidNumber)}`);
+  lines.push(...stagePredicate("elastic/duration_positive"));
+  lines.push(`execute unless predicate math:internal/elastic/duration_positive run return run function ${functionId(FUNCTION_PATHS.invalidDuration)}`);
+  lines.push(...stagePredicate("elastic/amplitude_valid"));
+  lines.push(`execute unless predicate math:internal/elastic/amplitude_valid run return run function ${functionId(FUNCTION_PATHS.invalidElastic)}`);
+  lines.push(...stagePredicate("elastic/period_positive"));
+  lines.push(`execute unless predicate math:internal/elastic/period_positive run return run function ${functionId(FUNCTION_PATHS.invalidElastic)}`);
+  lines.push(...stagePredicate("elastic/time_at_or_below_start"));
+  lines.push("execute if predicate math:internal/elastic/time_at_or_below_start run data modify storage math: ans set from storage math: a");
+  lines.push("execute if predicate math:internal/elastic/time_at_or_below_start run return 1");
+  lines.push(...stagePredicate("elastic/time_at_or_after_end"));
+  lines.push("execute if predicate math:internal/elastic/time_at_or_after_end run data modify storage math: ans set from storage math: b");
+  lines.push("execute if predicate math:internal/elastic/time_at_or_after_end run return 1");
+  lines.push("execute if data storage math:internal {w_elastic_amplitude:1.0f} run data modify storage math:internal x set compute default math:common/asin_positive/half_pi");
+  lines.push(`execute if data storage math:internal {w_elastic_amplitude:1.0f} run return run function ${functionId(FUNCTION_PATHS.elasticPhase)}`);
+  lines.push("data modify storage math:internal x set from storage math:internal w_elastic_amplitude");
+  lines.push("data modify storage math:internal y set value 1.0f");
+  lines.push(`function ${functionId(FUNCTION_PATHS.reciprocal)}`);
+  lines.push(`function ${functionId(FUNCTION_PATHS.asinPositive)}`);
+  lines.push(`return run function ${functionId(FUNCTION_PATHS.elasticPhase)}`);
+  emitPublicFunction("elastic", lines);
+}
+
+emitFunction(FUNCTION_PATHS.elasticDecayFinish, [
+  "data modify storage math:internal w_elastic_decay_eased set compute default math:elastic_decay/eased",
+  "data modify storage math: ans set compute default math:elastic_decay/result",
+  "data modify storage math:internal w_validation_ans set compute default math:internal/comparison/finite/ans",
+  `execute unless data storage math:internal {w_validation_ans:0.0f} run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`,
+  "return 1",
+]);
+
+{
+  const lines = validationLines(["a", "b", "t", "max", "oscillations", "damping"]);
+  lines.push(...stagePredicate("elastic_decay/duration_positive"));
+  lines.push(`execute unless predicate math:internal/elastic_decay/duration_positive run return run function ${functionId(FUNCTION_PATHS.invalidDuration)}`);
+  lines.push(...stagePredicate("elastic_decay/oscillations_positive"));
+  lines.push(`execute unless predicate math:internal/elastic_decay/oscillations_positive run return run function ${functionId(FUNCTION_PATHS.invalidElastic)}`);
+  lines.push(...stagePredicate("elastic_decay/damping_positive"));
+  lines.push(`execute unless predicate math:internal/elastic_decay/damping_positive run return run function ${functionId(FUNCTION_PATHS.invalidElastic)}`);
+  lines.push(...stagePredicate("elastic_decay/time_at_or_below_start"));
+  lines.push("execute if predicate math:internal/elastic_decay/time_at_or_below_start run data modify storage math: ans set from storage math: a");
+  lines.push("execute if predicate math:internal/elastic_decay/time_at_or_below_start run return 1");
+  lines.push(...stagePredicate("elastic_decay/time_at_or_after_end"));
+  lines.push("execute if predicate math:internal/elastic_decay/time_at_or_after_end run data modify storage math: ans set from storage math: b");
+  lines.push("execute if predicate math:internal/elastic_decay/time_at_or_after_end run return 1");
+  lines.push("data modify storage math:internal x set from storage math: max");
+  lines.push("data modify storage math:internal y set value 1.0f");
+  lines.push(`function ${functionId(FUNCTION_PATHS.reciprocal)}`);
+  lines.push("data modify storage math:internal w_elastic_decay_u set compute default math:elastic_decay/u");
+  lines.push("data modify storage math:internal x set compute default math:elastic_decay/exponent");
+  lines.push(`function ${functionId(FUNCTION_PATHS.exp)}`);
+  lines.push("data modify storage math:internal w_elastic_decay_factor set from storage math:internal x");
+  lines.push("data modify storage math:internal x set compute default math:elastic_decay/angle");
+  lines.push(`function ${functionId(FUNCTION_PATHS.cos)}`);
+  lines.push("data modify storage math:internal w_elastic_decay_cosine set from storage math:internal x");
+  lines.push(`return run function ${functionId(FUNCTION_PATHS.elasticDecayFinish)}`);
+  emitPublicFunction("elastic_decay", lines);
+}
 
 {
   const lines = [];

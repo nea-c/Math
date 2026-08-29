@@ -5,8 +5,16 @@
     {
       "type": "minecraft:sum",
       "operands": [
-        { "type": "minecraft:storage", "storage": "math:internal", "path": "w_asin_low" },
-        { "type": "minecraft:storage", "storage": "math:internal", "path": "w_asin_high" }
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_asin_low"
+        },
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_asin_high"
+        }
       ]
     }
   ]

@@ -1,5 +1,11 @@
 {
   "type": "minecraft:value_check",
-  "value": { "type": "minecraft:storage", "storage": "math:internal", "path": "w_comparison.asin_positive_before_target" },
-  "range": { "max": -1 }
+  "value": {
+    "type": "minecraft:storage",
+    "storage": "math:internal",
+    "path": "w_comparison.asin_positive_before_target"
+  },
+  "range": {
+    "max": -1
+  }
 }

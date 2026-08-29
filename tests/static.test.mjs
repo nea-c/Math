@@ -479,6 +479,17 @@ test("generated providers are current", () => {
   });
 });
 
+test("elastic and inverse-sine assets are generator-owned", () => {
+  const manifest = JSON.parse(fs.readFileSync("tools/generated-math-files.json", "utf8"));
+  for (const file of [
+    "Math/data/math/function/.common/asin_positive/0.start.mcfunction",
+    "Math/data/math/function/elastic/0.start.mcfunction",
+    "Math/data/math/function/elastic_decay/0.start.mcfunction",
+    "Math/data/math/number_provider/common/asin_positive/midpoint.json",
+    "Math/data/math/tags/function/elastic.json",
+  ]) assert.ok(manifest.files.includes(file), `${file} must be generated`);
+});
+
 test("generated value-check predicates use the format 118 type discriminator", () => {
   function assertTyped(condition, file) {
     if (condition.type === "minecraft:all_of") {
