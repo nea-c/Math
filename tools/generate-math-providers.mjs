@@ -1487,9 +1487,9 @@ emit("bounce/eased", numberDispatcher([
 emit("bounce/result", interpolationResult(bounceEased));
 emit("bounce_decay/u", product(bounceScaledT, x));
 emit("bounce_decay/exponent", product(-1, publicDecay, bounceDecayU));
-emit("bounce_decay/phase", product(publicBounces, bounceDecayU));
+emit("bounce_decay/phase", sum(product(publicBounces, bounceDecayU), 0.5));
 const bounceDecayCenteredPhase = sum(product(2, sum(x, product(-1, z))), -1);
-emit("bounce_decay/wave", product(bounceDecayCenteredPhase, bounceDecayCenteredPhase));
+emit("bounce_decay/wave", sum(1, product(-1, bounceDecayCenteredPhase, bounceDecayCenteredPhase)));
 emit("bounce_decay/eased", sum(1, product(
   -1,
   sum(1, product(-1, bounceDecayU)),

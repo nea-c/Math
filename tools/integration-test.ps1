@@ -319,7 +319,7 @@ try {
     $assertionCommands.Add('execute store result score #return math_test run function #math:bounce_decay')
     $assertionCommands.Add('execute store result score #bounce_decay math_test run data get storage math: ans 1000')
     Add-Guard -Condition 'unless score #return math_test matches 1' -Case 'bounce_decay_return'
-    Add-Guard -Condition 'unless score #bounce_decay math_test matches 97784..97787' -Case 'bounce_decay_answer'
+    Add-Guard -Condition 'unless score #bounce_decay math_test matches 84499..84502' -Case 'bounce_decay_answer'
     Add-Guard -Condition 'if data storage math: error' -Case 'bounce_decay_stale_error'
 
     Add-SuccessCase -Case 'bounce_decay_double_endpoint' -Function 'bounce_decay' -ExpectedAnswer '11.0f' -Setup @(

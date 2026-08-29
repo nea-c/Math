@@ -6,6 +6,15 @@ function assertClose(actual, expected, tolerance = 1e-3) {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} must be within ${tolerance} of ${expected}`);
 }
 
+function physicalBounceDecayReference({ t, max, bounces, decay }) {
+  const u = t / max;
+  const shiftedPhase = bounces * u + 0.5;
+  const fraction = shiftedPhase - Math.floor(shiftedPhase);
+  const centered = 2 * fraction - 1;
+  const airborne = 1 - centered * centered;
+  return 1 - (1 - u) * Math.exp(-decay * u) * airborne;
+}
+
 test("bounce evaluates the standard Bounce Out curve", () => {
   for (const [input, expected] of [
     [{ t: 2.5, max: 10, a: -20, b: 80 }, 27.265625],
@@ -20,15 +29,26 @@ test("bounce evaluates the standard Bounce Out curve", () => {
 });
 
 test("bounce_decay accepts fractional bounce density with constant-cost damping", () => {
-  for (const [input, expected] of [
-    [{ t: 5, max: 20, a: 0, b: 100, bounces: 2.5, decay: 3 }, 97.785782],
-    [{ t: 7, max: 24, a: -20, b: 80, bounces: 3.5, decay: 2 }, 43.697844],
-    [{ t: 13, max: 30, a: 90, b: -10, bounces: 4.25, decay: 5 }, -6.968752],
+  for (const input of [
+    { t: 5, max: 20, a: 0, b: 100, bounces: 2.5, decay: 3 },
+    { t: 7, max: 24, a: -20, b: 80, bounces: 3.5, decay: 2 },
+    { t: 13, max: 30, a: 90, b: -10, bounces: 4.25, decay: 5 },
   ]) {
     const result = runFunction("bounce_decay", { ...input, error: "stale_error" });
     assert.equal(result.returned, 1);
+    const eased = physicalBounceDecayReference(input);
+    const expected = input.a + (input.b - input.a) * eased;
     assertClose(result.storage["math:"].ans, expected);
     assert.equal(result.storage["math:"].error, undefined);
+  }
+});
+
+test("bounce_decay uses sharp ground contacts and smooth airborne arcs", () => {
+  const parameters = { max: 100, a: 0, b: 1, bounces: 3.5, decay: 3 };
+  for (const t of [1, 7, 14, 15, 22, 29, 43, 57, 71, 86, 99]) {
+    const result = runFunction("bounce_decay", { ...parameters, t });
+    assert.equal(result.returned, 1);
+    assertClose(result.storage["math:"].ans, physicalBounceDecayReference({ ...parameters, t }), 2e-5);
   }
 });
 
@@ -43,7 +63,7 @@ test("bounce functions divide positive subnormal durations without reciprocal ov
 
   const decay = runFunction("bounce_decay", { t, max, a: 0, b: 1, bounces: 2.5, decay: 3 });
   assert.equal(decay.returned, 1);
-  assertClose(decay.storage["math:"].ans, 0.972109);
+  assertClose(decay.storage["math:"].ans, physicalBounceDecayReference({ t, max, bounces: 2.5, decay: 3 }));
   assert.equal(decay.storage["math:"].error, undefined);
 });
 

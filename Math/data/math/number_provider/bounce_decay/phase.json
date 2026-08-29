@@ -1,15 +1,21 @@
 {
-  "type": "minecraft:product",
+  "type": "minecraft:sum",
   "operands": [
     {
-      "type": "minecraft:storage",
-      "storage": "math:",
-      "path": "bounces"
+      "type": "minecraft:product",
+      "operands": [
+        {
+          "type": "minecraft:storage",
+          "storage": "math:",
+          "path": "bounces"
+        },
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_bounce_decay_u"
+        }
+      ]
     },
-    {
-      "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "w_bounce_decay_u"
-    }
+    0.5
   ]
 }
