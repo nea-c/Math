@@ -304,8 +304,14 @@ try {
     Add-SuccessCase -Case 'asin_one' -Function 'asin' -ExpectedAnswer '1.5707964f' -Setup @(
         'data modify storage math: a set value 1.0f'
     )
+    Add-SuccessCase -Case 'asin_one_double' -Function 'asin' -ExpectedAnswer '1.5707964f' -Setup @(
+        'data modify storage math: a set value 1.0d'
+    )
     Add-SuccessCase -Case 'asin_degrees_minus_one' -Function 'asin_degrees' -ExpectedAnswer '-90.0f' -Setup @(
         'data modify storage math: a set value -1.0f'
+    )
+    Add-SuccessCase -Case 'asin_degrees_minus_one_int' -Function 'asin_degrees' -ExpectedAnswer '-90.0f' -Setup @(
+        'data modify storage math: a set value -1'
     )
     Add-SuccessCase -Case 'asin_degrees_zero' -Function 'asin_degrees' -ExpectedAnswer '0.0f' -Setup @(
         'data modify storage math: a set value 0.0f'
@@ -315,6 +321,9 @@ try {
     )
     Add-SuccessCase -Case 'acos_minus_one' -Function 'acos' -ExpectedAnswer '3.1415927f' -Setup @(
         'data modify storage math: a set value -1.0f'
+    )
+    Add-SuccessCase -Case 'acos_minus_one_byte' -Function 'acos' -ExpectedAnswer '3.1415927f' -Setup @(
+        'data modify storage math: a set value -1b'
     )
     Add-SuccessCase -Case 'acos_zero' -Function 'acos' -ExpectedAnswer '1.5707964f' -Setup @(
         'data modify storage math: a set value 0.0f'
@@ -331,6 +340,9 @@ try {
     Add-SuccessCase -Case 'acos_degrees_one' -Function 'acos_degrees' -ExpectedAnswer '0.0f' -Setup @(
         'data modify storage math: a set value 1.0f'
     )
+    Add-SuccessCase -Case 'acos_degrees_one_double' -Function 'acos_degrees' -ExpectedAnswer '0.0f' -Setup @(
+        'data modify storage math: a set value 1.0d'
+    )
 
     $assertionCommands.Add('data modify storage math: a set value 0.5f')
     $assertionCommands.Add('data modify storage math: ans set value -999.0f')
@@ -345,6 +357,12 @@ try {
         'data modify storage math: a set value 1.0000001192092896f'
     )
     Add-ErrorCase -Case 'acos_invalid_number' -Function 'acos' -ExpectedError 'invalid_number' -Setup @(
+        'data modify storage math: a set value 3.5E38d'
+    )
+    Add-ErrorCase -Case 'asin_degrees_non_real_result' -Function 'asin_degrees' -ExpectedError 'non_real_result' -Setup @(
+        'data modify storage math: a set value 1.0000001192092896f'
+    )
+    Add-ErrorCase -Case 'acos_degrees_invalid_number' -Function 'acos_degrees' -ExpectedError 'invalid_number' -Setup @(
         'data modify storage math: a set value 3.5E38d'
     )
 
@@ -373,6 +391,15 @@ try {
     Add-Guard -Condition 'if data storage math: error' -Case 'quaternion_to_axis_angle_scalar_stale_error'
     Add-Guard -Condition 'unless data storage math: {rotation:[0.0f,0.0f,0.0f,1.0f]}' -Case 'quaternion_to_axis_angle_scalar_rotation'
     Add-Guard -Condition 'unless data storage math: {ans:{angle:0.0f,axis:[0.0f,1.0f,0.0f]}}' -Case 'quaternion_to_axis_angle_scalar_angle_float'
+
+    $assertionCommands.Add('data modify storage math: rotation set value [0.0d,0.0d,0.0d,1.0d]')
+    $assertionCommands.Add('data modify storage math: ans set value -999.0f')
+    $assertionCommands.Add('data modify storage math: error set value "stale_error"')
+    $assertionCommands.Add('execute store result score #return math_test run function #math:quaternion_to_axis_angle')
+    Add-Guard -Condition 'unless score #return math_test matches 1' -Case 'quaternion_to_axis_angle_double_return'
+    Add-Guard -Condition 'if data storage math: error' -Case 'quaternion_to_axis_angle_double_stale_error'
+    Add-Guard -Condition 'unless data storage math: {rotation:[0.0d,0.0d,0.0d,1.0d]}' -Case 'quaternion_to_axis_angle_double_rotation'
+    Add-Guard -Condition 'unless data storage math: {ans:{angle:0.0f,axis:[0.0f,1.0f,0.0f]}}' -Case 'quaternion_to_axis_angle_double_result'
 
     Add-ErrorCase -Case 'quaternion_to_axis_angle_zero' -Function 'quaternion_to_axis_angle' -ExpectedError 'invalid_quaternion' -Setup @(
         'data modify storage math: rotation set value [0.0f,0.0f,0.0f,0.0f]'

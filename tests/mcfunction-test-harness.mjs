@@ -84,7 +84,7 @@ export function storageFieldKey(storageId, pathText) {
 }
 
 function numericTagType(suffix) {
-  return suffix.toLowerCase() === "f" ? "float" : suffix.toLowerCase() === "b" ? "byte" : "double";
+  return ({ b: "byte", s: "short", "": "int", l: "long", f: "float", d: "double" })[suffix.toLowerCase()];
 }
 
 export function parseGeneratedSnbt(text) {
@@ -121,10 +121,11 @@ export function parseGeneratedSnbt(text) {
     const start = index;
     while (index < text.length && !/[\s,\]\}]/.test(text[index])) index += 1;
     const token = text.slice(start, index);
-    const match = token.match(/^-?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?([bBdDfF])?$/);
+    const match = token.match(/^-?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?([bBsSlLdDfF])?$/);
     if (!match) fail();
-    numericTags.set(pathText, numericTagType(match[1] ?? "d"));
-    return Number(token.replace(/[bBdDfF]$/, ""));
+    const suffix = match[1] ?? (/[.eE]/.test(token) ? "d" : "");
+    numericTags.set(pathText, numericTagType(suffix));
+    return Number(token.replace(/[bBsSlLdDfF]$/, ""));
   }
 
   function parseCompound(pathText) {
@@ -256,9 +257,11 @@ export function copyTypedPath(root, numericTags, destinationStorageId, destinati
 
 // A focused mcfunction interpreter: it executes only the generated command subset,
 // and evaluates provider expressions through the real provider evaluator.
-function runWithStorage(name, publicInput, internalInput) {
+function runWithStorage(name, publicInput, internalInput, initialPublicTags = new Map()) {
   const storage = { "math:": clone(publicInput), "math:internal": clone(internalInput) };
-  const numericTags = new Map();
+  const numericTags = new Map(
+    [...initialPublicTags].map(([pathText, type]) => [storageFieldKey("math:", pathText), type]),
+  );
   let returned;
   let commandsExecuted = 0;
   const functionCalls = new Map();
@@ -361,9 +364,12 @@ function runWithStorage(name, publicInput, internalInput) {
     if (match) {
       const expected = Number(match[4]);
       const actual = getPath(storage[match[2]], match[3]);
-      const matches = (Number.isNaN(expected) && Number.isNaN(actual))
+      const expectedType = match[5] === "f" ? "float" : "byte";
+      const actualType = numericTags.get(storageFieldKey(match[2], match[3]));
+      const typeMatches = actualType === undefined || actualType === expectedType;
+      const matches = typeMatches && ((Number.isNaN(expected) && Number.isNaN(actual))
         || Object.is(Math.fround(actual), Math.fround(expected))
-        || (expected === 0 && actual === 0);
+        || (expected === 0 && actual === 0));
       return (match[1] === "if" ? matches : !matches) ? execute(match[6]) : undefined;
     }
     match = command.match(/^execute (if|unless) data storage (\S+) (\S+) run (.+)$/);
@@ -395,6 +401,11 @@ function runWithStorage(name, publicInput, internalInput) {
 
 export function runFunction(name, publicInput) {
   return runWithStorage(publicImplementationPath(name), publicInput, {});
+}
+
+export function runFunctionFromSnbt(name, publicInputSnbt) {
+  const parsed = parseGeneratedSnbt(publicInputSnbt);
+  return runWithStorage(publicImplementationPath(name), parsed.value, {}, parsed.numericTags);
 }
 
 export function runImplementation(path, publicInput = {}, internalInput = {}) {

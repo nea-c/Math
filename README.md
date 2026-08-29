@@ -80,7 +80,7 @@ Minecraft Java Edition 26.3 Snapshot 10 向けの、依存関係なしで動く 
 | `invalid_curve` | `curve` が4要素でない、または `x1` / `x2` が `[0,1]` の範囲外 |
 | `invalid_elastic` | `elastic` または `elastic_decay` の固有パラメータが許容範囲外 |
 | `invalid_number` | 必須入力が非有限値 |
-| `invalid_quaternion` | quaternion が4要素でない、数値かつ有限な非ゼロ quaternion でない、または結果を安全に作れない |
+| `invalid_quaternion` | quaternion が4要素でない、または数値かつ有限な非ゼロ quaternion でない |
 | `result_out_of_range` | 計算結果を有限 binary32 として表現できない |
 
 ## 数値モデルと精度

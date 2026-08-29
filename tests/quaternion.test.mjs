@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { runFunction, storageFieldKey } from "./mcfunction-test-harness.mjs";
+import { runFunction, runImplementation, storageFieldKey } from "./mcfunction-test-harness.mjs";
 
 const finiteLimit = Math.fround(3.4028234663852886e38);
 const smallestFloat = Math.fround(2 ** -149);
@@ -158,4 +158,19 @@ test("all signed-zero quaternion forms fail with invalid_quaternion", () => {
     cases.push(positiveAtIndex);
   }
   cases.forEach((rotation, index) => assertInvalid(rotation, `signed zero ${index}`, index % 2 ? 91 : { angle: 3, axis: [1, 0, 0] }));
+});
+
+test("non-finite defensive output failures use result_out_of_range", () => {
+  const result = runImplementation("quaternion_to_axis_angle/3.finish", {
+    ans: 91,
+    error: "stale_error",
+  }, {
+    w_quaternion_angle: Infinity,
+    w_quaternion_axis_0: 0,
+    w_quaternion_axis_1: 1,
+    w_quaternion_axis_2: 0,
+  });
+  assert.equal(result.returned, 0);
+  assert.equal(result.storage["math:"].ans, undefined);
+  assert.equal(result.storage["math:"].error, "result_out_of_range");
 });

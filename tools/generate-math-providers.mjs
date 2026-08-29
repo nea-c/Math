@@ -275,7 +275,7 @@ emit("common/normalize/binary32/multiplier_b", numberDispatcher([{
 emit("common/normalize/binary32/mantissa_a", product(x, storedNormalizeMultiplierA));
 emit("common/normalize/binary32/mantissa_b", product(storedNormalizeMantissa, storedNormalizeMultiplierB));
 
-for (const [name, provider] of Object.entries({ x, y, z, w })) emit(`common/input/${name}`, provider);
+for (const [name, provider] of Object.entries({ a: publicA, x, y, z, w })) emit(`common/input/${name}`, provider);
 
 emit("common/constant/pi", Math.fround(Math.PI));
 emit("common/constant/tau", Math.fround(Math.PI * 2));
@@ -928,7 +928,7 @@ emitPredicate("asin_positive/before_target", inlineValueCheck(
   undefined,
   -1,
 ));
-emitStagedPredicate("inverse_trigonometry/input_in_range", publicA, -1, 1);
+emitStagedPredicate("inverse_trigonometry/input_in_range", x, -1, 1);
 emitStagedPredicate("inverse_trigonometry/x_negative", x, undefined, smallestNegativeFloat);
 emitStagedPredicate("inverse_trigonometry/use_complement", x, 0.995, undefined);
 emitStagedPredicate(
@@ -1180,8 +1180,8 @@ emitFunction(FUNCTION_PATHS.acos, [
 
 function inverseTrigonometryPublicLines(sharedFunction, degrees = false) {
   const lines = validationLines(["a"]);
+  lines.push("data modify storage math:internal x set compute default math:common/input/a");
   lines.push(...stagePredicate("inverse_trigonometry/input_in_range"));
-  lines.push("execute if predicate math:internal/inverse_trigonometry/input_in_range run data modify storage math:internal x set from storage math: a");
   lines.push(`execute if predicate math:internal/inverse_trigonometry/input_in_range run function ${functionId(sharedFunction)}`);
   if (degrees) lines.push("execute if predicate math:internal/inverse_trigonometry/input_in_range run data modify storage math:internal x set compute default math:common/conversion/deg");
   lines.push("execute if predicate math:internal/inverse_trigonometry/input_in_range run data modify storage math: ans set from storage math:internal x");
@@ -1759,7 +1759,7 @@ emitFunction(FUNCTION_PATHS.quaternionScalar, [
   const lines = [];
   for (const name of ["angle", "axis_0", "axis_1", "axis_2"]) {
     lines.push(...stagePredicate(`quaternion_to_axis_angle/result_${name}_finite`));
-    lines.push(`execute unless predicate math:internal/quaternion_to_axis_angle/result_${name}_finite run return run function ${functionId(FUNCTION_PATHS.invalidQuaternion)}`);
+    lines.push(`execute unless predicate math:internal/quaternion_to_axis_angle/result_${name}_finite run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`);
   }
   lines.push("data modify storage math: ans set value {angle:0.0f,axis:[0.0f,0.0f,0.0f]}");
   lines.push("data modify storage math: ans.angle set compute default math:quaternion_to_axis_angle/output/stored_angle");

@@ -5,9 +5,18 @@ import {
   getPath,
   parseGeneratedSnbt,
   removeTypedPath,
+  runFunctionFromSnbt,
   setPath,
   setTypedPath,
+  storageFieldKey,
 } from "./mcfunction-test-harness.mjs";
+
+test("typed public SNBT inputs retain numeric tag types while functions execute", () => {
+  const result = runFunctionFromSnbt("sign", "{a:1.0d}");
+  assert.equal(result.returned, 1);
+  assert.equal(result.numericTags.get(storageFieldKey("math:", "a")), "double");
+  assert.equal(result.numericTags.get(storageFieldKey("math:", "ans")), "float");
+});
 
 test("parseGeneratedSnbt parses the generated axis-angle literal and numeric tags", () => {
   const parsed = parseGeneratedSnbt("{angle:0.0f,axis:[0.0f,0.0f,0.0f]}");
@@ -29,6 +38,12 @@ test("parseGeneratedSnbt supports generated nested strings and rejects trailing 
     () => parseGeneratedSnbt("{angle:0.0f} trailing"),
     /\{angle:0\.0f\} trailing/,
   );
+});
+
+test("parseGeneratedSnbt preserves every numeric NBT tag type", () => {
+  const parsed = parseGeneratedSnbt("{values:[1b,1s,1,1l,1.0f,1.0d]}");
+  assert.deepEqual(parsed.value.values, [1, 1, 1, 1, 1, 1]);
+  assert.deepEqual([...parsed.numericTags.values()], ["byte", "short", "int", "long", "float", "double"]);
 });
 
 test("bracket-aware paths read and write nested list values", () => {

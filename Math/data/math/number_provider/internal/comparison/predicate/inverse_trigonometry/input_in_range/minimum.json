@@ -6,8 +6,8 @@
       "operands": [
         {
           "type": "minecraft:storage",
-          "storage": "math:",
-          "path": "a"
+          "storage": "math:internal",
+          "path": "x"
         },
         {
           "type": "minecraft:product",

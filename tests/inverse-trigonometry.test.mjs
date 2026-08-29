@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { runFunction, storageFieldKey } from "./mcfunction-test-harness.mjs";
+import { runFunction, runFunctionFromSnbt, storageFieldKey } from "./mcfunction-test-harness.mjs";
 
 const radiansTolerance = Math.PI / 2 * 2 ** -20 + 2 ** -22;
 const degreesTolerance = radiansTolerance * 180 / Math.PI + 2 ** -16;
@@ -81,6 +81,32 @@ test("inverse trigonometric endpoint constants are stored exactly", () => {
     const result = runFunction(name, { a: input, ans: 91 });
     assert.equal(result.returned, 1);
     assert.equal(result.storage["math:"].ans, expected, `${name}(${input})`);
+  }
+});
+
+test("inverse trigonometric endpoints accept every finite numeric NBT type", () => {
+  const positiveOne = ["1b", "1s", "1", "1l", "1.0f", "1.0d"];
+  const negativeOne = ["-1b", "-1s", "-1", "-1l", "-1.0f", "-1.0d"];
+  for (const [name, inputs, expected] of [
+    ["asin", positiveOne, Math.fround(Math.PI / 2)],
+    ["asin_degrees", negativeOne, -90],
+    ["acos", negativeOne, Math.fround(Math.PI)],
+    ["acos_degrees", positiveOne, 0],
+  ]) {
+    for (const input of inputs) {
+      const result = runFunctionFromSnbt(name, `{a:${input},ans:91}`);
+      assert.equal(result.returned, 1, `${name}(${input})`);
+      assert.equal(result.storage["math:"].ans, expected, `${name}(${input})`);
+      assert.equal(result.numericTags.get(storageFieldKey("math:", "ans")), "float");
+    }
+  }
+});
+
+test("inverse sine preserves double negative zero while staging to binary32", () => {
+  for (const name of ["asin", "asin_degrees"]) {
+    const result = runFunctionFromSnbt(name, "{a:-0.0d,ans:91}");
+    assert.equal(result.returned, 1);
+    assert.ok(Object.is(result.storage["math:"].ans, -0), `${name}(-0.0d) must return -0`);
   }
 });
 
