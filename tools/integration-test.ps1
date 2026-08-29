@@ -365,6 +365,15 @@ try {
     Add-Guard -Condition 'unless score #quaternion_axis_z math_test matches -10..10' -Case 'quaternion_to_axis_angle_axis_z'
     Add-Guard -Condition 'unless score #quaternion_angle math_test matches 4712350..4712425' -Case 'quaternion_to_axis_angle_angle'
 
+    $assertionCommands.Add('data modify storage math: rotation set value [0.0f,0.0f,0.0f,1.0f]')
+    $assertionCommands.Add('data modify storage math: ans set value -999.0f')
+    $assertionCommands.Add('data modify storage math: error set value "stale_error"')
+    $assertionCommands.Add('execute store result score #return math_test run function #math:quaternion_to_axis_angle')
+    Add-Guard -Condition 'unless score #return math_test matches 1' -Case 'quaternion_to_axis_angle_scalar_return'
+    Add-Guard -Condition 'if data storage math: error' -Case 'quaternion_to_axis_angle_scalar_stale_error'
+    Add-Guard -Condition 'unless data storage math: {rotation:[0.0f,0.0f,0.0f,1.0f]}' -Case 'quaternion_to_axis_angle_scalar_rotation'
+    Add-Guard -Condition 'unless data storage math: {ans:{angle:0.0f,axis:[0.0f,1.0f,0.0f]}}' -Case 'quaternion_to_axis_angle_scalar_angle_float'
+
     Add-ErrorCase -Case 'quaternion_to_axis_angle_zero' -Function 'quaternion_to_axis_angle' -ExpectedError 'invalid_quaternion' -Setup @(
         'data modify storage math: rotation set value [0.0f,0.0f,0.0f,0.0f]'
     )
