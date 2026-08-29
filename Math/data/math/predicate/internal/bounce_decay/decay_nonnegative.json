@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:value_check",
+  "value": {
+    "type": "minecraft:storage",
+    "storage": "math:internal",
+    "path": "w_comparison.predicate.bounce_decay_decay_nonnegative.minimum"
+  },
+  "range": {
+    "min": 0
+  }
+}

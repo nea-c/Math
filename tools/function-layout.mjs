@@ -1,5 +1,5 @@
 export const PUBLIC_FUNCTION_NAMES = Object.freeze([
-  "absolute", "acos", "acos_degrees", "add", "asin", "asin_degrees", "bezier", "ceil", "clamp", "cos", "cos_degrees", "cube",
+  "absolute", "acos", "acos_degrees", "add", "asin", "asin_degrees", "bezier", "bounce", "bounce_decay", "ceil", "clamp", "cos", "cos_degrees", "cube",
   "deg", "divide", "e", "elastic", "elastic_decay", "exp", "floor", "lerp", "log", "maximum",
   "minimum", "modulo", "multiply", "pi", "power", "rad", "reciprocal",
   "quaternion_to_axis_angle", "remainder", "round", "sign", "sin", "sin_degrees", "square",
@@ -16,6 +16,7 @@ export const FUNCTION_PATHS = Object.freeze({
   invalidCurve: ".common/_error/invalid_curve",
   invalidDuration: ".common/_error/invalid_duration",
   invalidElastic: ".common/_error/invalid_elastic",
+  invalidBounce: ".common/_error/invalid_bounce",
   invalidQuaternion: ".common/_error/invalid_quaternion",
   floor: ".common/floor/0.start",
   truncate: ".common/truncate/0.start",
@@ -51,6 +52,8 @@ export const FUNCTION_PATHS = Object.freeze({
   elasticPhase: "elastic/1.phase",
   elasticFinish: "elastic/2.finish",
   elasticDecayFinish: "elastic_decay/1.finish",
+  bounceFinish: "bounce/1.finish",
+  bounceDecayFinish: "bounce_decay/1.finish",
   divideUnderflow: "divide/4.underflow",
   moduloNegativeB: "modulo/1.negative_b",
   squareRootNormalize: "square_root/1.normalize",

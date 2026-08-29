@@ -21,11 +21,12 @@ Minecraft Java Edition 26.3 Snapshot 10 向けの、依存関係なしで動く 
 | `curve` | `bezier` の4要素の数値リスト `[x1,y1,x2,y2]` |
 | `amplitude`, `period` | `elastic` の振幅倍率と1周期のtick数 |
 | `oscillations`, `damping` | `elastic_decay` の全区間の振動回数と指数減衰率 |
+| `bounces`, `decay` | `bounce_decay` の跳ね密度と指数減衰率 |
 | `rotation` | `quaternion_to_axis_angle` の quaternion `[x,y,z,w]` |
 | `ans` | 成功時の float 結果（`quaternion_to_axis_angle` のみ `{angle:<float>,axis:[<float>,<float>,<float>]}`） |
 | `error` | 失敗時のエラー ID（文字列） |
 
-単項関数は `a`、二項関数は `a` と `b`、`clamp` は `a/min/max`、`lerp` は `a/b/t`、`bezier` は `a/b/t/max/curve`、`elastic` は `a/b/t/max/amplitude/period`、`elastic_decay` は `a/b/t/max/oscillations/damping`、`quaternion_to_axis_angle` は `rotation` を読みます。定数関数は入力を読みません。公開入力は変更されません。
+単項関数は `a`、二項関数は `a` と `b`、`clamp` は `a/min/max`、`lerp` は `a/b/t`、`bezier` と `bounce` は `a/b/t/max`（`bezier` は加えて `curve`）、`elastic` は `a/b/t/max/amplitude/period`、`elastic_decay` は `a/b/t/max/oscillations/damping`、`bounce_decay` は `a/b/t/max/bounces/decay`、`quaternion_to_axis_angle` は `rotation` を読みます。定数関数は入力を読みません。公開入力は変更されません。
 
 - 成功: 古い `error` を削除し、float の `ans` を書き、function result `1` を返します。例外として `quaternion_to_axis_angle` は compound の `ans` を書きます。
 - 失敗: 古い `ans` を削除し、`error` を書き、function result `0` を返します。
@@ -47,7 +48,7 @@ Minecraft Java Edition 26.3 Snapshot 10 向けの、依存関係なしで動く 
 | 逆三角関数（degree） | `asin_degrees`, `acos_degrees` | `a` を `[-1,1]` の値として扱い、度を返す |
 | 角度変換 | `rad`, `deg` | `rad`: 度 → ラジアン、`deg`: ラジアン → 度 |
 | 定数 | `pi`, `tau`, `e` | `π`, `2π`, `e`; 入力を無視する |
-| 補間 | `lerp`, `bezier`, `elastic`, `elastic_decay` | 線形補間; CSS互換cubic-bezier; 2種類のElastic Out時間補間 |
+| 補間 | `lerp`, `bezier`, `elastic`, `elastic_decay`, `bounce`, `bounce_decay` | 線形補間; CSS互換cubic-bezier; Elastic Out 2種; Bounce Out 2種 |
 | quaternion | `quaternion_to_axis_angle` | `rotation:[x,y,z,w]` を `{angle,axis:[x,y,z]}` へ変換 |
 
 `round(a)` は `floor(a + 0.5)` です。たとえば `round(1.5)=2`、`round(-1.5)=-1` となります。
@@ -61,6 +62,12 @@ Minecraft Java Edition 26.3 Snapshot 10 向けの、依存関係なしで動く 
 `elastic_decay` は振動と減衰を直接指定します。`oscillations>0` は全区間の振動回数、`damping>0` は正規化時間に対する指数減衰率です。`u=t/max` として、補間係数 `1-exp(-damping*u)*cos(tau*oscillations*u)` を求めます。
 
 両Elastic関数とも係数を使って `a` から `b` を補間し、`t<=0` は正確に `a`、`t>=max` は正確に `b` を返します。
+
+`bounce` は一般的な4区間の二次 Bounce Out 式を使用します。追加パラメータなしで、着地後に3回の小さな跳ね返りを表現します。
+
+`bounce_decay` は少数を含む `bounces>0` と `decay>=0` を受け取ります。`u=t/max`、`phase=bounces*u`、`fraction=phase-floor(phase)` として、補間係数 `1-(1-u)*exp(-decay*u)*(2*fraction-1)^2` を求めます。ループと三角関数を使わないため、跳ね密度を増やしても実行コマンド数は増えません。`bounces<=30` を精度保証範囲とし、それより大きい有限値も受理しますが、binary32で小数位相が失われるにつれて波形精度は低下します。
+
+両Bounce関数とも係数を使って `a` から `b` を補間し、`t<=0` は正確に `a`、`t>=max` は正確に `b` を返します。
 
 `asin` / `acos` と degree 版は有限な `a` が `[-1,1]` にあるときだけ成功します。端点は正確に `asin(-1)=-π/2`、`asin(0)=0`、`asin(1)=π/2`、`acos(-1)=π`、`acos(0)=π/2`、`acos(1)=0`（degree 版ではそれぞれ `-90/0/90` と `180/90/0`）を返します。範囲外は `non_real_result`、非有限値は `invalid_number` です。
 
@@ -76,9 +83,10 @@ Minecraft Java Edition 26.3 Snapshot 10 向けの、依存関係なしで動く 
 | `non_real_result` | `log(a<=0)`、負の底に非整数指数を指定、または inverse trig の `a` が `[-1,1]` 外 |
 | `zero_to_negative_power` | `power(0,b<0)` |
 | `invalid_clamp_range` | `clamp` で `min>max` |
-| `invalid_duration` | `bezier`、`elastic`、`elastic_decay` で `max<=0` |
+| `invalid_duration` | `bezier`、`elastic`、`elastic_decay`、`bounce`、`bounce_decay` で `max<=0` |
 | `invalid_curve` | `curve` が4要素でない、または `x1` / `x2` が `[0,1]` の範囲外 |
 | `invalid_elastic` | `elastic` または `elastic_decay` の固有パラメータが許容範囲外 |
+| `invalid_bounce` | `bounce_decay` で `bounces<=0` または `decay<0` |
 | `invalid_number` | 必須入力が非有限値 |
 | `invalid_quaternion` | quaternion が4要素でない、または数値かつ有限な非ゼロ quaternion でない |
 | `result_out_of_range` | 計算結果を有限 binary32 として表現できない |
@@ -97,6 +105,8 @@ provider の定数、storage 読み出し、各 aggregate 演算で Java の bin
 | `power` | 相対誤差 `<= 0.00005`; subnormal は同じ scale 規則 | `7.57e-6`（overflow 境界帯） |
 | `bezier` | x座標の逆算に20回の二分探索を使用 | パラメータ区間幅 `<= 2^-20` |
 | `elastic` | `asin(1/amplitude)` に20回の二分探索を使用 | 逆正弦の探索区間幅 `<= (pi/2)*2^-20` |
+| `bounce` | 標準4区間の二次式 | 通常経路63コマンド、端点14コマンド |
+| `bounce_decay` | `0<bounces<=30` で放物線位相を保証 | 通常経路91コマンド、端点22コマンド; `bounces=3.5` と `1000.25` で同数 |
 | `sin`, `cos` | `[-100,100]` rad で絶対誤差 `<= 0.00001` | `3.60e-6` 以下 |
 | `sin_degrees`, `cos_degrees` | `[-5000,5000]` degree で絶対誤差 `<= 0.00001` | `6.89e-6` 以下 |
 | `asin`, `acos` | `[-1,1]` で絶対誤差 `<= 0.00000175` rad | 20回二分探索 + binary32 丸め |
@@ -178,6 +188,19 @@ data modify storage math: b set value 100.0f
 data modify storage math: amplitude set value 1.0f
 data modify storage math: period set value 6.0f
 function #math:elastic
+data get storage math: ans
+```
+
+20 tickで0から100へ、3.5回相当の跳ね密度と減衰率3でBounce Out補間する例です。
+
+```mcfunction
+data modify storage math: t set value 5.0f
+data modify storage math: max set value 20.0f
+data modify storage math: a set value 0.0f
+data modify storage math: b set value 100.0f
+data modify storage math: bounces set value 3.5f
+data modify storage math: decay set value 3.0f
+function #math:bounce_decay
 data get storage math: ans
 ```
 

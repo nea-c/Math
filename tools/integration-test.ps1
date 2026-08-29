@@ -289,6 +289,47 @@ try {
         'data modify storage math: b set value 11.0f'
         'data modify storage math: curve set value [0.0d,0.0d,1.0d,1.0d]'
     )
+    Add-SuccessCase -Case 'bounce_midpoint' -Function 'bounce' -ExpectedAnswer '76.5625f' -Setup @(
+        'data modify storage math: t set value 5.0f'
+        'data modify storage math: max set value 10.0f'
+        'data modify storage math: a set value 0.0f'
+        'data modify storage math: b set value 100.0f'
+    )
+    Add-SuccessCase -Case 'bounce_double_endpoint' -Function 'bounce' -ExpectedAnswer '7.0f' -Setup @(
+        'data modify storage math: t set value 0.0d'
+        'data modify storage math: max set value 10.0d'
+        'data modify storage math: a set value 7.0d'
+        'data modify storage math: b set value 11.0d'
+    )
+    Add-ErrorCase -Case 'bounce_invalid_duration' -Function 'bounce' -ExpectedError 'invalid_duration' -Setup @(
+        'data modify storage math: t set value 0.0f'
+        'data modify storage math: max set value 0.0f'
+        'data modify storage math: a set value 0.0f'
+        'data modify storage math: b set value 1.0f'
+    )
+
+    $assertionCommands.Add('data modify storage math: t set value 5.0f')
+    $assertionCommands.Add('data modify storage math: max set value 20.0f')
+    $assertionCommands.Add('data modify storage math: a set value 0.0f')
+    $assertionCommands.Add('data modify storage math: b set value 100.0f')
+    $assertionCommands.Add('data modify storage math: bounces set value 2.5f')
+    $assertionCommands.Add('data modify storage math: decay set value 3.0f')
+    $assertionCommands.Add('data modify storage math: ans set value -999.0f')
+    $assertionCommands.Add('data modify storage math: error set value "stale_error"')
+    $assertionCommands.Add('execute store result score #return math_test run function #math:bounce_decay')
+    $assertionCommands.Add('execute store result score #bounce_decay math_test run data get storage math: ans 1000')
+    Add-Guard -Condition 'unless score #return math_test matches 1' -Case 'bounce_decay_return'
+    Add-Guard -Condition 'unless score #bounce_decay math_test matches 97784..97787' -Case 'bounce_decay_answer'
+    Add-Guard -Condition 'if data storage math: error' -Case 'bounce_decay_stale_error'
+
+    Add-ErrorCase -Case 'bounce_decay_invalid_bounces' -Function 'bounce_decay' -ExpectedError 'invalid_bounce' -Setup @(
+        'data modify storage math: t set value 5.0f'
+        'data modify storage math: max set value 10.0f'
+        'data modify storage math: a set value 0.0f'
+        'data modify storage math: b set value 1.0f'
+        'data modify storage math: bounces set value 0.0f'
+        'data modify storage math: decay set value 3.0f'
+    )
     Add-SuccessCase -Case 'sin' -Function 'sin' -ExpectedAnswer '0.0f' -Setup @(
         'data modify storage math: a set value 0.0f'
     )

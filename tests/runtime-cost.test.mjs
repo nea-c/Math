@@ -12,6 +12,8 @@ const BASELINE_INPUTS = {
   divide: { a: 7, b: 3 },
   square_root: { a: 3 },
   bezier: { t: 5, max: 10, a: 0, b: 1, curve: [0.25, 0.1, 0.25, 1] },
+  bounce: { t: 5, max: 10, a: 0, b: 1 },
+  bounce_decay: { t: 5, max: 10, a: 0, b: 1, bounces: 3.5, decay: 2 },
   remainder: { a: 12345.5, b: 7 },
   modulo: { a: -12345.5, b: 7 },
   power: { a: 3, b: 2.5 },
@@ -28,6 +30,8 @@ const BOUNDARY_INPUTS = {
   divide: { a: 7, b: 0 },
   square_root: { a: 0 },
   bezier: { t: 0, max: 10, a: 0, b: 1, curve: [0.25, 0.1, 0.25, 1] },
+  bounce: { t: 0, max: 10, a: 0, b: 1 },
+  bounce_decay: { t: 0, max: 10, a: 0, b: 1, bounces: 3.5, decay: 2 },
   remainder: { a: 12345.5, b: 0 },
   modulo: { a: -12345.5, b: -7 },
   power: { a: -2, b: 0.5 },
@@ -44,6 +48,8 @@ const COMMAND_BUDGETS = {
   divide: { baseline: 91, boundary: 9 },
   square_root: { baseline: 76, boundary: 10 },
   bezier: { baseline: 189, boundary: 58 },
+  bounce: { baseline: 63, boundary: 14 },
+  bounce_decay: { baseline: 91, boundary: 22 },
   remainder: { baseline: 134, boundary: 9 },
   modulo: { baseline: 140, boundary: 137 },
   power: { baseline: 62, boundary: 25 },
@@ -205,6 +211,15 @@ test("inverse trigonometric public wrappers call their shared implementations", 
   ]) {
     assert.ok(runFunction(name, BASELINE_INPUTS[name]).functionCalls.has(common), `${name} must call ${common}`);
   }
+});
+
+test("bounce_decay command work is independent of bounce density", () => {
+  const ordinary = runFunction("bounce_decay", BASELINE_INPUTS.bounce_decay);
+  const dense = runFunction("bounce_decay", {
+    ...BASELINE_INPUTS.bounce_decay,
+    bounces: 1000.25,
+  });
+  assert.equal(dense.commandsExecuted, ordinary.commandsExecuted);
 });
 
 test("quaternion conversion keeps deterministic path budgets and shares inverse cosine", () => {

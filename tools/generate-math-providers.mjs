@@ -81,6 +81,8 @@ const publicAmplitude = storage("math:", "amplitude");
 const publicPeriod = storage("math:", "period");
 const publicOscillations = storage("math:", "oscillations");
 const publicDamping = storage("math:", "damping");
+const publicBounces = storage("math:", "bounces");
+const publicDecay = storage("math:", "decay");
 const publicRotation = Array.from({ length: 4 }, (_, index) => storage("math:", `rotation[${index}]`));
 const quaternionComponents = Array.from({ length: 4 }, (_, index) => storage("math:internal", `w_quaternion_component_${index}`));
 const quaternionScaledRaw = Array.from({ length: 4 }, (_, index) => storage("math:internal", `w_quaternion_scaled_raw_${index}`));
@@ -275,7 +277,7 @@ emit("common/normalize/binary32/multiplier_b", numberDispatcher([{
 emit("common/normalize/binary32/mantissa_a", product(x, storedNormalizeMultiplierA));
 emit("common/normalize/binary32/mantissa_b", product(storedNormalizeMantissa, storedNormalizeMultiplierB));
 
-for (const [name, provider] of Object.entries({ a: publicA, x, y, z, w })) emit(`common/input/${name}`, provider);
+for (const [name, provider] of Object.entries({ a: publicA, b: publicB, x, y, z, w })) emit(`common/input/${name}`, provider);
 
 emit("common/constant/pi", Math.fround(Math.PI));
 emit("common/constant/tau", Math.fround(Math.PI * 2));
@@ -733,6 +735,8 @@ for (const [name, value] of [
   ["period", publicPeriod],
   ["oscillations", publicOscillations],
   ["damping", publicDamping],
+  ["bounces", publicBounces],
+  ["decay", publicDecay],
   ["x", x],
   ...publicRotation.map((value, index) => [`rotation_${index}`, value]),
 ]) {
@@ -894,6 +898,14 @@ emitStagedPredicate("elastic_decay/oscillations_positive", publicOscillations, s
 emitStagedPredicate("elastic_decay/damping_positive", publicDamping, smallestPositiveFloat, undefined);
 emitStagedPredicate("elastic_decay/time_at_or_below_start", publicT, undefined, 0);
 emitStagedPredicate("elastic_decay/time_at_or_after_end", subtractExpression(publicT, publicMax), 0, undefined);
+emitStagedPredicate("bounce/duration_positive", publicMax, smallestPositiveFloat, undefined);
+emitStagedPredicate("bounce/time_at_or_below_start", publicT, undefined, 0);
+emitStagedPredicate("bounce/time_at_or_after_end", subtractExpression(publicT, publicMax), 0, undefined);
+emitStagedPredicate("bounce_decay/duration_positive", publicMax, smallestPositiveFloat, undefined);
+emitStagedPredicate("bounce_decay/bounces_positive", publicBounces, smallestPositiveFloat, undefined);
+emitStagedPredicate("bounce_decay/decay_nonnegative", publicDecay, 0, undefined);
+emitStagedPredicate("bounce_decay/time_at_or_below_start", publicT, undefined, 0);
+emitStagedPredicate("bounce_decay/time_at_or_after_end", subtractExpression(publicT, publicMax), 0, undefined);
 emitStagedPredicate("divide/exponent_definitely_overflows", divideExponent, 129, undefined);
 emitStagedPredicate("divide/exponent_at_overflow_boundary", divideExponent, 128, 128);
 emitStagedPredicate("divide/significand_at_or_above_overflow_boundary", sum(divideAMantissa, product(-1, divideBMantissa)), 0, undefined);
@@ -1054,6 +1066,12 @@ emitFunction(FUNCTION_PATHS.invalidDuration, [
 emitFunction(FUNCTION_PATHS.invalidElastic, [
   "data remove storage math: ans",
   "data modify storage math: error set value \"invalid_elastic\"",
+  "return fail",
+]);
+
+emitFunction(FUNCTION_PATHS.invalidBounce, [
+  "data remove storage math: ans",
+  "data modify storage math: error set value \"invalid_bounce\"",
   "return fail",
 ]);
 
@@ -1311,6 +1329,118 @@ emitFunction(FUNCTION_PATHS.elasticDecayFinish, [
   lines.push("data modify storage math:internal w_elastic_decay_cosine set from storage math:internal x");
   lines.push(`return run function ${functionId(FUNCTION_PATHS.elasticDecayFinish)}`);
   emitPublicFunction("elastic_decay", lines);
+}
+
+const bounceU = storage("math:internal", "w_bounce_u");
+const bounceEased = storage("math:internal", "w_bounce_eased");
+const bounceDecayU = storage("math:internal", "w_bounce_decay_u");
+const bounceDecayFactor = storage("math:internal", "w_bounce_decay_factor");
+const bounceDecayWave = storage("math:internal", "w_bounce_decay_wave");
+const bounceDecayEased = storage("math:internal", "w_bounce_decay_eased");
+const bounceCoefficient = Math.fround(7.5625);
+const shiftedBounce = (offset, base) => sum(base, product(
+  bounceCoefficient,
+  sum(bounceU, -offset),
+  sum(bounceU, -offset),
+));
+
+emit("bounce/u", product(publicT, x));
+const bounceComparisons = [4 / 11, 8 / 11, 10 / 11].map((threshold, index) => {
+  const comparison = storage("math:internal", `w_comparison.bounce_${index}`);
+  emit(`bounce/compare_${index}`, floatComparison(bounceU, Math.fround(threshold)));
+  return comparison;
+});
+emit("bounce/eased", numberDispatcher([
+  {
+    condition: inlineValueCheck(bounceComparisons[0], undefined, 0),
+    number_provider: product(bounceCoefficient, bounceU, bounceU),
+  },
+  {
+    condition: inlineValueCheck(bounceComparisons[1], undefined, 0),
+    number_provider: shiftedBounce(Math.fround(6 / 11), Math.fround(0.75)),
+  },
+  {
+    condition: inlineValueCheck(bounceComparisons[2], undefined, 0),
+    number_provider: shiftedBounce(Math.fround(9 / 11), Math.fround(0.9375)),
+  },
+], shiftedBounce(Math.fround(21 / 22), Math.fround(0.984375))));
+emit("bounce/result", interpolationResult(bounceEased));
+emit("bounce_decay/u", product(publicT, x));
+emit("bounce_decay/exponent", product(-1, publicDecay, bounceDecayU));
+emit("bounce_decay/phase", product(publicBounces, bounceDecayU));
+const bounceDecayCenteredPhase = sum(product(2, sum(x, product(-1, z))), -1);
+emit("bounce_decay/wave", product(bounceDecayCenteredPhase, bounceDecayCenteredPhase));
+emit("bounce_decay/eased", sum(1, product(
+  -1,
+  sum(1, product(-1, bounceDecayU)),
+  bounceDecayFactor,
+  bounceDecayWave,
+)));
+emit("bounce_decay/result", interpolationResult(bounceDecayEased));
+
+emitFunction(FUNCTION_PATHS.bounceFinish, [
+  "data modify storage math:internal w_bounce_eased set compute default math:bounce/eased",
+  "data modify storage math: ans set compute default math:bounce/result",
+  "data modify storage math:internal w_validation_ans set compute default math:internal/comparison/finite/ans",
+  `execute unless data storage math:internal {w_validation_ans:0.0f} run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`,
+  "return 1",
+]);
+
+{
+  const lines = validationLines(["a", "b", "t", "max"]);
+  lines.push(...stagePredicate("bounce/duration_positive"));
+  lines.push(`execute unless predicate math:internal/bounce/duration_positive run return run function ${functionId(FUNCTION_PATHS.invalidDuration)}`);
+  lines.push(...stagePredicate("bounce/time_at_or_below_start"));
+  lines.push("execute if predicate math:internal/bounce/time_at_or_below_start run data modify storage math: ans set compute default math:common/input/a");
+  lines.push("execute if predicate math:internal/bounce/time_at_or_below_start run return 1");
+  lines.push(...stagePredicate("bounce/time_at_or_after_end"));
+  lines.push("execute if predicate math:internal/bounce/time_at_or_after_end run data modify storage math: ans set compute default math:common/input/b");
+  lines.push("execute if predicate math:internal/bounce/time_at_or_after_end run return 1");
+  lines.push("data modify storage math:internal x set from storage math: max");
+  lines.push("data modify storage math:internal y set value 1.0f");
+  lines.push(`function ${functionId(FUNCTION_PATHS.reciprocal)}`);
+  lines.push("data modify storage math:internal w_bounce_u set compute default math:bounce/u");
+  for (let index = 0; index < bounceComparisons.length; index += 1) {
+    lines.push(`data modify storage math:internal w_comparison.bounce_${index} set compute default math:bounce/compare_${index}`);
+  }
+  lines.push(`return run function ${functionId(FUNCTION_PATHS.bounceFinish)}`);
+  emitPublicFunction("bounce", lines);
+}
+
+emitFunction(FUNCTION_PATHS.bounceDecayFinish, [
+  "data modify storage math:internal w_bounce_decay_eased set compute default math:bounce_decay/eased",
+  "data modify storage math: ans set compute default math:bounce_decay/result",
+  "data modify storage math:internal w_validation_ans set compute default math:internal/comparison/finite/ans",
+  `execute unless data storage math:internal {w_validation_ans:0.0f} run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`,
+  "return 1",
+]);
+
+{
+  const lines = validationLines(["a", "b", "t", "max", "bounces", "decay"]);
+  lines.push(...stagePredicate("bounce_decay/duration_positive"));
+  lines.push(`execute unless predicate math:internal/bounce_decay/duration_positive run return run function ${functionId(FUNCTION_PATHS.invalidDuration)}`);
+  lines.push(...stagePredicate("bounce_decay/bounces_positive"));
+  lines.push(`execute unless predicate math:internal/bounce_decay/bounces_positive run return run function ${functionId(FUNCTION_PATHS.invalidBounce)}`);
+  lines.push(...stagePredicate("bounce_decay/decay_nonnegative"));
+  lines.push(`execute unless predicate math:internal/bounce_decay/decay_nonnegative run return run function ${functionId(FUNCTION_PATHS.invalidBounce)}`);
+  lines.push(...stagePredicate("bounce_decay/time_at_or_below_start"));
+  lines.push("execute if predicate math:internal/bounce_decay/time_at_or_below_start run data modify storage math: ans set compute default math:common/input/a");
+  lines.push("execute if predicate math:internal/bounce_decay/time_at_or_below_start run return 1");
+  lines.push(...stagePredicate("bounce_decay/time_at_or_after_end"));
+  lines.push("execute if predicate math:internal/bounce_decay/time_at_or_after_end run data modify storage math: ans set compute default math:common/input/b");
+  lines.push("execute if predicate math:internal/bounce_decay/time_at_or_after_end run return 1");
+  lines.push("data modify storage math:internal x set from storage math: max");
+  lines.push("data modify storage math:internal y set value 1.0f");
+  lines.push(`function ${functionId(FUNCTION_PATHS.reciprocal)}`);
+  lines.push("data modify storage math:internal w_bounce_decay_u set compute default math:bounce_decay/u");
+  lines.push("data modify storage math:internal x set compute default math:bounce_decay/phase");
+  lines.push(`function ${functionId(FUNCTION_PATHS.floor)}`);
+  lines.push("data modify storage math:internal w_bounce_decay_wave set compute default math:bounce_decay/wave");
+  lines.push("data modify storage math:internal x set compute default math:bounce_decay/exponent");
+  lines.push(`function ${functionId(FUNCTION_PATHS.exp)}`);
+  lines.push("data modify storage math:internal w_bounce_decay_factor set from storage math:internal x");
+  lines.push(`return run function ${functionId(FUNCTION_PATHS.bounceDecayFinish)}`);
+  emitPublicFunction("bounce_decay", lines);
 }
 
 {

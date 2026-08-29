@@ -439,6 +439,7 @@ test("function tags expose every public function in the generated function layou
       .map((entry) => entry.name)
       .sort(),
     [
+      "invalid_bounce.mcfunction",
       "invalid_curve.mcfunction",
       "invalid_duration.mcfunction",
       "invalid_elastic.mcfunction",
@@ -480,7 +481,7 @@ test("generated providers are current", () => {
   });
 });
 
-test("elastic, inverse-sine, and quaternion assets are generator-owned", () => {
+test("easing, inverse-sine, and quaternion assets are generator-owned", () => {
   const manifest = JSON.parse(fs.readFileSync("tools/generated-math-files.json", "utf8"));
   for (const file of [
     "Math/data/math/function/.common/asin_positive/0.start.mcfunction",
@@ -488,6 +489,11 @@ test("elastic, inverse-sine, and quaternion assets are generator-owned", () => {
     "Math/data/math/function/elastic_decay/0.start.mcfunction",
     "Math/data/math/number_provider/common/asin_positive/midpoint.json",
     "Math/data/math/tags/function/elastic.json",
+    "Math/data/math/function/bounce/0.start.mcfunction",
+    "Math/data/math/function/bounce_decay/0.start.mcfunction",
+    "Math/data/math/function/.common/_error/invalid_bounce.mcfunction",
+    "Math/data/math/tags/function/bounce.json",
+    "Math/data/math/tags/function/bounce_decay.json",
     "Math/data/math/function/quaternion_to_axis_angle/0.start.mcfunction",
     "Math/data/math/function/.common/_error/invalid_quaternion.mcfunction",
     "Math/data/math/number_provider/quaternion_to_axis_angle/input/rotation_0.json",
