@@ -15,6 +15,10 @@ const BASELINE_INPUTS = {
   remainder: { a: 12345.5, b: 7 },
   modulo: { a: -12345.5, b: 7 },
   power: { a: 3, b: 2.5 },
+  asin: { a: 0.5 },
+  asin_degrees: { a: 0.5 },
+  acos: { a: 0.5 },
+  acos_degrees: { a: 0.5 },
 };
 
 const BOUNDARY_INPUTS = {
@@ -27,6 +31,10 @@ const BOUNDARY_INPUTS = {
   remainder: { a: 12345.5, b: 0 },
   modulo: { a: -12345.5, b: -7 },
   power: { a: -2, b: 0.5 },
+  asin: { a: 1 },
+  asin_degrees: { a: 1 },
+  acos: { a: -1 },
+  acos_degrees: { a: -1 },
 };
 
 const COMMAND_BUDGETS = {
@@ -39,6 +47,10 @@ const COMMAND_BUDGETS = {
   remainder: { baseline: 134, boundary: 9 },
   modulo: { baseline: 140, boundary: 137 },
   power: { baseline: 62, boundary: 25 },
+  asin: { baseline: 705, boundary: 22 },
+  asin_degrees: { baseline: 706, boundary: 23 },
+  acos: { baseline: 716, boundary: 17 },
+  acos_degrees: { baseline: 717, boundary: 18 },
 };
 
 const POWER_PATH_BUDGETS = {
@@ -175,6 +187,17 @@ test("runtime command budgets are deterministic for normal and boundary inputs",
 test("tangent shared phase executes fewer commands than the Task 1 baselines", () => {
   assert.ok(runFunction("tan", { a: 1 }).commandsExecuted < 93);
   assert.ok(runFunction("tan_degrees", { a: 45 }).commandsExecuted < 94);
+});
+
+test("inverse trigonometric public wrappers call their shared implementations", () => {
+  for (const [name, common] of [
+    ["asin", ".common/asin/0.start"],
+    ["asin_degrees", ".common/asin/0.start"],
+    ["acos", ".common/acos/0.start"],
+    ["acos_degrees", ".common/acos/0.start"],
+  ]) {
+    assert.ok(runFunction(name, BASELINE_INPUTS[name]).functionCalls.has(common), `${name} must call ${common}`);
+  }
 });
 
 test("direct remainder start removes ascent work from public reduction", () => {

@@ -74,7 +74,70 @@
                                       "storage": "math:internal",
                                       "path": "x"
                                     },
-                                    0.0000027557318844628753
+                                    {
+                                      "type": "minecraft:sum",
+                                      "operands": [
+                                        0.0000027557318844628753,
+                                        {
+                                          "type": "minecraft:product",
+                                          "operands": [
+                                            {
+                                              "type": "minecraft:storage",
+                                              "storage": "math:internal",
+                                              "path": "x"
+                                            },
+                                            {
+                                              "type": "minecraft:storage",
+                                              "storage": "math:internal",
+                                              "path": "x"
+                                            },
+                                            {
+                                              "type": "minecraft:sum",
+                                              "operands": [
+                                                -2.5052107943679403e-8,
+                                                {
+                                                  "type": "minecraft:product",
+                                                  "operands": [
+                                                    {
+                                                      "type": "minecraft:storage",
+                                                      "storage": "math:internal",
+                                                      "path": "x"
+                                                    },
+                                                    {
+                                                      "type": "minecraft:storage",
+                                                      "storage": "math:internal",
+                                                      "path": "x"
+                                                    },
+                                                    {
+                                                      "type": "minecraft:sum",
+                                                      "operands": [
+                                                        1.6059044372074283e-10,
+                                                        {
+                                                          "type": "minecraft:product",
+                                                          "operands": [
+                                                            {
+                                                              "type": "minecraft:storage",
+                                                              "storage": "math:internal",
+                                                              "path": "x"
+                                                            },
+                                                            {
+                                                              "type": "minecraft:storage",
+                                                              "storage": "math:internal",
+                                                              "path": "x"
+                                                            },
+                                                            -7.647163609812713e-13
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
                                   ]
                                 }
                               ]

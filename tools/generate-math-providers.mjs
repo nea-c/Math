@@ -387,6 +387,12 @@ const sineC3 = Math.fround(-1 / 6);
 const sineC5 = Math.fround(1 / 120);
 const sineC7 = Math.fround(-1 / 5040);
 const sineC9 = Math.fround(1 / 362880);
+const sineC11 = Math.fround(-1 / 39916800);
+const sineC13 = Math.fround(1 / 6227020800);
+const sineC15 = Math.fround(-1 / 1307674368000);
+const sineC13Tail = sum(sineC13, product(x, x, sineC15));
+const sineC11Tail = sum(sineC11, product(x, x, sineC13Tail));
+const sineC9Tail = sum(sineC9, product(x, x, sineC11Tail));
 const halfPiPrevious = previousPositiveFloat(halfPi);
 const halfPiNext = nextPositiveFloat(halfPi);
 emit("sin/fold/00", numberDispatcher([
@@ -418,7 +424,7 @@ emit("sin/polynomial/00", product(
             product(
               x,
               x,
-              sum(sineC7, product(x, x, sineC9)),
+              sum(sineC7, product(x, x, sineC9Tail)),
             ),
           ),
         ),
@@ -845,6 +851,14 @@ emitPredicate("asin_positive/before_target", inlineValueCheck(
   undefined,
   -1,
 ));
+emitStagedPredicate("inverse_trigonometry/input_in_range", publicA, -1, 1);
+emitStagedPredicate("inverse_trigonometry/x_negative", x, undefined, smallestNegativeFloat);
+emitStagedPredicate("inverse_trigonometry/use_complement", x, 0.995, undefined);
+emitPredicate("inverse_trigonometry/square_before_target", inlineValueCheck(
+  storage("math:internal", "w_comparison.inverse_trigonometry_square_before_target"),
+  undefined,
+  -1,
+));
 emitStagedPredicate(
   "square_root/needs_refine",
   maximum(sqrtResidual, product(-1, sqrtResidual)),
@@ -917,6 +931,24 @@ emitFunction(FUNCTION_PATHS.invalidElastic, [
 ]);
 
 emit("common/asin_positive/half_pi", halfPi);
+emit("common/inverse_trigonometry/half_pi", halfPi);
+emit("common/inverse_trigonometry/pi", pi);
+emit("common/inverse_trigonometry/complement", sum(1, product(-1, x, x)));
+emit("common/inverse_trigonometry/square_midpoint", product(0.5, sum(
+  storage("math:internal", "w_inverse_trigonometry_square_low"),
+  storage("math:internal", "w_inverse_trigonometry_square_high"),
+)));
+emit("common/inverse_trigonometry/square_compare", floatComparison(
+  sum(
+    product(storage("math:internal", "w_inverse_trigonometry_square_midpoint"), storage("math:internal", "w_inverse_trigonometry_square_midpoint")),
+    product(-1, storage("math:internal", "w_inverse_trigonometry_square_target")),
+  ),
+  0,
+));
+emit("common/inverse_trigonometry/acos", sum(
+  storage("math:internal", "w_inverse_trigonometry_half_pi"),
+  product(-1, x),
+));
 emit("common/asin_positive/midpoint", product(0.5, sum(
   storage("math:internal", "w_asin_low"),
   storage("math:internal", "w_asin_high"),
@@ -957,6 +989,79 @@ emitFunction(FUNCTION_PATHS.asinPositiveStep, [
   "execute unless predicate math:internal/asin_positive/before_target run data modify storage math:internal w_asin_high set from storage math:internal w_asin_midpoint",
   "return 1",
 ]);
+
+emitFunction(FUNCTION_PATHS.inverseTrigonometrySquareRoot, [
+  "data modify storage math:internal w_inverse_trigonometry_square_low set value 0.0f",
+  "data modify storage math:internal w_inverse_trigonometry_square_high set value 0.125f",
+  ...Array.from({ length: 18 }, () => `function ${functionId(FUNCTION_PATHS.inverseTrigonometrySquareRootStep)}`),
+  "data modify storage math:internal x set compute default math:common/inverse_trigonometry/square_midpoint",
+  "return 1",
+]);
+
+emitFunction(FUNCTION_PATHS.inverseTrigonometrySquareRootStep, [
+  "data modify storage math:internal w_inverse_trigonometry_square_midpoint set compute default math:common/inverse_trigonometry/square_midpoint",
+  "data modify storage math:internal w_comparison.inverse_trigonometry_square_before_target set compute default math:common/inverse_trigonometry/square_compare",
+  "execute if predicate math:internal/inverse_trigonometry/square_before_target run data modify storage math:internal w_inverse_trigonometry_square_low set from storage math:internal w_inverse_trigonometry_square_midpoint",
+  "execute unless predicate math:internal/inverse_trigonometry/square_before_target run data modify storage math:internal w_inverse_trigonometry_square_high set from storage math:internal w_inverse_trigonometry_square_midpoint",
+  "return 1",
+]);
+
+// The public functions validate their inputs first; these internal entry points
+// receive a normalized binary32 x in [-1, 1] and leave their radians result in x.
+emitFunction(FUNCTION_PATHS.asin, [
+  "data modify storage math:internal w_inverse_trigonometry_input set from storage math:internal x",
+  "execute if data storage math:internal {w_inverse_trigonometry_input:-1.0f} run data modify storage math:internal x set compute default math:common/inverse_trigonometry/half_pi",
+  "execute if data storage math:internal {w_inverse_trigonometry_input:-1.0f} run data modify storage math:internal x set compute default math:common/rounding/negate",
+  "execute if data storage math:internal {w_inverse_trigonometry_input:-1.0f} run return 1",
+  "execute if data storage math:internal {w_inverse_trigonometry_input:0.0f} run data modify storage math:internal x set value 0.0f",
+  "execute if data storage math:internal {w_inverse_trigonometry_input:0.0f} run return 1",
+  "execute if data storage math:internal {w_inverse_trigonometry_input:1.0f} run data modify storage math:internal x set compute default math:common/inverse_trigonometry/half_pi",
+  "execute if data storage math:internal {w_inverse_trigonometry_input:1.0f} run return 1",
+  ...stagePredicate("inverse_trigonometry/x_negative"),
+  "execute if predicate math:internal/inverse_trigonometry/x_negative run data modify storage math:internal x set compute default math:common/rounding/negate",
+  ...stagePredicate("inverse_trigonometry/use_complement"),
+  "execute if predicate math:internal/inverse_trigonometry/use_complement run data modify storage math:internal w_inverse_trigonometry_square_target set compute default math:common/inverse_trigonometry/complement",
+  `execute if predicate math:internal/inverse_trigonometry/use_complement run function ${functionId(FUNCTION_PATHS.inverseTrigonometrySquareRoot)}`,
+  `execute if predicate math:internal/inverse_trigonometry/use_complement run function ${functionId(FUNCTION_PATHS.asinPositive)}`,
+  "execute if predicate math:internal/inverse_trigonometry/use_complement run data modify storage math:internal w_inverse_trigonometry_half_pi set compute default math:common/inverse_trigonometry/half_pi",
+  "execute if predicate math:internal/inverse_trigonometry/use_complement run data modify storage math:internal x set compute default math:common/inverse_trigonometry/acos",
+  `execute unless predicate math:internal/inverse_trigonometry/use_complement run function ${functionId(FUNCTION_PATHS.asinPositive)}`,
+  "execute if predicate math:internal/inverse_trigonometry/x_negative run data modify storage math:internal x set compute default math:common/rounding/negate",
+  "return 1",
+]);
+
+emitFunction(FUNCTION_PATHS.acos, [
+  "data modify storage math:internal w_inverse_trigonometry_input set from storage math:internal x",
+  "execute if data storage math:internal {w_inverse_trigonometry_input:-1.0f} run data modify storage math:internal x set compute default math:common/inverse_trigonometry/pi",
+  "execute if data storage math:internal {w_inverse_trigonometry_input:-1.0f} run return 1",
+  "execute if data storage math:internal {w_inverse_trigonometry_input:0.0f} run data modify storage math:internal x set compute default math:common/inverse_trigonometry/half_pi",
+  "execute if data storage math:internal {w_inverse_trigonometry_input:0.0f} run return 1",
+  "execute if data storage math:internal {w_inverse_trigonometry_input:1.0f} run data modify storage math:internal x set value 0.0f",
+  "execute if data storage math:internal {w_inverse_trigonometry_input:1.0f} run return 1",
+  `function ${functionId(FUNCTION_PATHS.asin)}`,
+  "data modify storage math:internal w_inverse_trigonometry_half_pi set compute default math:common/inverse_trigonometry/half_pi",
+  "data modify storage math:internal x set compute default math:common/inverse_trigonometry/acos",
+  "return 1",
+]);
+
+function inverseTrigonometryPublicLines(sharedFunction, degrees = false) {
+  const lines = validationLines(["a"]);
+  lines.push(...stagePredicate("inverse_trigonometry/input_in_range"));
+  lines.push("execute if predicate math:internal/inverse_trigonometry/input_in_range run data modify storage math:internal x set from storage math: a");
+  lines.push(`execute if predicate math:internal/inverse_trigonometry/input_in_range run function ${functionId(sharedFunction)}`);
+  if (degrees) lines.push("execute if predicate math:internal/inverse_trigonometry/input_in_range run data modify storage math:internal x set compute default math:common/conversion/deg");
+  lines.push("execute if predicate math:internal/inverse_trigonometry/input_in_range run data modify storage math: ans set from storage math:internal x");
+  lines.push("execute if predicate math:internal/inverse_trigonometry/input_in_range run return 1");
+  lines.push("data remove storage math: ans");
+  lines.push("data modify storage math: error set value \"non_real_result\"");
+  lines.push("return fail");
+  return lines;
+}
+
+emitPublicFunction("asin", inverseTrigonometryPublicLines(FUNCTION_PATHS.asin));
+emitPublicFunction("asin_degrees", inverseTrigonometryPublicLines(FUNCTION_PATHS.asin, true));
+emitPublicFunction("acos", inverseTrigonometryPublicLines(FUNCTION_PATHS.acos));
+emitPublicFunction("acos_degrees", inverseTrigonometryPublicLines(FUNCTION_PATHS.acos, true));
 
 const elasticAmplitude = storage("math:internal", "w_elastic_amplitude");
 const elasticPhase = storage("math:internal", "w_elastic_phase");

@@ -1,5 +1,5 @@
 export const PUBLIC_FUNCTION_NAMES = Object.freeze([
-  "absolute", "add", "bezier", "ceil", "clamp", "cos", "cos_degrees", "cube",
+  "absolute", "acos", "acos_degrees", "add", "asin", "asin_degrees", "bezier", "ceil", "clamp", "cos", "cos_degrees", "cube",
   "deg", "divide", "e", "elastic", "elastic_decay", "exp", "floor", "lerp", "log", "maximum",
   "minimum", "modulo", "multiply", "pi", "power", "rad", "reciprocal",
   "remainder", "round", "sign", "sin", "sin_degrees", "square",
@@ -37,6 +37,10 @@ export const FUNCTION_PATHS = Object.freeze({
   asinPositive: ".common/asin_positive/0.start",
   asinPositiveSolve: ".common/asin_positive/1.solve",
   asinPositiveStep: ".common/asin_positive/2.step",
+  asin: ".common/asin/0.start",
+  acos: ".common/acos/0.start",
+  inverseTrigonometrySquareRoot: ".common/inverse_trigonometry/0.start",
+  inverseTrigonometrySquareRootStep: ".common/inverse_trigonometry/1.step",
   bezierSolve: "bezier/1.solve",
   bezierFinish: "bezier/2.finish",
   elasticPhase: "elastic/1.phase",
