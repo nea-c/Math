@@ -367,6 +367,14 @@ try {
         'data modify storage math: a set value 1.401298464324817E-45f'
         'data modify storage math: b set value 2.802596928649634E-45f'
     )
+    Add-SuccessCase -Case 'atan2_negative_subnormal_ratio' -Function 'atan2' -ExpectedAnswer '-0.4636476f' -Setup @(
+        'data modify storage math: a set value -1.401298464324817E-45f'
+        'data modify storage math: b set value 2.802596928649634E-45f'
+    )
+    Add-SuccessCase -Case 'atan2_negative_subnormal_quadrant' -Function 'atan2' -ExpectedAnswer '-2.6779451f' -Setup @(
+        'data modify storage math: a set value -1.401298464324817E-45f'
+        'data modify storage math: b set value -2.802596928649634E-45f'
+    )
     Add-ErrorCase -Case 'atan2_invalid_number' -Function 'atan2' -ExpectedError 'invalid_number' -Setup @(
         'data modify storage math: a set value 1.0f'
         'data modify storage math: b set value 3.5E38d'

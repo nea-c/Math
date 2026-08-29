@@ -5,6 +5,14 @@ import { runFunction, runFunctionFromSnbt, storageFieldKey } from "./mcfunction-
 const radiansTolerance = 0.000002;
 const degreesTolerance = 0.00012;
 
+function adjacentPositiveFloat(value, direction) {
+  const bits = new ArrayBuffer(4);
+  const view = new DataView(bits);
+  view.setFloat32(0, Math.fround(value));
+  view.setUint32(0, view.getUint32(0) + direction);
+  return view.getFloat32(0);
+}
+
 function assertSuccess(name, input, expected, tolerance) {
   const result = runFunction(name, { ...input, ans: 91, error: "stale_error" });
   assert.equal(result.returned, 1, `${name}(${JSON.stringify(input)})`);
@@ -77,13 +85,18 @@ test("atan functions accept every numeric NBT type and return floats", () => {
   }
 });
 
-test("atan meets its accuracy guarantees across finite binary32 inputs", () => {
+test("atan meets its accuracy guarantees on boundary and deterministic binary32 samples", () => {
   const finiteLimit = Math.fround(3.4028234663852886e38);
   const smallest = Math.fround(2 ** -149);
+  const transformBoundary = Math.fround(Math.SQRT2 - 1);
+  const adjacentBoundaries = [
+    adjacentPositiveFloat(transformBoundary, -1), transformBoundary, adjacentPositiveFloat(transformBoundary, 1),
+    adjacentPositiveFloat(1, -1), 1, adjacentPositiveFloat(1, 1),
+  ];
   const samples = [
-    -finiteLimit, -1, -Math.fround(Math.SQRT2 - 1), -smallest,
+    -finiteLimit, ...adjacentBoundaries.map((value) => -value), -smallest,
     0,
-    smallest, Math.fround(Math.SQRT2 - 1), 1, finiteLimit,
+    smallest, ...adjacentBoundaries, finiteLimit,
   ];
   let state = 0x51f15e5d;
   const bits = new ArrayBuffer(4);
@@ -105,12 +118,18 @@ test("atan meets its accuracy guarantees across finite binary32 inputs", () => {
   }
   assert.ok(maximumRadiansError <= radiansTolerance, `maximum radians error ${maximumRadiansError}`);
   assert.ok(maximumDegreesError <= degreesTolerance, `maximum degrees error ${maximumDegreesError}`);
+  console.log(`${samples.length} atan samples; maximum radians error ${maximumRadiansError}; maximum degrees error ${maximumDegreesError}`);
 });
 
 test("atan2 meets its accuracy guarantees across scales and quadrants", () => {
   const finiteLimit = Math.fround(3.4028234663852886e38);
   const smallest = Math.fround(2 ** -149);
-  const values = [0, smallest, Math.fround(2 ** -126 - 2 ** -149), Math.fround(2 ** -126), 1e-12, 1, finiteLimit];
+  const transformBoundary = Math.fround(Math.SQRT2 - 1);
+  const values = [
+    0, smallest, Math.fround(2 ** -126 - 2 ** -149), Math.fround(2 ** -126), 1e-12,
+    adjacentPositiveFloat(transformBoundary, -1), transformBoundary, adjacentPositiveFloat(transformBoundary, 1),
+    adjacentPositiveFloat(1, -1), 1, adjacentPositiveFloat(1, 1), finiteLimit,
+  ];
   const samples = [];
   for (const magnitudeA of values) {
     for (const magnitudeB of values) {
@@ -148,4 +167,5 @@ test("atan2 meets its accuracy guarantees across scales and quadrants", () => {
   }
   assert.ok(maximumRadiansError <= radiansTolerance, `maximum radians error ${maximumRadiansError}`);
   assert.ok(maximumDegreesError <= degreesTolerance, `maximum degrees error ${maximumDegreesError}`);
+  console.log(`${samples.length} atan2 samples; maximum radians error ${maximumRadiansError}; maximum degrees error ${maximumDegreesError}`);
 });
