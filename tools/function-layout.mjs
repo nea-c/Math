@@ -2,7 +2,7 @@ export const PUBLIC_FUNCTION_NAMES = Object.freeze([
   "absolute", "acos", "acos_degrees", "add", "asin", "asin_degrees", "bezier", "ceil", "clamp", "cos", "cos_degrees", "cube",
   "deg", "divide", "e", "elastic", "elastic_decay", "exp", "floor", "lerp", "log", "maximum",
   "minimum", "modulo", "multiply", "pi", "power", "rad", "reciprocal",
-  "remainder", "round", "sign", "sin", "sin_degrees", "square",
+  "quaternion_to_axis_angle", "remainder", "round", "sign", "sin", "sin_degrees", "square",
   "square_root", "subtract", "tan", "tan_degrees", "tau", "truncate",
 ]);
 
@@ -16,6 +16,7 @@ export const FUNCTION_PATHS = Object.freeze({
   invalidCurve: ".common/_error/invalid_curve",
   invalidDuration: ".common/_error/invalid_duration",
   invalidElastic: ".common/_error/invalid_elastic",
+  invalidQuaternion: ".common/_error/invalid_quaternion",
   floor: ".common/floor/0.start",
   truncate: ".common/truncate/0.start",
   normalizeBinary32: ".common/normalize_binary32/0.start",
@@ -41,6 +42,10 @@ export const FUNCTION_PATHS = Object.freeze({
   acos: ".common/acos/0.start",
   inverseTrigonometrySquareRoot: ".common/inverse_trigonometry/0.start",
   inverseTrigonometrySquareRootStep: ".common/inverse_trigonometry/1.step",
+  quaternionNormalize: "quaternion_to_axis_angle/1.normalize",
+  quaternionVector: "quaternion_to_axis_angle/2.vector",
+  quaternionFinish: "quaternion_to_axis_angle/3.finish",
+  quaternionScalar: "quaternion_to_axis_angle/4.scalar",
   bezierSolve: "bezier/1.solve",
   bezierFinish: "bezier/2.finish",
   elasticPhase: "elastic/1.phase",

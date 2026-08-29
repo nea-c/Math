@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    {
+      "type": "minecraft:sum",
+      "operands": [
+        {
+          "type": "minecraft:sum",
+          "operands": [
+            {
+              "type": "minecraft:storage",
+              "storage": "math:internal",
+              "path": "w_quaternion_scaled_raw_0"
+            },
+            {
+              "type": "minecraft:storage",
+              "storage": "math:internal",
+              "path": "w_quaternion_maximum_mantissa"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:product",
+          "operands": [
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    1.7014118346046923e+38,
+    4194304
+  ]
+}

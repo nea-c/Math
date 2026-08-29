@@ -1,0 +1,5 @@
+{
+  "type": "minecraft:storage",
+  "storage": "math:",
+  "path": "rotation[2]"
+}

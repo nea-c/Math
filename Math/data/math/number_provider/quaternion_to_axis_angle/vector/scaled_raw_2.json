@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_quaternion_scaled_2"
+    },
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_quaternion_vector_scale_multiplier_a"
+    },
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_quaternion_vector_scale_multiplier_b"
+    }
+  ]
+}

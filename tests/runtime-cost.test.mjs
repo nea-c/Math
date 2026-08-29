@@ -62,6 +62,13 @@ const POWER_PATH_BUDGETS = {
   nonfiniteResult: [{ a: Math.fround(3.4028234663852886e38), b: 2 }, 47],
 };
 
+const QUATERNION_PATH_BUDGETS = {
+  identity: [{ rotation: [0, 0, 0, 1] }, 190],
+  ordinary90: [{ rotation: [0, Math.fround(Math.SQRT1_2), 0, Math.fround(Math.SQRT1_2)] }, 1_000],
+  nonunit: [{ rotation: [1, -2, 3, -4] }, 1_000],
+  invalidZero: [{ rotation: [0, 0, 0, 0] }, 35],
+};
+
 test("runtime cost expands referenced providers", () => {
   assert.ok(expandedProviderNodes("math:internal/reciprocal/newton", graph) > 1);
 });
@@ -197,6 +204,19 @@ test("inverse trigonometric public wrappers call their shared implementations", 
     ["acos_degrees", ".common/acos/0.start"],
   ]) {
     assert.ok(runFunction(name, BASELINE_INPUTS[name]).functionCalls.has(common), `${name} must call ${common}`);
+  }
+});
+
+test("quaternion conversion keeps deterministic path budgets and shares inverse cosine", () => {
+  for (const [name, [input, budget]] of Object.entries(QUATERNION_PATH_BUDGETS)) {
+    const first = runFunction("quaternion_to_axis_angle", input);
+    const second = runFunction("quaternion_to_axis_angle", input);
+    assert.equal(second.commandsExecuted, first.commandsExecuted, `${name} count changed between runs`);
+    assert.ok(first.commandsExecuted <= budget,
+      `${name} used ${first.commandsExecuted} commands; budget ${budget}`);
+    if (["ordinary90", "nonunit"].includes(name)) {
+      assert.ok(first.functionCalls.has(".common/acos/0.start"), `${name} must call shared inverse cosine`);
+    }
   }
 });
 

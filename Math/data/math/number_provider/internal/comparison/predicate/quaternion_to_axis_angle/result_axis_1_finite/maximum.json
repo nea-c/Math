@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:product",
+  "operands": [
+    {
+      "type": "minecraft:sum",
+      "operands": [
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_quaternion_axis_1"
+        },
+        {
+          "type": "minecraft:product",
+          "operands": [
+            -1,
+            3.4028234663852886e+38
+          ]
+        }
+      ]
+    },
+    4.930380657631324e-32
+  ]
+}

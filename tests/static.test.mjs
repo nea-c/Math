@@ -443,6 +443,7 @@ test("function tags expose every public function in the generated function layou
       "invalid_duration.mcfunction",
       "invalid_elastic.mcfunction",
       "invalid_number.mcfunction",
+      "invalid_quaternion.mcfunction",
       "result_out_of_range.mcfunction",
     ],
   );
@@ -479,7 +480,7 @@ test("generated providers are current", () => {
   });
 });
 
-test("elastic and inverse-sine assets are generator-owned", () => {
+test("elastic, inverse-sine, and quaternion assets are generator-owned", () => {
   const manifest = JSON.parse(fs.readFileSync("tools/generated-math-files.json", "utf8"));
   for (const file of [
     "Math/data/math/function/.common/asin_positive/0.start.mcfunction",
@@ -487,6 +488,10 @@ test("elastic and inverse-sine assets are generator-owned", () => {
     "Math/data/math/function/elastic_decay/0.start.mcfunction",
     "Math/data/math/number_provider/common/asin_positive/midpoint.json",
     "Math/data/math/tags/function/elastic.json",
+    "Math/data/math/function/quaternion_to_axis_angle/0.start.mcfunction",
+    "Math/data/math/function/.common/_error/invalid_quaternion.mcfunction",
+    "Math/data/math/number_provider/quaternion_to_axis_angle/input/rotation_0.json",
+    "Math/data/math/tags/function/quaternion_to_axis_angle.json",
   ]) assert.ok(manifest.files.includes(file), `${file} must be generated`);
 });
 

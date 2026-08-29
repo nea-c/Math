@@ -1,0 +1,53 @@
+{
+  "type": "minecraft:maximum",
+  "operands": [
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_quaternion_scaled_0"
+    },
+    {
+      "type": "minecraft:product",
+      "operands": [
+        -1,
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_quaternion_scaled_0"
+        }
+      ]
+    },
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_quaternion_scaled_1"
+    },
+    {
+      "type": "minecraft:product",
+      "operands": [
+        -1,
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_quaternion_scaled_1"
+        }
+      ]
+    },
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_quaternion_scaled_2"
+    },
+    {
+      "type": "minecraft:product",
+      "operands": [
+        -1,
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_quaternion_scaled_2"
+        }
+      ]
+    }
+  ]
+}

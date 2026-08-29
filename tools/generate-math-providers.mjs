@@ -81,6 +81,12 @@ const publicAmplitude = storage("math:", "amplitude");
 const publicPeriod = storage("math:", "period");
 const publicOscillations = storage("math:", "oscillations");
 const publicDamping = storage("math:", "damping");
+const publicRotation = Array.from({ length: 4 }, (_, index) => storage("math:", `rotation[${index}]`));
+const quaternionComponents = Array.from({ length: 4 }, (_, index) => storage("math:internal", `w_quaternion_component_${index}`));
+const quaternionScaledRaw = Array.from({ length: 4 }, (_, index) => storage("math:internal", `w_quaternion_scaled_raw_${index}`));
+const quaternionScaled = Array.from({ length: 4 }, (_, index) => storage("math:internal", `w_quaternion_scaled_${index}`));
+const quaternionNormalized = Array.from({ length: 4 }, (_, index) => storage("math:internal", `w_quaternion_normalized_${index}`));
+const quaternionAxis = Array.from({ length: 3 }, (_, index) => storage("math:internal", `w_quaternion_axis_${index}`));
 
 function inlineValueCheck(value, min, max) {
   return floatRange(value, min, max);
@@ -728,8 +734,79 @@ for (const [name, value] of [
   ["oscillations", publicOscillations],
   ["damping", publicDamping],
   ["x", x],
+  ...publicRotation.map((value, index) => [`rotation_${index}`, value]),
 ]) {
   emit(`internal/comparison/finite/${name}`, sum(value, product(-1, value)));
+}
+
+for (const [index, component] of publicRotation.entries()) {
+  emit(`quaternion_to_axis_angle/input/rotation_${index}`, component);
+}
+
+const quaternionMaximum = maximum(...quaternionComponents.flatMap(component => [component, product(-1, component)]));
+const quaternionScaleMultiplierA = storage("math:internal", "w_quaternion_scale_multiplier_a");
+const quaternionScaleMultiplierB = storage("math:internal", "w_quaternion_scale_multiplier_b");
+const quaternionMaximumMantissa = storage("math:internal", "w_quaternion_maximum_mantissa");
+const quaternionInverseMaximumMantissa = storage("math:internal", "w_quaternion_inverse_maximum_mantissa");
+const quaternionInverseLength = storage("math:internal", "w_quaternion_inverse_length");
+const quaternionVectorMaximum = storage("math:internal", "w_quaternion_vector_maximum");
+const quaternionVectorScaleMultiplierA = storage("math:internal", "w_quaternion_vector_scale_multiplier_a");
+const quaternionVectorScaleMultiplierB = storage("math:internal", "w_quaternion_vector_scale_multiplier_b");
+const quaternionVectorMaximumMantissa = storage("math:internal", "w_quaternion_vector_maximum_mantissa");
+const quaternionInverseVectorMaximumMantissa = storage("math:internal", "w_quaternion_inverse_vector_maximum_mantissa");
+const quaternionVectorScaledRaw = Array.from({ length: 3 }, (_, index) => storage("math:internal", `w_quaternion_vector_scaled_raw_${index}`));
+const quaternionVectorScaled = Array.from({ length: 3 }, (_, index) => storage("math:internal", `w_quaternion_vector_scaled_${index}`));
+const quaternionInverseVectorLength = storage("math:internal", "w_quaternion_inverse_vector_length");
+const quaternionAngle = storage("math:internal", "w_quaternion_angle");
+
+emit("quaternion_to_axis_angle/normalize/maximum", quaternionMaximum);
+for (let index = 0; index < 4; index += 1) {
+  emit(`quaternion_to_axis_angle/normalize/scaled_raw_${index}`, product(
+    quaternionComponents[index],
+    quaternionScaleMultiplierA,
+    quaternionScaleMultiplierB,
+  ));
+  emit(`quaternion_to_axis_angle/normalize/scaled_${index}`, product(
+    quaternionScaledRaw[index],
+    quaternionInverseMaximumMantissa,
+  ));
+}
+emit("quaternion_to_axis_angle/normalize/scaled_square_sum", sum(
+  ...quaternionScaled.map(component => product(component, component)),
+));
+emit("quaternion_to_axis_angle/normalize/normalized_0", product(quaternionScaled[0], quaternionInverseLength));
+emit("quaternion_to_axis_angle/normalize/normalized_1", product(quaternionScaled[1], quaternionInverseLength));
+emit("quaternion_to_axis_angle/normalize/normalized_2", product(quaternionScaled[2], quaternionInverseLength));
+emit("quaternion_to_axis_angle/normalize/normalized_3", product(quaternionScaled[3], quaternionInverseLength));
+emit("quaternion_to_axis_angle/normalize/clamped_w", maximum(-1, minimum(1, quaternionNormalized[3])));
+
+emit("quaternion_to_axis_angle/vector/maximum", maximum(
+  ...quaternionScaled.slice(0, 3).flatMap(component => [component, product(-1, component)]),
+));
+for (let index = 0; index < 3; index += 1) {
+  emit(`quaternion_to_axis_angle/vector/scaled_raw_${index}`, product(
+    quaternionScaled[index],
+    quaternionVectorScaleMultiplierA,
+    quaternionVectorScaleMultiplierB,
+  ));
+  emit(`quaternion_to_axis_angle/vector/scaled_${index}`, product(
+    quaternionVectorScaledRaw[index],
+    quaternionInverseVectorMaximumMantissa,
+  ));
+}
+emit("quaternion_to_axis_angle/vector/scaled_square_sum", sum(
+  ...quaternionVectorScaled.map(component => product(component, component)),
+));
+for (let index = 0; index < 3; index += 1) {
+  emit(`quaternion_to_axis_angle/output/axis_${index}`, product(
+    quaternionVectorScaled[index],
+    quaternionInverseVectorLength,
+  ));
+}
+emit("quaternion_to_axis_angle/output/angle", product(2, x));
+emit("quaternion_to_axis_angle/output/stored_angle", quaternionAngle);
+for (let index = 0; index < 3; index += 1) {
+  emit(`quaternion_to_axis_angle/output/stored_axis_${index}`, quaternionAxis[index]);
 }
 
 // Power needs more than a rounded b*log(a) at the overflow boundary: the
@@ -854,6 +931,56 @@ emitPredicate("asin_positive/before_target", inlineValueCheck(
 emitStagedPredicate("inverse_trigonometry/input_in_range", publicA, -1, 1);
 emitStagedPredicate("inverse_trigonometry/x_negative", x, undefined, smallestNegativeFloat);
 emitStagedPredicate("inverse_trigonometry/use_complement", x, 0.995, undefined);
+emitStagedPredicate(
+  "quaternion_to_axis_angle/maximum_zero",
+  storage("math:internal", "w_quaternion_maximum"),
+  0,
+  0,
+);
+for (let index = 0; index < 4; index += 1) {
+  emitStagedPredicate(
+    `quaternion_to_axis_angle/scaled_${index}_positive_maximum`,
+    subtractExpression(quaternionScaledRaw[index], quaternionMaximumMantissa),
+    0,
+    0,
+  );
+  emitStagedPredicate(
+    `quaternion_to_axis_angle/scaled_${index}_negative_maximum`,
+    sum(quaternionScaledRaw[index], quaternionMaximumMantissa),
+    0,
+    0,
+  );
+}
+emitStagedPredicate("quaternion_to_axis_angle/vector_zero", quaternionVectorMaximum, 0, 0);
+for (let index = 0; index < 3; index += 1) {
+  emitStagedPredicate(
+    `quaternion_to_axis_angle/vector_${index}_positive_maximum`,
+    subtractExpression(quaternionVectorScaledRaw[index], quaternionVectorMaximumMantissa),
+    0,
+    0,
+  );
+  emitStagedPredicate(
+    `quaternion_to_axis_angle/vector_${index}_negative_maximum`,
+    sum(quaternionVectorScaledRaw[index], quaternionVectorMaximumMantissa),
+    0,
+    0,
+  );
+}
+emitStagedPredicate(
+  "quaternion_to_axis_angle/scalar_negative",
+  quaternionComponents[3],
+  undefined,
+  smallestNegativeFloat,
+);
+emitStagedPredicate("quaternion_to_axis_angle/result_angle_finite", quaternionAngle, -finiteLimit, finiteLimit);
+for (let index = 0; index < 3; index += 1) {
+  emitStagedPredicate(
+    `quaternion_to_axis_angle/result_axis_${index}_finite`,
+    quaternionAxis[index],
+    -finiteLimit,
+    finiteLimit,
+  );
+}
 emitPredicate("inverse_trigonometry/square_before_target", inlineValueCheck(
   storage("math:internal", "w_comparison.inverse_trigonometry_square_before_target"),
   undefined,
@@ -927,6 +1054,12 @@ emitFunction(FUNCTION_PATHS.invalidDuration, [
 emitFunction(FUNCTION_PATHS.invalidElastic, [
   "data remove storage math: ans",
   "data modify storage math: error set value \"invalid_elastic\"",
+  "return fail",
+]);
+
+emitFunction(FUNCTION_PATHS.invalidQuaternion, [
+  "data remove storage math: ans",
+  "data modify storage math: error set value \"invalid_quaternion\"",
   "return fail",
 ]);
 
@@ -1480,6 +1613,161 @@ function exactRemainderLines() {
   lines.push("execute unless predicate math:internal/square_root/result_finite run return fail");
   lines.push("return 1");
   emitPublicFunction("square_root", lines);
+}
+
+function internalSquareRootLines(inputProvider, outputPath) {
+  const lines = [
+    `data modify storage math:internal x set compute default ${inputProvider}`,
+    `function ${functionId(FUNCTION_PATHS.normalizeBinary32)}`,
+    "execute store result storage math:internal z float 1 run compute default math:square_root/normalize/half_exponent",
+    "data modify storage math:internal w_sqrt_mantissa set compute default math:square_root/normalize/mantissa",
+    "data modify storage math:internal w_sqrt_scale set compute default math:exp/scale/00",
+    "data modify storage math:internal w_sqrt_estimate set compute default math:square_root/approximate/00",
+  ];
+  for (let update = 0; update < 2; update += 1) lines.push(...squareRootUpdateLines());
+  lines.push(
+    "data modify storage math:internal w_sqrt_residual set compute default math:square_root/residual",
+    ...stagePredicate("square_root/needs_refine"),
+    `execute if predicate math:internal/square_root/needs_refine run function ${functionId(squareRootRefinePath)}`,
+    `data modify storage math:internal ${outputPath} set compute default math:square_root/00`,
+  );
+  return lines;
+}
+
+{
+  const lines = ["data remove storage math: error"];
+  lines.push(`execute unless data storage math: rotation[3] run return run function ${functionId(FUNCTION_PATHS.invalidQuaternion)}`);
+  lines.push(`execute if data storage math: rotation[4] run return run function ${functionId(FUNCTION_PATHS.invalidQuaternion)}`);
+  for (let index = 0; index < 4; index += 1) {
+    lines.push(`execute store success storage math:internal w_validation_rotation_numeric_${index} byte 1 run data get storage math: rotation[${index}] 1`);
+    lines.push(`execute unless data storage math:internal {w_validation_rotation_numeric_${index}:1b} run return run function ${functionId(FUNCTION_PATHS.invalidQuaternion)}`);
+  }
+  for (let index = 0; index < 4; index += 1) {
+    lines.push(`data modify storage math:internal w_quaternion_component_${index} set compute default math:quaternion_to_axis_angle/input/rotation_${index}`);
+    lines.push(`data modify storage math:internal w_validation_rotation_${index} set compute default math:internal/comparison/finite/rotation_${index}`);
+    lines.push(`execute unless data storage math:internal {w_validation_rotation_${index}:0.0f} run return run function ${functionId(FUNCTION_PATHS.invalidQuaternion)}`);
+  }
+  lines.push("data modify storage math:internal w_quaternion_maximum set compute default math:quaternion_to_axis_angle/normalize/maximum");
+  lines.push(...stagePredicate("quaternion_to_axis_angle/maximum_zero"));
+  lines.push(`execute if predicate math:internal/quaternion_to_axis_angle/maximum_zero run return run function ${functionId(FUNCTION_PATHS.invalidQuaternion)}`);
+  lines.push(`return run function ${functionId(FUNCTION_PATHS.quaternionNormalize)}`);
+  emitPublicFunction("quaternion_to_axis_angle", lines);
+}
+
+{
+  const lines = [
+    "data modify storage math:internal x set from storage math:internal w_quaternion_maximum",
+    `function ${functionId(FUNCTION_PATHS.normalizeBinary32)}`,
+    "data modify storage math:internal w_quaternion_scale_multiplier_a set from storage math:internal w_normalize_multiplier_a",
+    "data modify storage math:internal w_quaternion_scale_multiplier_b set from storage math:internal w_normalize_multiplier_b",
+    "data modify storage math:internal w_quaternion_maximum_mantissa set from storage math:internal w_normalize_mantissa",
+  ];
+  for (let index = 0; index < 4; index += 1) {
+    lines.push(`data modify storage math:internal w_quaternion_scaled_raw_${index} set compute default math:quaternion_to_axis_angle/normalize/scaled_raw_${index}`);
+  }
+  lines.push(
+    "data modify storage math:internal x set from storage math:internal w_quaternion_maximum_mantissa",
+    "data modify storage math:internal y set value 1.0f",
+    `function ${functionId(FUNCTION_PATHS.reciprocal)}`,
+    "data modify storage math:internal w_quaternion_inverse_maximum_mantissa set from storage math:internal x",
+  );
+  for (let index = 0; index < 4; index += 1) {
+    lines.push(...stagePredicate(`quaternion_to_axis_angle/scaled_${index}_positive_maximum`));
+    lines.push(...stagePredicate(`quaternion_to_axis_angle/scaled_${index}_negative_maximum`));
+    lines.push(`data modify storage math:internal w_quaternion_scaled_${index} set compute default math:quaternion_to_axis_angle/normalize/scaled_${index}`);
+    lines.push(`execute if predicate math:internal/quaternion_to_axis_angle/scaled_${index}_positive_maximum run data modify storage math:internal w_quaternion_scaled_${index} set value 1.0f`);
+    lines.push(`execute if predicate math:internal/quaternion_to_axis_angle/scaled_${index}_negative_maximum run data modify storage math:internal w_quaternion_scaled_${index} set value -1.0f`);
+  }
+  lines.push("data modify storage math:internal w_quaternion_scaled_square_sum set compute default math:quaternion_to_axis_angle/normalize/scaled_square_sum");
+  lines.push(...internalSquareRootLines(
+    "math:quaternion_to_axis_angle/normalize/scaled_square_sum",
+    "w_quaternion_length",
+  ));
+  lines.push(
+    "data modify storage math:internal x set from storage math:internal w_quaternion_length",
+    "data modify storage math:internal y set value 1.0f",
+    `function ${functionId(FUNCTION_PATHS.reciprocal)}`,
+    "data modify storage math:internal w_quaternion_inverse_length set from storage math:internal x",
+  );
+  for (let index = 0; index < 4; index += 1) {
+    lines.push(`data modify storage math:internal w_quaternion_normalized_${index} set compute default math:quaternion_to_axis_angle/normalize/normalized_${index}`);
+  }
+  lines.push(`return run function ${functionId(FUNCTION_PATHS.quaternionVector)}`);
+  emitFunction(FUNCTION_PATHS.quaternionNormalize, lines);
+}
+
+{
+  const lines = [
+    "data modify storage math:internal w_quaternion_vector_maximum set compute default math:quaternion_to_axis_angle/vector/maximum",
+    ...stagePredicate("quaternion_to_axis_angle/vector_zero"),
+    `execute if predicate math:internal/quaternion_to_axis_angle/vector_zero run return run function ${functionId(FUNCTION_PATHS.quaternionScalar)}`,
+    "data modify storage math:internal x set from storage math:internal w_quaternion_vector_maximum",
+    `function ${functionId(FUNCTION_PATHS.normalizeBinary32)}`,
+    "data modify storage math:internal w_quaternion_vector_scale_multiplier_a set from storage math:internal w_normalize_multiplier_a",
+    "data modify storage math:internal w_quaternion_vector_scale_multiplier_b set from storage math:internal w_normalize_multiplier_b",
+    "data modify storage math:internal w_quaternion_vector_maximum_mantissa set from storage math:internal w_normalize_mantissa",
+  ];
+  for (let index = 0; index < 3; index += 1) {
+    lines.push(`data modify storage math:internal w_quaternion_vector_scaled_raw_${index} set compute default math:quaternion_to_axis_angle/vector/scaled_raw_${index}`);
+  }
+  lines.push(
+    "data modify storage math:internal x set from storage math:internal w_quaternion_vector_maximum_mantissa",
+    "data modify storage math:internal y set value 1.0f",
+    `function ${functionId(FUNCTION_PATHS.reciprocal)}`,
+    "data modify storage math:internal w_quaternion_inverse_vector_maximum_mantissa set from storage math:internal x",
+  );
+  for (let index = 0; index < 3; index += 1) {
+    lines.push(...stagePredicate(`quaternion_to_axis_angle/vector_${index}_positive_maximum`));
+    lines.push(...stagePredicate(`quaternion_to_axis_angle/vector_${index}_negative_maximum`));
+    lines.push(`data modify storage math:internal w_quaternion_vector_scaled_${index} set compute default math:quaternion_to_axis_angle/vector/scaled_${index}`);
+    lines.push(`execute if predicate math:internal/quaternion_to_axis_angle/vector_${index}_positive_maximum run data modify storage math:internal w_quaternion_vector_scaled_${index} set value 1.0f`);
+    lines.push(`execute if predicate math:internal/quaternion_to_axis_angle/vector_${index}_negative_maximum run data modify storage math:internal w_quaternion_vector_scaled_${index} set value -1.0f`);
+  }
+  lines.push(...internalSquareRootLines(
+    "math:quaternion_to_axis_angle/vector/scaled_square_sum",
+    "w_quaternion_vector_length",
+  ));
+  lines.push(
+    "data modify storage math:internal x set from storage math:internal w_quaternion_vector_length",
+    "data modify storage math:internal y set value 1.0f",
+    `function ${functionId(FUNCTION_PATHS.reciprocal)}`,
+    "data modify storage math:internal w_quaternion_inverse_vector_length set from storage math:internal x",
+  );
+  for (let index = 0; index < 3; index += 1) {
+    lines.push(`data modify storage math:internal w_quaternion_axis_${index} set compute default math:quaternion_to_axis_angle/output/axis_${index}`);
+  }
+  lines.push(
+    "data modify storage math:internal x set compute default math:quaternion_to_axis_angle/normalize/clamped_w",
+    `function ${functionId(FUNCTION_PATHS.acos)}`,
+    "data modify storage math:internal w_quaternion_angle set compute default math:quaternion_to_axis_angle/output/angle",
+    `return run function ${functionId(FUNCTION_PATHS.quaternionFinish)}`,
+  );
+  emitFunction(FUNCTION_PATHS.quaternionVector, lines);
+}
+
+emitFunction(FUNCTION_PATHS.quaternionScalar, [
+  "data modify storage math:internal w_quaternion_axis_0 set value 0.0f",
+  "data modify storage math:internal w_quaternion_axis_1 set value 1.0f",
+  "data modify storage math:internal w_quaternion_axis_2 set value 0.0f",
+  "data modify storage math:internal w_quaternion_angle set value 0.0f",
+  ...stagePredicate("quaternion_to_axis_angle/scalar_negative"),
+  "execute if predicate math:internal/quaternion_to_axis_angle/scalar_negative run data modify storage math:internal w_quaternion_angle set compute default math:common/constant/tau",
+  `return run function ${functionId(FUNCTION_PATHS.quaternionFinish)}`,
+]);
+
+{
+  const lines = [];
+  for (const name of ["angle", "axis_0", "axis_1", "axis_2"]) {
+    lines.push(...stagePredicate(`quaternion_to_axis_angle/result_${name}_finite`));
+    lines.push(`execute unless predicate math:internal/quaternion_to_axis_angle/result_${name}_finite run return run function ${functionId(FUNCTION_PATHS.invalidQuaternion)}`);
+  }
+  lines.push("data modify storage math: ans set value {angle:0.0f,axis:[0.0f,0.0f,0.0f]}");
+  lines.push("data modify storage math: ans.angle set compute default math:quaternion_to_axis_angle/output/stored_angle");
+  for (let index = 0; index < 3; index += 1) {
+    lines.push(`data modify storage math: ans.axis[${index}] set compute default math:quaternion_to_axis_angle/output/stored_axis_${index}`);
+  }
+  lines.push("return 1");
+  emitFunction(FUNCTION_PATHS.quaternionFinish, lines);
 }
 
 emitFunction(FUNCTION_PATHS.logPrepare, [
