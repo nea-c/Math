@@ -4,7 +4,7 @@
     {
       "type": "minecraft:storage",
       "storage": "math:internal",
-      "path": "w_quaternion_scaled_0"
+      "path": "w_quaternion_component_0"
     },
     {
       "type": "minecraft:product",
@@ -13,14 +13,14 @@
         {
           "type": "minecraft:storage",
           "storage": "math:internal",
-          "path": "w_quaternion_scaled_0"
+          "path": "w_quaternion_component_0"
         }
       ]
     },
     {
       "type": "minecraft:storage",
       "storage": "math:internal",
-      "path": "w_quaternion_scaled_1"
+      "path": "w_quaternion_component_1"
     },
     {
       "type": "minecraft:product",
@@ -29,14 +29,14 @@
         {
           "type": "minecraft:storage",
           "storage": "math:internal",
-          "path": "w_quaternion_scaled_1"
+          "path": "w_quaternion_component_1"
         }
       ]
     },
     {
       "type": "minecraft:storage",
       "storage": "math:internal",
-      "path": "w_quaternion_scaled_2"
+      "path": "w_quaternion_component_2"
     },
     {
       "type": "minecraft:product",
@@ -45,7 +45,7 @@
         {
           "type": "minecraft:storage",
           "storage": "math:internal",
-          "path": "w_quaternion_scaled_2"
+          "path": "w_quaternion_component_2"
         }
       ]
     }

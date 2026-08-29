@@ -4,7 +4,7 @@
     {
       "type": "minecraft:storage",
       "storage": "math:internal",
-      "path": "w_quaternion_scaled_0"
+      "path": "w_quaternion_component_0"
     },
     {
       "type": "minecraft:storage",

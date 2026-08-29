@@ -781,11 +781,11 @@ emit("quaternion_to_axis_angle/normalize/normalized_3", product(quaternionScaled
 emit("quaternion_to_axis_angle/normalize/clamped_w", maximum(-1, minimum(1, quaternionNormalized[3])));
 
 emit("quaternion_to_axis_angle/vector/maximum", maximum(
-  ...quaternionScaled.slice(0, 3).flatMap(component => [component, product(-1, component)]),
+  ...quaternionComponents.slice(0, 3).flatMap(component => [component, product(-1, component)]),
 ));
 for (let index = 0; index < 3; index += 1) {
   emit(`quaternion_to_axis_angle/vector/scaled_raw_${index}`, product(
-    quaternionScaled[index],
+    quaternionComponents[index],
     quaternionVectorScaleMultiplierA,
     quaternionVectorScaleMultiplierB,
   ));

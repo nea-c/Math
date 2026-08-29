@@ -93,14 +93,15 @@ test("paired quaternions retain complementary sign-preserving representations", 
 
 // Catches direct square summation, unsafe reciprocal scaling, and vector underflow failures.
 test("four-dimensional and vector normalization stay safe across the binary32 range", () => {
-  for (const [rotation, reconstructResult] of [
+  for (const [rotation, reconstructResult, expectedAxis] of [
     [[finiteLimit, finiteLimit, 0, finiteLimit], true],
     [[smallestFloat, smallestFloat, 0, smallestFloat], true],
-    [[smallestFloat, 0, 0, finiteLimit], false],
+    [[smallestFloat, 0, 0, finiteLimit], false, [1, 0, 0]],
   ]) {
     const result = assertQuaternion(rotation, JSON.stringify(rotation), { reconstructResult });
     const squareSum = result.storage["math:internal"].w_quaternion_scaled_square_sum;
     assert.ok(squareSum >= 1 && squareSum <= 4, `scaled square sum ${squareSum} must stay in [1, 4]`);
+    if (expectedAxis) assert.deepEqual(result.storage["math:"].ans.axis, expectedAxis);
   }
 });
 
