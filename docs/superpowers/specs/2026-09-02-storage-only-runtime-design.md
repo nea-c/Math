@@ -35,6 +35,24 @@
 
 計算アルゴリズムの分岐に必要なpredicateは残す。削除対象は、公開エラーを生成するためだけの入力検証、結果検証、エラー用predicate、finite provider、エラー終了関数である。
 
+## READMEの入力契約
+
+実行時検証を削除しても利用者が有効入力を判断できるよう、READMEを入力契約の正本として更新する。検証resourceを削除する前に、現在コード化されている制約をREADMEへ移す。
+
+公開function一覧には、各functionについて次を明記する。
+
+- 必須入力フィールドとNBTの型または構造
+- 各数値入力が有限値である必要
+- 個別の定義域、符号、大小関係、非ゼロ条件
+- `min <= max`のような入力間の制約
+- easing系のduration、周期、回数、減衰値などの有効範囲
+- curve、quaternionなど複合入力の要素数と要素ごとの制約
+- 有効入力でも出力範囲に制限がある場合、その制限
+
+単に「無効入力は未定義」と書くだけで済ませず、利用者が事前に検証できる具体的な条件を記載する。境界値を含むかどうかも、`0 < max`、`-1 <= a <= 1`、`b != 0`のように曖昧さのない表記にする。
+
+同一制約を持つfunctionは共通注記を参照してよいが、各functionの行だけを読んでも必要な制約へ到達できるようにする。実装後のテストは、全公開functionがREADMEの入力契約表に存在することを検証する。
+
 ## Scratch storage
 
 従来の独立した`storage math:internal`は使用しない。すべての一時値を`storage math:`直下の`internal` compoundへ移す。
@@ -104,7 +122,7 @@ data remove storage math: internal
 - 分岐型の公開処理を必要に応じてprivate compute関数へ分離し、公開入口でcleanupする。
 - manifestを再生成し、不要になった生成物を削除する。
 
-READMEからエラーID一覧、成功・失敗の説明、function resultの契約を削除し、無効入力が未定義であることと`internal`が実行後に削除されることを記載する。
+READMEからエラーID一覧、成功・失敗の説明、function resultの契約を削除する。代わりに、全公開functionの有効入力範囲、無効入力が未定義であること、`internal`が実行後に削除されることを記載する。
 
 ## テスト
 
@@ -118,6 +136,7 @@ READMEからエラーID一覧、成功・失敗の説明、function resultの契
 - `storage math: error`へ書き込む生成関数が存在しない。
 - provider、predicate、mcfunctionに旧`storage math:internal`参照が残っていない。
 - 検証専用resourceと`.common/_error`関数がmanifestおよび生成物に残っていない。
+- 全公開functionがREADMEの入力契約表に含まれ、削除前の検証条件が文書化されている。
 - function tag、function、provider、predicateの全参照が解決する。
 - 生成物check、Node.jsテスト、現行Minecraftサーバー統合テストが通る。
 
