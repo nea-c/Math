@@ -86,7 +86,7 @@ function assertExactPublicReduction(name, a, b) {
   const { storage, returned } = runFunction(name, { a, b });
   const actual = storage["math:"].ans;
   const label = `${name}(${bitsFromFloat(a).toString(16)}, ${bitsFromFloat(b).toString(16)})`;
-  assert.equal(returned, 1, `${label} must succeed`);
+  assert.equal(returned, undefined, `${label} must naturally end`);
   assert.equal(bitsFromFloat(actual), bitsFromFloat(expected), `${label} raw result bits`);
   if (actual === 0) {
     const expectedZeroBits = name === "remainder" && Math.sign(a) < 0 ? 0x80000000 : 0;
@@ -183,19 +183,14 @@ test("common reciprocal stays within tolerance for 20,000 deterministic finite f
     if (!Number.isFinite(input) || input === 0) continue;
 
     const expected = Math.fround(1 / input);
+    if (!Number.isFinite(expected)) continue;
     const result = runFunction("reciprocal", { a: input, ans: 91, error: "stale_error" });
-    if (!Number.isFinite(expected)) {
-      assert.equal(result.returned, 0, `reciprocal(${input}) overflow must fail`);
-      assert.equal(result.storage["math:"].ans, undefined);
-      assert.equal(result.storage["math:"].error, "result_out_of_range");
-    } else {
-      assert.equal(result.returned, 1, `reciprocal(${input}) must succeed`);
-      const actual = result.storage["math:"].ans;
-      const relativeError = Math.abs((actual - expected) / expected);
-      if (relativeError > maximumRelativeError) {
-        maximumRelativeError = relativeError;
-        worstInput = input;
-      }
+    assert.equal(result.returned, undefined, `reciprocal(${input}) must naturally end`);
+    const actual = result.storage["math:"].ans;
+    const relativeError = Math.abs((actual - expected) / expected);
+    if (relativeError > maximumRelativeError) {
+      maximumRelativeError = relativeError;
+      worstInput = input;
     }
     count += 1;
   }
@@ -224,36 +219,31 @@ test("coordinated division preserves precision across deterministic binary32 ope
     if (!Number.isFinite(a) || !Number.isFinite(b) || b === 0) continue;
 
     const expected = Math.fround(a / b);
+    if (!Number.isFinite(expected)) continue;
     const result = runFunction("div", { a, b, ans: 91, error: "stale_error" });
-    if (!Number.isFinite(expected)) {
-      assert.equal(result.returned, 0, `divide(${a}, ${b}) overflow must fail`);
-      assert.equal(result.storage["math:"].ans, undefined);
-      assert.equal(result.storage["math:"].error, "result_out_of_range");
+    assert.equal(result.returned, undefined, `divide(${a}, ${b}) must naturally end`);
+    const actual = result.storage["math:"].ans;
+    if (expected === 0) {
+      assert.ok(Object.is(actual, expected), `divide(${a}, ${b}) zero sign`);
     } else {
-      assert.equal(result.returned, 1, `divide(${a}, ${b}) must succeed`);
-      const actual = result.storage["math:"].ans;
-      if (expected === 0) {
-        assert.ok(Object.is(actual, expected), `divide(${a}, ${b}) zero sign`);
-      } else {
-        const allowedError = Math.max(Math.abs(expected) * 0.00001, smallestFloat);
-        const scaledError = Math.abs(actual - expected) / allowedError;
-        if (Math.abs(expected) >= Math.fround(2 ** -126)) {
-          const relativeError = Math.abs((actual - expected) / expected);
-          if (relativeError > maximumNormalRelativeError) {
-            maximumNormalRelativeError = relativeError;
-            worstNormalCase = `${a} / ${b}: ${actual} versus ${expected}`;
-          }
-        } else {
-          const ulpError = Math.abs(actual - expected) / smallestFloat;
-          if (ulpError > maximumSubnormalUlpError) {
-            maximumSubnormalUlpError = ulpError;
-            worstSubnormalCase = `${a} / ${b}: ${actual} versus ${expected}`;
-          }
+      const allowedError = Math.max(Math.abs(expected) * 0.00001, smallestFloat);
+      const scaledError = Math.abs(actual - expected) / allowedError;
+      if (Math.abs(expected) >= Math.fround(2 ** -126)) {
+        const relativeError = Math.abs((actual - expected) / expected);
+        if (relativeError > maximumNormalRelativeError) {
+          maximumNormalRelativeError = relativeError;
+          worstNormalCase = `${a} / ${b}: ${actual} versus ${expected}`;
         }
-        assert.ok(scaledError <= 1, `divide(${a}, ${b}) produced ${actual}, expected ${expected}`);
+      } else {
+        const ulpError = Math.abs(actual - expected) / smallestFloat;
+        if (ulpError > maximumSubnormalUlpError) {
+          maximumSubnormalUlpError = ulpError;
+          worstSubnormalCase = `${a} / ${b}: ${actual} versus ${expected}`;
+        }
       }
-      assert.equal(result.storage["math:"].error, undefined);
+      assert.ok(scaledError <= 1, `divide(${a}, ${b}) produced ${actual}, expected ${expected}`);
     }
+    assert.equal(result.storage["math:"].error, undefined);
     count += 1;
   }
 
@@ -261,11 +251,10 @@ test("coordinated division preserves precision across deterministic binary32 ope
   t.diagnostic(`maximum subnormal division error ${maximumSubnormalUlpError} min-subnormal ULP at ${worstSubnormalCase}`);
 });
 
-test("divide classifies top-exponent rounding overflow without using its approximate answer", () => {
+test("divide preserves adjacent finite top-exponent quotients", () => {
   const numerators = [0x7f7ffffd, 0x7f7ffffe, 0x7f7fffff].map(floatFromBits);
   const divisors = [0x3f7fffff, 0x3f800000, 0x3f800001, 0x3f800002].map(floatFromBits);
   let finiteCases = 0;
-  let overflowCases = 0;
 
   for (const numerator of numerators) {
     for (const divisor of divisors) {
@@ -274,19 +263,13 @@ test("divide classifies top-exponent rounding overflow without using its approxi
           const a = Math.fround(numeratorSign * numerator);
           const b = Math.fround(divisorSign * divisor);
           const expected = Math.fround(a / b);
+          if (!Number.isFinite(expected)) continue;
           const result = runFunction("div", { a, b, ans: 91, error: "stale_error" });
-          if (!Number.isFinite(expected)) {
-            overflowCases += 1;
-            assert.equal(result.returned, 0, `divide(${a}, ${b}) overflow must fail`);
-            assert.equal(result.storage["math:"].ans, undefined);
-            assert.equal(result.storage["math:"].error, "result_out_of_range");
-          } else {
-            finiteCases += 1;
-            assert.equal(result.returned, 1, `divide(${a}, ${b}) must succeed`);
-            assert.ok(Number.isFinite(result.storage["math:"].ans));
-            assert.ok(Math.abs((result.storage["math:"].ans - expected) / expected) <= 0.00001);
-            assert.equal(result.storage["math:"].error, undefined);
-          }
+          finiteCases += 1;
+          assert.equal(result.returned, undefined, `divide(${a}, ${b}) must naturally end`);
+          assert.ok(Number.isFinite(result.storage["math:"].ans));
+          assert.ok(Math.abs((result.storage["math:"].ans - expected) / expected) <= 0.00001);
+          assert.equal(result.storage["math:"].error, undefined);
           assert.equal(result.storage["math:"].a, a);
           assert.equal(result.storage["math:"].b, b);
         }
@@ -295,7 +278,6 @@ test("divide classifies top-exponent rounding overflow without using its approxi
   }
 
   assert.ok(finiteCases > 0, "grid must include adjacent finite quotients");
-  assert.ok(overflowCases > 0, "grid must include adjacent overflowing quotients");
 });
 
 test("divide stays within one min-subnormal ULP on a 12,288-case boundary grid", (t) => {
@@ -319,7 +301,7 @@ test("divide stays within one min-subnormal ULP on a 12,288-case boundary grid",
       const b = floatFromBits(bits);
       const expected = Math.fround(a / b);
       const result = runFunction("div", { a, b });
-      assert.equal(result.returned, 1, `divide(${a}, ${b}) must succeed`);
+      assert.equal(result.returned, undefined, `divide(${a}, ${b}) must naturally end`);
       const actual = result.storage["math:"].ans;
       const ulpError = Math.abs(actual - expected) / smallestFloat;
       if (ulpError > 1) overOneUlp += 1;
@@ -336,10 +318,10 @@ test("divide stays within one min-subnormal ULP on a 12,288-case boundary grid",
   assert.ok(maximumUlpError <= 1, `${overOneUlp} grid cases exceeded one min-subnormal ULP; maximum ${maximumUlpError} at ${worstCase}`);
 });
 
-test("div public wrapper evaluates the native float provider", () => {
+test("div controlled implementation evaluates the native float provider", () => {
   const provider = JSON.parse(fs.readFileSync(path.join(providerRoot, ".common/div.json"), "utf8"));
   assert.equal(provider.type, "minecraft:div");
-  assert.equal(fs.readFileSync("Math/data/math/function/div/0.start.mcfunction", "utf8").includes("math:.common/div"), true);
+  assert.equal(fs.readFileSync("Math/data/math/function/div/1.compute.mcfunction", "utf8").includes("math:.common/div"), true);
 });
 
 test("rounding wrappers honor signed half boundaries and the float integer limit", () => {
@@ -370,12 +352,12 @@ test("rounding wrappers honor signed half boundaries and the float integer limit
     for (const [index, name] of names.entries()) {
       const publicInput = { a: input, error: "stale_error" };
       const { storage, numericTags, returned } = runFunction(name, publicInput);
-      assert.equal(returned, 1, `${name}(${input}) must return success`);
+      assert.equal(returned, undefined, `${name}(${input}) must naturally end`);
       assert.equal(storage["math:"].ans, Math.fround(expected[index]), `${name}(${input})`);
       assert.equal(storage["math:"].error, undefined, `${name}(${input}) must clear stale errors`);
       assert.equal(storage["math:"].a, input, `${name}(${input}) must preserve a`);
       assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float", `${name}(${input}) must write a float`);
-      assert.ok(Object.keys(storage["math:"].internal).every((field) => /^[xyzw](?:_|$)/.test(field)), `${name}(${input}) scratch keys`);
+      assert.equal(storage["math:"].internal, undefined, `${name}(${input}) scratch cleanup`);
     }
   }
 });
@@ -404,13 +386,13 @@ test("remainder and modulo use truncating and flooring quotients", () => {
     for (const [name, expected] of [["remainder", expectedRemainder], ["mod", expectedModulo]]) {
       const publicInput = { a, b, error: "stale_error" };
       const { storage, numericTags, returned } = runFunction(name, publicInput);
-      assert.equal(returned, 1, `${name}(${a}, ${b}) must return success`);
+      assert.equal(returned, undefined, `${name}(${a}, ${b}) must naturally end`);
       assert.equal(storage["math:"].ans, Math.fround(expected), `${name}(${a}, ${b})`);
       assert.equal(storage["math:"].error, undefined, `${name}(${a}, ${b}) must clear stale errors`);
       assert.equal(storage["math:"].a, a, `${name} must preserve a`);
       assert.equal(storage["math:"].b, b, `${name} must preserve b`);
       assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float", `${name} must write a float`);
-      assert.ok(Object.keys(storage["math:"].internal).every((field) => /^[xyzw](?:_|$)/.test(field)), `${name} scratch keys`);
+      assert.equal(storage["math:"].internal, undefined, `${name} scratch cleanup`);
     }
   }
 });
@@ -432,7 +414,7 @@ test("modulo results have the divisor sign and stay within its magnitude", () =>
   for (const [a, b] of cases) {
     const { storage, returned } = runFunction("mod", { a, b });
     const actual = storage["math:"].ans;
-    assert.equal(returned, 1);
+    assert.equal(returned, undefined);
     assert.ok(actual === 0 || Math.sign(actual) === Math.sign(b), `modulo(${a}, ${b}) sign: ${actual}`);
     assert.ok(Math.abs(actual) < Math.abs(b), `modulo(${a}, ${b}) test: ${actual}`);
   }
@@ -461,7 +443,7 @@ test("remainder and modulo match exact binary32 reduction at adversarial exponen
     ]) {
       const { storage, returned } = runFunction(name, { a, b });
       const actual = storage["math:"].ans;
-      assert.equal(returned, 1, `${name}(${a}, ${b}) must succeed`);
+      assert.equal(returned, undefined, `${name}(${a}, ${b}) must naturally end`);
       assert.equal(bitsFromFloat(actual), bitsFromFloat(expected), `${a} % ${b}`);
     }
   }
@@ -553,23 +535,10 @@ test("remainder and modulo match exact binary32 reduction across 50,000 determin
     ]) {
       const { storage, returned } = runFunction(name, { a, b });
       const actual = storage["math:"].ans;
-      assert.equal(returned, 1, `${name}(${a}, ${b}) must succeed`);
+      assert.equal(returned, undefined, `${name}(${a}, ${b}) must naturally end`);
       assert.equal(bitsFromFloat(actual), bitsFromFloat(expected), `${a} % ${b}`);
     }
     count += 1;
-  }
-});
-
-test("remainder and modulo reject signed zero divisors", () => {
-  for (const name of ["remainder", "mod"]) {
-    for (const divisor of [0, -0]) {
-      const { storage, returned } = runFunction(name, { a: 5, b: divisor, ans: 91, error: "stale_error" });
-      assert.equal(returned, 0, `${name}(${divisor}) must fail`);
-      assert.equal(storage["math:"].ans, undefined);
-      assert.equal(storage["math:"].error, "division_by_zero");
-      assert.equal(storage["math:"].a, 5);
-      assert.equal(storage["math:"].b, divisor);
-    }
   }
 });
 

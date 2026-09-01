@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { runFunction } from "./mcfunction-test-harness.mjs";
+import { runImplementation } from "./mcfunction-test-harness.mjs";
 import { loadGeneratedGraph, staticFunctionCost } from "./runtime-cost.mjs";
 
 const FINAL_BRACKET_WIDTH = 2 ** -20;
@@ -162,9 +162,9 @@ function assertCertifiedBracket(curve, result) {
   assert.ok(highX >= curve.u - BRACKET_TOLERANCE, curve.name);
 }
 
-test("bezier keeps its certified final bracket private and observable", () => {
+test("bezier compute keeps its certified final bracket private and observable", () => {
   for (const { name, t, max, curve } of CURVE_CASES) {
-    const result = runFunction("bezier", { t, max, a: 0, b: 1, curve });
+    const result = runImplementation("bezier/1.compute", { t, max, a: 0, b: 1, curve });
     const internal = result.storage["math:"].internal;
     const u = internal.w_bezier_u;
     assert.equal(result.storage["math:"].w_bezier_low, undefined, name);

@@ -19,7 +19,7 @@ test("generated providers read scratch through nested internal storage", () => {
 
 test("typed public SNBT inputs retain numeric tag types while functions execute", () => {
   const result = runFunctionFromSnbt("sign", "{a:1.0d}");
-  assert.equal(result.returned, 1);
+  assert.equal(result.returned, undefined);
   assert.equal(result.numericTags.get(storageFieldKey("math:", "a")), "double");
   assert.equal(result.numericTags.get(storageFieldKey("math:", "ans")), "float");
 });

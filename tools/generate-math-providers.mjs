@@ -125,8 +125,28 @@ function emitFunctionTag(name, value) {
   });
 }
 
-function emitPublicFunction(name, lines) {
-  emitFunction(PUBLIC_FUNCTION_PATHS[name], lines);
+const publicPreamble = [
+  "data remove storage math: error",
+  "data remove storage math: ans",
+];
+const publicCleanup = "data remove storage math: internal";
+
+function emitDirectPublicFunction(name, computeLines) {
+  emitFunction(PUBLIC_FUNCTION_PATHS[name], [
+    ...publicPreamble,
+    ...computeLines,
+    publicCleanup,
+  ]);
+  emitFunctionTag(name, publicTag(name));
+}
+
+function emitControlledPublicFunction(name, computePath, computeLines) {
+  emitFunction(PUBLIC_FUNCTION_PATHS[name], [
+    ...publicPreamble,
+    `function ${functionId(computePath)}`,
+    publicCleanup,
+  ]);
+  emitFunction(computePath, computeLines);
   emitFunctionTag(name, publicTag(name));
 }
 
@@ -1114,57 +1134,6 @@ emitPredicate("rounding/remainder/shift_positive", inlineValueCheck(storedRemain
 emitStagedPredicate("rounding/public/a_negative", publicA, undefined, smallestNegativeFloat);
 emitStagedPredicate("rounding/public/b_negative", publicB, undefined, smallestNegativeFloat);
 
-function validationLines(inputs) {
-  const lines = ["data remove storage math: error"];
-  for (const input of inputs) {
-    lines.push(`data modify storage math:internal w_validation_${input} set compute default math:internal/comparison/finite/${input}`);
-    lines.push(`execute unless data storage math:internal {w_validation_${input}:0.0f} run return run function ${functionId(FUNCTION_PATHS.invalidNumber)}`);
-  }
-  return lines;
-}
-
-emitFunction(FUNCTION_PATHS.invalidNumber, [
-  "data remove storage math: ans",
-  "data modify storage math: error set value \"invalid_number\"",
-  "return fail",
-]);
-
-emitFunction(FUNCTION_PATHS.resultOutOfRange, [
-  "data remove storage math: ans",
-  "data modify storage math: error set value \"result_out_of_range\"",
-  "return fail",
-]);
-
-emitFunction(FUNCTION_PATHS.invalidCurve, [
-  "data remove storage math: ans",
-  "data modify storage math: error set value \"invalid_curve\"",
-  "return fail",
-]);
-
-emitFunction(FUNCTION_PATHS.invalidDuration, [
-  "data remove storage math: ans",
-  "data modify storage math: error set value \"invalid_duration\"",
-  "return fail",
-]);
-
-emitFunction(FUNCTION_PATHS.invalidElastic, [
-  "data remove storage math: ans",
-  "data modify storage math: error set value \"invalid_elastic\"",
-  "return fail",
-]);
-
-emitFunction(FUNCTION_PATHS.invalidBounce, [
-  "data remove storage math: ans",
-  "data modify storage math: error set value \"invalid_bounce\"",
-  "return fail",
-]);
-
-emitFunction(FUNCTION_PATHS.invalidQuaternion, [
-  "data remove storage math: ans",
-  "data modify storage math: error set value \"invalid_quaternion\"",
-  "return fail",
-]);
-
 emit("common/asin_positive/half_pi", halfPi);
 emit("common/inverse_trigonometry/half_pi", halfPi);
 emit("common/inverse_trigonometry/pi", pi);
@@ -1241,8 +1210,8 @@ emitFunction(FUNCTION_PATHS.inverseTrigonometrySquareRootStep, [
   "return 1",
 ]);
 
-// The public functions validate their inputs first; these internal entry points
-// receive a normalized binary32 x in [-1, 1] and leave their radians result in x.
+// The public functions stage a binary32 x in [-1, 1] and these internal entry
+// points leave their radians result in x.
 emitFunction(FUNCTION_PATHS.asin, [
   "data modify storage math:internal w_inverse_trigonometry_input set from storage math:internal x",
   "execute if data storage math:internal {w_inverse_trigonometry_input:-1.0f} run data modify storage math:internal x set compute default math:common/inverse_trigonometry/half_pi",
@@ -1281,23 +1250,19 @@ emitFunction(FUNCTION_PATHS.acos, [
 ]);
 
 function inverseTrigonometryPublicLines(sharedFunction, degrees = false) {
-  const lines = validationLines(["a"]);
+  const lines = [];
   lines.push("data modify storage math:internal x set compute default math:common/input/a");
   lines.push(...stagePredicate("inverse_trigonometry/input_in_range"));
   lines.push(`execute if predicate math:internal/inverse_trigonometry/input_in_range run function ${functionId(sharedFunction)}`);
   if (degrees) lines.push("execute if predicate math:internal/inverse_trigonometry/input_in_range run data modify storage math:internal x set compute default math:common/conversion/deg");
   lines.push("execute if predicate math:internal/inverse_trigonometry/input_in_range run data modify storage math: ans set from storage math:internal x");
-  lines.push("execute if predicate math:internal/inverse_trigonometry/input_in_range run return 1");
-  lines.push("data remove storage math: ans");
-  lines.push("data modify storage math: error set value \"non_real_result\"");
-  lines.push("return fail");
   return lines;
 }
 
-emitPublicFunction("asin", inverseTrigonometryPublicLines(FUNCTION_PATHS.asin));
-emitPublicFunction("asin_degrees", inverseTrigonometryPublicLines(FUNCTION_PATHS.asin, true));
-emitPublicFunction("acos", inverseTrigonometryPublicLines(FUNCTION_PATHS.acos));
-emitPublicFunction("acos_degrees", inverseTrigonometryPublicLines(FUNCTION_PATHS.acos, true));
+emitDirectPublicFunction("asin", inverseTrigonometryPublicLines(FUNCTION_PATHS.asin));
+emitDirectPublicFunction("asin_degrees", inverseTrigonometryPublicLines(FUNCTION_PATHS.asin, true));
+emitDirectPublicFunction("acos", inverseTrigonometryPublicLines(FUNCTION_PATHS.acos));
+emitDirectPublicFunction("acos_degrees", inverseTrigonometryPublicLines(FUNCTION_PATHS.acos, true));
 
 emitFunction(FUNCTION_PATHS.atanEvaluate, [
   "data modify storage math:internal w_atan_square set compute default math:common/atan/square",
@@ -1326,20 +1291,19 @@ emitFunction(FUNCTION_PATHS.atan, [
 ]);
 
 function atanPublicLines(degrees = false) {
-  const lines = validationLines(["a"]);
+  const lines = [];
   lines.push("data modify storage math:internal x set compute default math:common/input/a");
   lines.push(`function ${functionId(FUNCTION_PATHS.atan)}`);
   if (degrees) lines.push("data modify storage math:internal x set compute default math:common/conversion/deg");
   lines.push("data modify storage math: ans set from storage math:internal x");
-  lines.push("return 1");
   return lines;
 }
 
-emitPublicFunction("atan", atanPublicLines());
-emitPublicFunction("atan_degrees", atanPublicLines(true));
+emitDirectPublicFunction("atan", atanPublicLines());
+emitDirectPublicFunction("atan_degrees", atanPublicLines(true));
 
 function atan2PublicLines(degrees = false) {
-  const lines = validationLines(["a", "b"]);
+  const lines = [];
   lines.push("data modify storage math:internal w_atan2_absolute_a set compute default math:atan2/absolute_a");
   lines.push("data modify storage math:internal w_atan2_absolute_b set compute default math:atan2/absolute_b");
   lines.push("data modify storage math:internal w_atan2_minimum set compute default math:atan2/minimum");
@@ -1363,12 +1327,11 @@ function atan2PublicLines(degrees = false) {
   lines.push("execute if predicate math:internal/atan2/a_negative run data modify storage math:internal x set compute default math:common/rounding/negate");
   if (degrees) lines.push("data modify storage math:internal x set compute default math:common/conversion/deg");
   lines.push("data modify storage math: ans set from storage math:internal x");
-  lines.push("return 1");
   return lines;
 }
 
-emitPublicFunction("atan2", atan2PublicLines());
-emitPublicFunction("atan2_degrees", atan2PublicLines(true));
+emitControlledPublicFunction("atan2", FUNCTION_PATHS.atan2Compute, atan2PublicLines());
+emitControlledPublicFunction("atan2_degrees", FUNCTION_PATHS.atan2DegreesCompute, atan2PublicLines(true));
 
 const elasticAmplitude = internalStorage("w_elastic_amplitude");
 const elasticPhase = internalStorage("w_elastic_phase");
@@ -1399,9 +1362,6 @@ emit("elastic_decay/result", interpolationResult(elasticDecayEased));
 emitFunction(FUNCTION_PATHS.elasticFinish, [
   "data modify storage math:internal w_elastic_eased set compute default math:elastic/eased",
   "data modify storage math: ans set compute default math:elastic/result",
-  "data modify storage math:internal w_validation_ans set compute default math:internal/comparison/finite/ans",
-  `execute unless data storage math:internal {w_validation_ans:0.0f} run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`,
-  "return 1",
 ]);
 
 emitFunction(FUNCTION_PATHS.elasticPhase, [
@@ -1420,20 +1380,18 @@ emitFunction(FUNCTION_PATHS.elasticPhase, [
   "data modify storage math:internal x set compute default math:elastic/angle",
   `function ${functionId(FUNCTION_PATHS.sin)}`,
   "data modify storage math:internal w_elastic_sine set from storage math:internal x",
-  `return run function ${functionId(FUNCTION_PATHS.elasticFinish)}`,
+  `function ${functionId(FUNCTION_PATHS.elasticFinish)}`,
 ]);
 
 {
-  const lines = validationLines(["a", "b", "t", "max", "amplitude"]);
+  const lines = [];
   lines.push("data modify storage math:internal w_elastic_amplitude set compute default math:elastic/input/amplitude");
-  lines.push("data modify storage math:internal w_validation_period set compute default math:internal/comparison/finite/period");
-  lines.push(`execute unless data storage math:internal {w_validation_period:0.0f} run return run function ${functionId(FUNCTION_PATHS.invalidNumber)}`);
   lines.push(...stagePredicate("elastic/duration_positive"));
-  lines.push(`execute unless predicate math:internal/elastic/duration_positive run return run function ${functionId(FUNCTION_PATHS.invalidDuration)}`);
+  lines.push("execute unless predicate math:internal/elastic/duration_positive run return 1");
   lines.push(...stagePredicate("elastic/amplitude_valid"));
-  lines.push(`execute unless predicate math:internal/elastic/amplitude_valid run return run function ${functionId(FUNCTION_PATHS.invalidElastic)}`);
+  lines.push("execute unless predicate math:internal/elastic/amplitude_valid run return 1");
   lines.push(...stagePredicate("elastic/period_positive"));
-  lines.push(`execute unless predicate math:internal/elastic/period_positive run return run function ${functionId(FUNCTION_PATHS.invalidElastic)}`);
+  lines.push("execute unless predicate math:internal/elastic/period_positive run return 1");
   lines.push(...stagePredicate("elastic/time_at_or_below_start"));
   lines.push("execute if predicate math:internal/elastic/time_at_or_below_start run data modify storage math: ans set from storage math: a");
   lines.push("execute if predicate math:internal/elastic/time_at_or_below_start run return 1");
@@ -1441,31 +1399,29 @@ emitFunction(FUNCTION_PATHS.elasticPhase, [
   lines.push("execute if predicate math:internal/elastic/time_at_or_after_end run data modify storage math: ans set from storage math: b");
   lines.push("execute if predicate math:internal/elastic/time_at_or_after_end run return 1");
   lines.push("execute if data storage math:internal {w_elastic_amplitude:1.0f} run data modify storage math:internal x set compute default math:common/asin_positive/half_pi");
-  lines.push(`execute if data storage math:internal {w_elastic_amplitude:1.0f} run return run function ${functionId(FUNCTION_PATHS.elasticPhase)}`);
+  lines.push(`execute if data storage math:internal {w_elastic_amplitude:1.0f} run function ${functionId(FUNCTION_PATHS.elasticPhase)}`);
+  lines.push("execute if data storage math:internal {w_elastic_amplitude:1.0f} run return 1");
   lines.push("data modify storage math:internal x set from storage math:internal w_elastic_amplitude");
   lines.push("data modify storage math:internal y set value 1.0f");
   lines.push(`function ${functionId(FUNCTION_PATHS.reciprocal)}`);
   lines.push(`function ${functionId(FUNCTION_PATHS.asinPositive)}`);
-  lines.push(`return run function ${functionId(FUNCTION_PATHS.elasticPhase)}`);
-  emitPublicFunction("elastic", lines);
+  lines.push(`function ${functionId(FUNCTION_PATHS.elasticPhase)}`);
+  emitControlledPublicFunction("elastic", FUNCTION_PATHS.elasticCompute, lines);
 }
 
 emitFunction(FUNCTION_PATHS.elasticDecayFinish, [
   "data modify storage math:internal w_elastic_decay_eased set compute default math:elastic_decay/eased",
   "data modify storage math: ans set compute default math:elastic_decay/result",
-  "data modify storage math:internal w_validation_ans set compute default math:internal/comparison/finite/ans",
-  `execute unless data storage math:internal {w_validation_ans:0.0f} run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`,
-  "return 1",
 ]);
 
 {
-  const lines = validationLines(["a", "b", "t", "max", "oscillations", "damping"]);
+  const lines = [];
   lines.push(...stagePredicate("elastic_decay/duration_positive"));
-  lines.push(`execute unless predicate math:internal/elastic_decay/duration_positive run return run function ${functionId(FUNCTION_PATHS.invalidDuration)}`);
+  lines.push("execute unless predicate math:internal/elastic_decay/duration_positive run return 1");
   lines.push(...stagePredicate("elastic_decay/oscillations_positive"));
-  lines.push(`execute unless predicate math:internal/elastic_decay/oscillations_positive run return run function ${functionId(FUNCTION_PATHS.invalidElastic)}`);
+  lines.push("execute unless predicate math:internal/elastic_decay/oscillations_positive run return 1");
   lines.push(...stagePredicate("elastic_decay/damping_positive"));
-  lines.push(`execute unless predicate math:internal/elastic_decay/damping_positive run return run function ${functionId(FUNCTION_PATHS.invalidElastic)}`);
+  lines.push("execute unless predicate math:internal/elastic_decay/damping_positive run return 1");
   lines.push(...stagePredicate("elastic_decay/time_at_or_below_start"));
   lines.push("execute if predicate math:internal/elastic_decay/time_at_or_below_start run data modify storage math: ans set from storage math: a");
   lines.push("execute if predicate math:internal/elastic_decay/time_at_or_below_start run return 1");
@@ -1482,8 +1438,8 @@ emitFunction(FUNCTION_PATHS.elasticDecayFinish, [
   lines.push("data modify storage math:internal x set compute default math:elastic_decay/angle");
   lines.push(`function ${functionId(FUNCTION_PATHS.cos)}`);
   lines.push("data modify storage math:internal w_elastic_decay_cosine set from storage math:internal x");
-  lines.push(`return run function ${functionId(FUNCTION_PATHS.elasticDecayFinish)}`);
-  emitPublicFunction("elastic_decay", lines);
+  lines.push(`function ${functionId(FUNCTION_PATHS.elasticDecayFinish)}`);
+  emitControlledPublicFunction("elastic_decay", FUNCTION_PATHS.elasticDecayCompute, lines);
 }
 
 const bounceU = internalStorage("w_bounce_u");
@@ -1538,15 +1494,12 @@ emit("bounce_decay/result", interpolationResult(bounceDecayEased));
 emitFunction(FUNCTION_PATHS.bounceFinish, [
   "data modify storage math:internal w_bounce_eased set compute default math:bounce/eased",
   "data modify storage math: ans set compute default math:bounce/result",
-  "data modify storage math:internal w_validation_ans set compute default math:internal/comparison/finite/ans",
-  `execute unless data storage math:internal {w_validation_ans:0.0f} run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`,
-  "return 1",
 ]);
 
 {
-  const lines = validationLines(["a", "b", "t", "max"]);
+  const lines = [];
   lines.push(...stagePredicate("bounce/duration_positive"));
-  lines.push(`execute unless predicate math:internal/bounce/duration_positive run return run function ${functionId(FUNCTION_PATHS.invalidDuration)}`);
+  lines.push("execute unless predicate math:internal/bounce/duration_positive run return 1");
   lines.push(...stagePredicate("bounce/time_at_or_below_start"));
   lines.push("execute if predicate math:internal/bounce/time_at_or_below_start run data modify storage math: ans set compute default math:common/input/a");
   lines.push("execute if predicate math:internal/bounce/time_at_or_below_start run return 1");
@@ -1564,26 +1517,23 @@ emitFunction(FUNCTION_PATHS.bounceFinish, [
   for (let index = 0; index < bounceComparisons.length; index += 1) {
     lines.push(`data modify storage math:internal w_comparison.bounce_${index} set compute default math:bounce/compare_${index}`);
   }
-  lines.push(`return run function ${functionId(FUNCTION_PATHS.bounceFinish)}`);
-  emitPublicFunction("bounce", lines);
+  lines.push(`function ${functionId(FUNCTION_PATHS.bounceFinish)}`);
+  emitControlledPublicFunction("bounce", FUNCTION_PATHS.bounceCompute, lines);
 }
 
 emitFunction(FUNCTION_PATHS.bounceDecayFinish, [
   "data modify storage math:internal w_bounce_decay_eased set compute default math:bounce_decay/eased",
   "data modify storage math: ans set compute default math:bounce_decay/result",
-  "data modify storage math:internal w_validation_ans set compute default math:internal/comparison/finite/ans",
-  `execute unless data storage math:internal {w_validation_ans:0.0f} run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`,
-  "return 1",
 ]);
 
 {
-  const lines = validationLines(["a", "b", "t", "max", "bounces", "decay"]);
+  const lines = [];
   lines.push(...stagePredicate("bounce_decay/duration_positive"));
-  lines.push(`execute unless predicate math:internal/bounce_decay/duration_positive run return run function ${functionId(FUNCTION_PATHS.invalidDuration)}`);
+  lines.push("execute unless predicate math:internal/bounce_decay/duration_positive run return 1");
   lines.push(...stagePredicate("bounce_decay/bounces_positive"));
-  lines.push(`execute unless predicate math:internal/bounce_decay/bounces_positive run return run function ${functionId(FUNCTION_PATHS.invalidBounce)}`);
+  lines.push("execute unless predicate math:internal/bounce_decay/bounces_positive run return 1");
   lines.push(...stagePredicate("bounce_decay/decay_nonnegative"));
-  lines.push(`execute unless predicate math:internal/bounce_decay/decay_nonnegative run return run function ${functionId(FUNCTION_PATHS.invalidBounce)}`);
+  lines.push("execute unless predicate math:internal/bounce_decay/decay_nonnegative run return 1");
   lines.push(...stagePredicate("bounce_decay/time_at_or_below_start"));
   lines.push("execute if predicate math:internal/bounce_decay/time_at_or_below_start run data modify storage math: ans set compute default math:common/input/a");
   lines.push("execute if predicate math:internal/bounce_decay/time_at_or_below_start run return 1");
@@ -1604,8 +1554,8 @@ emitFunction(FUNCTION_PATHS.bounceDecayFinish, [
   lines.push("data modify storage math:internal x set compute default math:bounce_decay/exponent");
   lines.push(`function ${functionId(FUNCTION_PATHS.exp)}`);
   lines.push("data modify storage math:internal w_bounce_decay_factor set from storage math:internal x");
-  lines.push(`return run function ${functionId(FUNCTION_PATHS.bounceDecayFinish)}`);
-  emitPublicFunction("bounce_decay", lines);
+  lines.push(`function ${functionId(FUNCTION_PATHS.bounceDecayFinish)}`);
+  emitControlledPublicFunction("bounce_decay", FUNCTION_PATHS.bounceDecayCompute, lines);
 }
 
 {
@@ -1624,34 +1574,21 @@ emitFunction(FUNCTION_PATHS.bezierFinish, [
   "data modify storage math:internal w_bezier_midpoint set compute default math:bezier/midpoint",
   "data modify storage math:internal w_bezier_y set compute default math:bezier/y",
   "data modify storage math: ans set compute default math:bezier/result",
-  "data modify storage math:internal w_validation_ans set compute default math:internal/comparison/finite/ans",
-  `execute unless data storage math:internal {w_validation_ans:0.0f} run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`,
-  "return 1",
 ]);
 
 {
-  const lines = validationLines(["a", "b", "t", "max"]);
-  lines.push(`execute unless data storage math: curve[3] run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
-  lines.push(`execute if data storage math: curve[4] run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
-  for (let index = 0; index < 4; index += 1) {
-    lines.push(`execute store success storage math:internal w_validation_curve_numeric_${index} byte 1 run data get storage math: curve[${index}] 1`);
-    lines.push(`execute unless data storage math:internal {w_validation_curve_numeric_${index}:1b} run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
-  }
+  const lines = [];
+  lines.push("execute unless data storage math: curve[3] run return 1");
+  lines.push("execute if data storage math: curve[4] run return 1");
   for (const [field, index] of [["x1", 0], ["y1", 1], ["x2", 2], ["y2", 3]]) {
     lines.push(`data modify storage math:internal w_bezier_${field} set from storage math: curve[${index}]`);
   }
-  for (let index = 0; index < 4; index += 1) {
-    lines.push(`data remove storage math:internal w_validation_curve_${index}`);
-    lines.push(`data modify storage math:internal w_validation_curve_${index} set compute default math:internal/comparison/finite/curve_${index}`);
-    lines.push(`execute unless data storage math:internal w_validation_curve_${index} run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
-    lines.push(`execute unless data storage math:internal {w_validation_curve_${index}:0.0f} run return run function ${functionId(FUNCTION_PATHS.invalidNumber)}`);
-  }
   lines.push(...stagePredicate("bezier/duration_positive"));
-  lines.push(`execute unless predicate math:internal/bezier/duration_positive run return run function ${functionId(FUNCTION_PATHS.invalidDuration)}`);
+  lines.push("execute unless predicate math:internal/bezier/duration_positive run return 1");
   lines.push(...stagePredicate("bezier/x1_in_range"));
-  lines.push(`execute unless predicate math:internal/bezier/x1_in_range run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
+  lines.push("execute unless predicate math:internal/bezier/x1_in_range run return 1");
   lines.push(...stagePredicate("bezier/x2_in_range"));
-  lines.push(`execute unless predicate math:internal/bezier/x2_in_range run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
+  lines.push("execute unless predicate math:internal/bezier/x2_in_range run return 1");
   lines.push(...stagePredicate("bezier/time_at_or_below_start"));
   lines.push("execute if predicate math:internal/bezier/time_at_or_below_start run data modify storage math: ans set from storage math: a");
   lines.push("execute if predicate math:internal/bezier/time_at_or_below_start run return 1");
@@ -1665,48 +1602,41 @@ emitFunction(FUNCTION_PATHS.bezierFinish, [
   lines.push("data modify storage math:internal w_bezier_low set value 0.0f");
   lines.push("data modify storage math:internal w_bezier_high set value 1.0f");
   lines.push(`function ${functionId(FUNCTION_PATHS.bezierSolve)}`);
-  lines.push(`return run function ${functionId(FUNCTION_PATHS.bezierFinish)}`);
-  emitPublicFunction("bezier", lines);
+  lines.push(`function ${functionId(FUNCTION_PATHS.bezierFinish)}`);
+  emitControlledPublicFunction("bezier", FUNCTION_PATHS.bezierCompute, lines);
 }
 
-function wrapper(name, inputs, provider, inputMap) {
-  const lines = validationLines(inputs);
+function wrapper(name, provider, inputMap) {
+  const lines = [];
   for (const [internalName, publicName] of Object.entries(inputMap)) {
     lines.push(`data modify storage math:internal ${internalName} set from storage math: ${publicName}`);
   }
   lines.push(`data modify storage math: ans set compute default ${provider}`);
-  if (["add", "sub", "mul", "square", "cube", "deg", "lerp"].includes(name)) {
-    lines.push("data modify storage math:internal w_validation_ans set compute default math:internal/comparison/finite/ans");
-    lines.push(`execute unless data storage math:internal {w_validation_ans:0.0f} run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`);
-  }
-  lines.push("return 1");
-  emitPublicFunction(name, lines);
+  emitDirectPublicFunction(name, lines);
 }
 
-wrapper("add", ["a", "b"], "math:common/arithmetic/add", { x: "a", y: "b" });
-wrapper("sub", ["a", "b"], "math:common/arithmetic/subtract", { x: "a", y: "b" });
-wrapper("mul", ["a", "b"], "math:common/arithmetic/multiply", { x: "a", y: "b" });
-wrapper("abs", ["a"], "math:common/comparison/absolute", { x: "a" });
-wrapper("min", ["a", "b"], "math:common/comparison/minimum", { x: "a", y: "b" });
-wrapper("max", ["a", "b"], "math:common/comparison/maximum", { x: "a", y: "b" });
-wrapper("square", ["a"], "math:common/arithmetic/square", { x: "a" });
-wrapper("cube", ["a"], "math:common/arithmetic/cube", { x: "a" });
-wrapper("rad", ["a"], "math:common/conversion/rad", { x: "a" });
-wrapper("deg", ["a"], "math:common/conversion/deg", { x: "a" });
-wrapper("lerp", ["a", "b", "t"], "math:common/arithmetic/lerp", { x: "a", y: "b", z: "t" });
-wrapper("floor", ["a"], "math:common/rounding/floor", { x: "a" });
-wrapper("ceil", ["a"], "math:common/rounding/ceil", { x: "a" });
-wrapper("round", ["a"], "math:common/rounding/round", { x: "a" });
-wrapper("truncate", ["a"], "math:common/rounding/truncate", { x: "a" });
+wrapper("add", "math:common/arithmetic/add", { x: "a", y: "b" });
+wrapper("sub", "math:common/arithmetic/subtract", { x: "a", y: "b" });
+wrapper("mul", "math:common/arithmetic/multiply", { x: "a", y: "b" });
+wrapper("abs", "math:common/comparison/absolute", { x: "a" });
+wrapper("min", "math:common/comparison/minimum", { x: "a", y: "b" });
+wrapper("max", "math:common/comparison/maximum", { x: "a", y: "b" });
+wrapper("square", "math:common/arithmetic/square", { x: "a" });
+wrapper("cube", "math:common/arithmetic/cube", { x: "a" });
+wrapper("rad", "math:common/conversion/rad", { x: "a" });
+wrapper("deg", "math:common/conversion/deg", { x: "a" });
+wrapper("lerp", "math:common/arithmetic/lerp", { x: "a", y: "b", z: "t" });
+wrapper("floor", "math:common/rounding/floor", { x: "a" });
+wrapper("ceil", "math:common/rounding/ceil", { x: "a" });
+wrapper("round", "math:common/rounding/round", { x: "a" });
+wrapper("truncate", "math:common/rounding/truncate", { x: "a" });
 for (const [name, literal] of [
   ["e", "2.7182817459106445f"],
   ["pi", "3.1415927410125732f"],
   ["tau", "6.2831854820251465f"],
 ]) {
-  emitPublicFunction(name, [
-    "data remove storage math: error",
+  emitDirectPublicFunction(name, [
     `data modify storage math: ans set value ${literal}`,
-    "return 1",
   ]);
 }
 
@@ -1720,11 +1650,9 @@ emitFunction(FUNCTION_PATHS.truncate, [
   "return 1",
 ]);
 
-function divisionByZeroLines() {
+function stopOnZeroLines() {
   return [
-    "execute if data storage math:internal {x:0.0f} run data remove storage math: ans",
-    "execute if data storage math:internal {x:0.0f} run data modify storage math: error set value \"division_by_zero\"",
-    "execute if data storage math:internal {x:0.0f} run return fail",
+    "execute if data storage math:internal {x:0.0f} run return 1",
   ];
 }
 
@@ -1816,30 +1744,21 @@ function exactRemainderLines() {
 }
 
 {
-  const lines = validationLines(["a"]);
+  const lines = [];
   lines.push("data modify storage math:internal x set from storage math: a");
-  lines.push(...divisionByZeroLines());
-  lines.push("data remove storage math: ans");
   lines.push("data modify storage math: ans set compute default math:common/arithmetic/reciprocal");
-  lines.push(`execute unless data storage math: ans run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`);
-  lines.push("data modify storage math:internal w_validation_ans set compute default math:internal/comparison/finite/ans");
-  lines.push(`execute unless data storage math:internal {w_validation_ans:0.0f} run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`);
-  lines.push("return 1");
-  emitPublicFunction("reciprocal", lines);
+  emitDirectPublicFunction("reciprocal", lines);
 }
 
 {
-  const lines = validationLines(["a"]);
+  const lines = [];
   lines.push("data modify storage math:internal x set from storage math: a");
   lines.push("data modify storage math:internal w_comparison.x_sign set compute default math:internal/comparison/x_zero");
-  lines.push("execute if predicate math:internal/range/negative run data remove storage math: ans");
-  lines.push("execute if predicate math:internal/range/negative run data modify storage math: error set value \"negative_square_root\"");
-  lines.push("execute if predicate math:internal/range/negative run return fail");
+  lines.push("execute if predicate math:internal/range/negative run return 1");
   lines.push("execute if data storage math:internal {x:0.0f} run data modify storage math: ans set value 0.0f");
   lines.push("execute if data storage math:internal {x:0.0f} run return 1");
   lines.push("data modify storage math: ans set compute default math:square_root/00");
-  lines.push("return 1");
-  emitPublicFunction("sqrt", lines);
+  emitControlledPublicFunction("sqrt", FUNCTION_PATHS.squareRootCompute, lines);
 }
 
 function internalSquareRootLines(inputProvider, outputPath) {
@@ -1850,23 +1769,17 @@ function internalSquareRootLines(inputProvider, outputPath) {
 }
 
 {
-  const lines = ["data remove storage math: error"];
-  lines.push(`execute unless data storage math: rotation[3] run return run function ${functionId(FUNCTION_PATHS.invalidQuaternion)}`);
-  lines.push(`execute if data storage math: rotation[4] run return run function ${functionId(FUNCTION_PATHS.invalidQuaternion)}`);
-  for (let index = 0; index < 4; index += 1) {
-    lines.push(`execute store success storage math:internal w_validation_rotation_numeric_${index} byte 1 run data get storage math: rotation[${index}] 1`);
-    lines.push(`execute unless data storage math:internal {w_validation_rotation_numeric_${index}:1b} run return run function ${functionId(FUNCTION_PATHS.invalidQuaternion)}`);
-  }
+  const lines = [];
+  lines.push("execute unless data storage math: rotation[3] run return 1");
+  lines.push("execute if data storage math: rotation[4] run return 1");
   for (let index = 0; index < 4; index += 1) {
     lines.push(`data modify storage math:internal w_quaternion_component_${index} set compute default math:quaternion_to_axis_angle/input/rotation_${index}`);
-    lines.push(`data modify storage math:internal w_validation_rotation_${index} set compute default math:internal/comparison/finite/rotation_${index}`);
-    lines.push(`execute unless data storage math:internal {w_validation_rotation_${index}:0.0f} run return run function ${functionId(FUNCTION_PATHS.invalidQuaternion)}`);
   }
   lines.push("data modify storage math:internal w_quaternion_maximum set compute default math:quaternion_to_axis_angle/normalize/maximum");
   lines.push(...stagePredicate("quaternion_to_axis_angle/maximum_zero"));
-  lines.push(`execute if predicate math:internal/quaternion_to_axis_angle/maximum_zero run return run function ${functionId(FUNCTION_PATHS.invalidQuaternion)}`);
-  lines.push(`return run function ${functionId(FUNCTION_PATHS.quaternionNormalize)}`);
-  emitPublicFunction("quaternion_to_axis_angle", lines);
+  lines.push("execute if predicate math:internal/quaternion_to_axis_angle/maximum_zero run return 1");
+  lines.push(`function ${functionId(FUNCTION_PATHS.quaternionNormalize)}`);
+  emitControlledPublicFunction("quaternion_to_axis_angle", FUNCTION_PATHS.quaternionCompute, lines);
 }
 
 {
@@ -1972,10 +1885,6 @@ emitFunction(FUNCTION_PATHS.quaternionScalar, [
 
 {
   const lines = [];
-  for (const name of ["angle", "axis_0", "axis_1", "axis_2"]) {
-    lines.push(...stagePredicate(`quaternion_to_axis_angle/result_${name}_finite`));
-    lines.push(`execute unless predicate math:internal/quaternion_to_axis_angle/result_${name}_finite run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`);
-  }
   lines.push("data modify storage math: ans set value {angle:0.0f,axis:[0.0f,0.0f,0.0f]}");
   lines.push("data modify storage math: ans.angle set compute default math:quaternion_to_axis_angle/output/stored_angle");
   for (let index = 0; index < 3; index += 1) {
@@ -2018,16 +1927,6 @@ emitFunction(FUNCTION_PATHS.exp, [
   "return 1",
 ]);
 
-function resultOutOfRangeLines(predicate = "math:internal/exp/input_in_range") {
-  const relativePath = predicate.replace("math:internal/", "");
-  return [
-    ...stagePredicate(relativePath),
-    `execute unless predicate ${predicate} run data remove storage math: ans`,
-    `execute unless predicate ${predicate} run data modify storage math: error set value "result_out_of_range"`,
-    `execute unless predicate ${predicate} run return fail`,
-  ];
-}
-
 {
   const lines = [
     "data modify storage math:internal x set from storage math: a",
@@ -2060,7 +1959,6 @@ function finalPowerResultLines(negativeResult) {
   lines.push(negativeResult
     ? "data modify storage math: ans set compute default math:common/rounding/negate"
     : "data modify storage math: ans set compute default math:common/input/x");
-  lines.push(...resultOutOfRangeLines("math:internal/exp/result_finite"));
   lines.push("return 1");
   return lines;
 }
@@ -2070,23 +1968,17 @@ function powerNonfiniteLines(negativeResult) {
     "data modify storage math:internal w_comparison.x_sign set compute default math:internal/comparison/x_zero",
     `execute if predicate math:internal/range/negative run data modify storage math: ans set value ${negativeResult ? "-0.0f" : "0.0f"}`,
     "execute if predicate math:internal/range/negative run return 1",
-    "data remove storage math: ans",
-    "data modify storage math: error set value \"result_out_of_range\"",
-    "return fail",
+    "return 1",
   ];
 }
 
 function powerBoundaryLines(negativeResult) {
   return [
     ...stagePredicate("power/needs_overflow_classification"),
-    "execute unless predicate math:internal/power/needs_overflow_classification run data remove storage math: ans",
-    "execute unless predicate math:internal/power/needs_overflow_classification run data modify storage math: error set value \"result_out_of_range\"",
-    "execute unless predicate math:internal/power/needs_overflow_classification run return fail",
+    "execute unless predicate math:internal/power/needs_overflow_classification run return 1",
     `function ${functionId(FUNCTION_PATHS.powerClassifyOverflow)}`,
     ...stagePredicate("power/classifier_overflow"),
-    "execute if predicate math:internal/power/classifier_overflow run data remove storage math: ans",
-    "execute if predicate math:internal/power/classifier_overflow run data modify storage math: error set value \"result_out_of_range\"",
-    "execute if predicate math:internal/power/classifier_overflow run return fail",
+    "execute if predicate math:internal/power/classifier_overflow run return 1",
     "data modify storage math:internal x set compute default math:power/classify/evaluation_exponent/00",
     ...finalPowerResultLines(negativeResult),
   ];
@@ -2117,11 +2009,7 @@ emitFunction(FUNCTION_PATHS.powerNonfiniteNegative, powerNonfiniteLines(true));
 emitFunction(FUNCTION_PATHS.powerBoundaryPositive, powerBoundaryLines(false));
 emitFunction(FUNCTION_PATHS.powerBoundaryNegative, powerBoundaryLines(true));
 const nativePowerResultLines = [
-  "data remove storage math: ans",
   "data modify storage math: ans set compute default math:power/positive/00",
-  `execute unless data storage math: ans run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`,
-  "data modify storage math:internal w_validation_ans set compute default math:internal/comparison/finite/ans",
-  `execute unless data storage math:internal {w_validation_ans:0.0f} run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`,
   "return 1",
 ];
 emitFunction(FUNCTION_PATHS.powerPositive, nativePowerResultLines);
@@ -2131,9 +2019,7 @@ emitFunction(FUNCTION_PATHS.powerZero, [
   "execute if data storage math:internal {y:0.0f} run data modify storage math: ans set value 1.0f",
   "execute if data storage math:internal {y:0.0f} run return 1",
   ...stagePredicate("power/exponent_negative"),
-  "execute if predicate math:internal/power/exponent_negative run data remove storage math: ans",
-  "execute if predicate math:internal/power/exponent_negative run data modify storage math: error set value \"zero_to_negative_power\"",
-  "execute if predicate math:internal/power/exponent_negative run return fail",
+  "execute if predicate math:internal/power/exponent_negative run return 1",
   "data modify storage math: ans set value 0.0f",
   "return 1",
 ]);
@@ -2142,32 +2028,23 @@ emitFunction(FUNCTION_PATHS.powerNegative, [
   "data modify storage math:internal x set from storage math:internal y",
   `function ${functionId(FUNCTION_PATHS.truncate)}`,
   ...stagePredicate("power/exponent_integer"),
-  "execute unless predicate math:internal/power/exponent_integer run data remove storage math: ans",
-  "execute unless predicate math:internal/power/exponent_integer run data modify storage math: error set value \"non_real_result\"",
-  "execute unless predicate math:internal/power/exponent_integer run return fail",
-  `return run function ${functionId(FUNCTION_PATHS.powerNegativeOdd)}`,
+  "execute unless predicate math:internal/power/exponent_integer run return 1",
+  `function ${functionId(FUNCTION_PATHS.powerNegativeOdd)}`,
 ]);
 
 {
-  const lines = validationLines(["a"]);
+  const lines = [];
   lines.push("data modify storage math:internal x set from storage math: a");
-  lines.push("data modify storage math:internal w_comparison.x_sign set compute default math:internal/comparison/x_zero");
-  lines.push("execute if predicate math:internal/range/negative run data remove storage math: ans");
-  lines.push("execute if predicate math:internal/range/negative run data modify storage math: error set value \"non_real_result\"");
-  lines.push("execute if predicate math:internal/range/negative run return fail");
-  lines.push("execute if data storage math:internal {x:0.0f} run data remove storage math: ans");
-  lines.push("execute if data storage math:internal {x:0.0f} run data modify storage math: error set value \"non_real_result\"");
-  lines.push("execute if data storage math:internal {x:0.0f} run return fail");
   lines.push(`function ${functionId(FUNCTION_PATHS.log)}`);
   lines.push("data modify storage math: ans set compute default math:common/input/x");
-  lines.push("return 1");
-  emitPublicFunction("log", lines);
+  emitDirectPublicFunction("log", lines);
 }
 
 {
-  const lines = validationLines(["a"]);
+  const lines = [];
   lines.push("data modify storage math:internal x set from storage math: a");
-  lines.push(...resultOutOfRangeLines());
+  lines.push(...stagePredicate("exp/input_in_range"));
+  lines.push("execute unless predicate math:internal/exp/input_in_range run return 1");
   lines.push(...stagePredicate("exp/underflows_to_zero"));
   lines.push("execute if predicate math:internal/exp/underflows_to_zero run data modify storage math: ans set value 0.0f");
   lines.push("execute if predicate math:internal/exp/underflows_to_zero run return 1");
@@ -2175,35 +2052,32 @@ emitFunction(FUNCTION_PATHS.powerNegative, [
   lines.push("execute if data storage math:internal {x:-103.97207641601562f} run return 1");
   lines.push(`function ${functionId(FUNCTION_PATHS.exp)}`);
   lines.push("data modify storage math: ans set compute default math:common/input/x");
-  lines.push(...resultOutOfRangeLines("math:internal/exp/result_finite"));
-  lines.push("return 1");
-  emitPublicFunction("exp", lines);
+  emitControlledPublicFunction("exp", FUNCTION_PATHS.expCompute, lines);
 }
 
 {
-  const lines = validationLines(["a", "b"]);
+  const lines = [];
   lines.push("data modify storage math:internal x set from storage math: a");
   lines.push("data modify storage math:internal y set from storage math: b");
-  lines.push(`execute if data storage math:internal {x:0.0f} run return run function ${functionId(FUNCTION_PATHS.powerZero)}`);
+  lines.push(`execute if data storage math:internal {x:0.0f} run function ${functionId(FUNCTION_PATHS.powerZero)}`);
+  lines.push("execute if data storage math:internal {x:0.0f} run return 1");
   lines.push("execute if data storage math:internal {y:1.0f} run data modify storage math: ans set compute default math:common/input/x");
   lines.push("execute if data storage math:internal {y:1.0f} run return 1");
   lines.push("data modify storage math:internal w_comparison.x_sign set compute default math:internal/comparison/x_zero");
-  lines.push(`execute if predicate math:internal/range/negative run return run function ${functionId(FUNCTION_PATHS.powerNegative)}`);
-  lines.push(`return run function ${functionId(FUNCTION_PATHS.powerPositive)}`);
-  emitPublicFunction("pow", lines);
+  lines.push(`execute if predicate math:internal/range/negative run function ${functionId(FUNCTION_PATHS.powerNegative)}`);
+  lines.push("execute if predicate math:internal/range/negative run return 1");
+  lines.push(`function ${functionId(FUNCTION_PATHS.powerPositive)}`);
+  emitControlledPublicFunction("pow", FUNCTION_PATHS.powerCompute, lines);
 }
 
 {
-  const lines = validationLines(["a", "b"]);
+  const lines = [];
   lines.push("data modify storage math:internal x set from storage math: b");
-  lines.push(...divisionByZeroLines());
+  lines.push(...stopOnZeroLines());
   lines.push("data modify storage math:internal x set from storage math: a");
   lines.push("data modify storage math:internal y set from storage math: b");
   lines.push("data modify storage math: ans set compute default math:common/arithmetic/divide");
-  lines.push("data modify storage math:internal w_validation_ans set compute default math:internal/comparison/finite/ans");
-  lines.push(`execute unless data storage math:internal {w_validation_ans:0.0f} run return run function ${functionId(FUNCTION_PATHS.resultOutOfRange)}`);
-  lines.push("return 1");
-  emitPublicFunction("div", lines);
+  emitControlledPublicFunction("div", FUNCTION_PATHS.divideCompute, lines);
 }
 
 const reduceRemainderNearPath = ".common/reduce_remainder/1.near";
@@ -2238,7 +2112,7 @@ function shallowRemainderLines(finishPath, nextPath) {
     lines.push("data modify storage math:internal y set from storage math:internal w");
     lines.push(`return run function ${functionId(nextPath)}`);
   } else {
-    lines.push("return fail");
+    lines.push("return 1");
   }
   return lines;
 }
@@ -2300,14 +2174,12 @@ emitFunction(FUNCTION_PATHS.reduceRemainder, [
 ]);
 
 {
-  const lines = validationLines(["a", "b"]);
+  const lines = [];
   lines.push("data modify storage math:internal x set from storage math: b");
-  lines.push(...divisionByZeroLines());
   lines.push("data modify storage math:internal x set from storage math: a");
   lines.push("data modify storage math:internal y set from storage math: b");
   lines.push("data modify storage math: ans set compute default math:remainder/00");
-  lines.push("return 1");
-  emitPublicFunction("remainder", lines);
+  emitDirectPublicFunction("remainder", lines);
 }
 
 emitFunction(FUNCTION_PATHS.moduloNegativeB, [
@@ -2320,23 +2192,23 @@ emitFunction(FUNCTION_PATHS.moduloNegativeB, [
 ]);
 
 {
-  const lines = validationLines(["a", "b"]);
+  const lines = [];
   lines.push("data modify storage math:internal x set from storage math: b");
-  lines.push(...divisionByZeroLines());
+  lines.push(...stopOnZeroLines());
   lines.push(...exactRemainderLines());
   lines.push(...stagePredicate("rounding/remainder/zero"));
   lines.push("execute if predicate math:internal/rounding/remainder/zero run data modify storage math: ans set value 0.0f");
   lines.push("execute if predicate math:internal/rounding/remainder/zero run return 1");
   lines.push(...stagePredicate("rounding/public/a_negative"));
   lines.push(...stagePredicate("rounding/public/b_negative"));
-  lines.push(`execute if predicate math:internal/rounding/public/b_negative run return run function ${functionId(FUNCTION_PATHS.moduloNegativeB)}`);
+  lines.push(`execute if predicate math:internal/rounding/public/b_negative run function ${functionId(FUNCTION_PATHS.moduloNegativeB)}`);
+  lines.push("execute if predicate math:internal/rounding/public/b_negative run return 1");
   lines.push("execute unless predicate math:internal/rounding/public/a_negative run data modify storage math: ans set compute default math:common/input/z");
   lines.push("execute unless predicate math:internal/rounding/public/a_negative run return 1");
   lines.push("data modify storage math:internal x set from storage math:internal y");
   lines.push("data modify storage math:internal y set from storage math:internal z");
   lines.push("data modify storage math: ans set compute default math:common/arithmetic/subtract");
-  lines.push("return 1");
-  emitPublicFunction("mod", lines);
+  emitControlledPublicFunction("mod", FUNCTION_PATHS.moduloCompute, lines);
 }
 
 emitFunction(FUNCTION_PATHS.normalizePeriod, [
@@ -2389,16 +2261,13 @@ function tangentResultLines(predicate, variant) {
     "data modify storage math:internal x set from storage math:internal w_tan_cos",
     `data modify storage math:internal w_comparison.tan_domain set compute default math:tan/guard/${variant}/compare_domain`,
     ...stagePredicate(`tan/undefined_${variant}`),
-    `execute if predicate ${predicate} run data remove storage math: ans`,
-    `execute if predicate ${predicate} run data modify storage math: error set value "undefined_tangent"`,
-    `execute if predicate ${predicate} run return fail`,
+    `execute if predicate ${predicate} run return 1`,
     "data modify storage math: ans set compute default math:tan/00",
-    "return 1",
   ];
 }
 
-function trigWrapper(name, kernelPath, isTangent, degrees, zeroResult) {
-  const lines = validationLines(["a"]);
+function trigWrapper(name, computePath, kernelPath, isTangent, degrees, zeroResult) {
+  const lines = [];
   lines.push("data modify storage math:internal x set from storage math: a");
   if (degrees) lines.push("data modify storage math:internal x set compute default math:common/conversion/rad");
   lines.push(`execute if data storage math:internal {x:0.0f} run data modify storage math: ans set ${zeroResult}`);
@@ -2410,41 +2279,34 @@ function trigWrapper(name, kernelPath, isTangent, degrees, zeroResult) {
   } else {
     lines.push(`function ${functionId(kernelPath)}`);
     lines.push("data modify storage math: ans set compute default math:common/input/x");
-    lines.push("return 1");
   }
-  emitPublicFunction(name, lines);
+  emitControlledPublicFunction(name, computePath, lines);
 }
 
 for (const degrees of [false, true]) {
   const suffix = degrees ? "_degrees" : "";
-  trigWrapper(`sin${suffix}`, FUNCTION_PATHS.sin, false, degrees, "compute default math:common/input/x");
-  trigWrapper(`cos${suffix}`, FUNCTION_PATHS.cos, false, degrees, "value 1.0f");
-  trigWrapper(`tan${suffix}`, FUNCTION_PATHS.tan, true, degrees, "compute default math:common/input/x");
+  trigWrapper(`sin${suffix}`, degrees ? FUNCTION_PATHS.sineDegreesCompute : FUNCTION_PATHS.sineCompute, FUNCTION_PATHS.sin, false, degrees, "compute default math:common/input/x");
+  trigWrapper(`cos${suffix}`, degrees ? FUNCTION_PATHS.cosineDegreesCompute : FUNCTION_PATHS.cosineCompute, FUNCTION_PATHS.cos, false, degrees, "value 1.0f");
+  trigWrapper(`tan${suffix}`, degrees ? FUNCTION_PATHS.tangentDegreesCompute : FUNCTION_PATHS.tangentCompute, FUNCTION_PATHS.tan, true, degrees, "compute default math:common/input/x");
 }
 
 {
-  const lines = validationLines(["a"]);
+  const lines = [];
   lines.push("data modify storage math:internal x set from storage math: a");
   lines.push("data modify storage math: ans set value 0.0f");
   lines.push("data modify storage math:internal w_comparison.x_sign set compute default math:internal/comparison/x_zero");
   lines.push("execute if predicate math:internal/range/negative run data modify storage math: ans set value -1.0f");
   lines.push("execute if predicate math:internal/range/positive run data modify storage math: ans set value 1.0f");
-  lines.push("return 1");
-  emitPublicFunction("sign", lines);
+  emitDirectPublicFunction("sign", lines);
 }
 
 {
-  const lines = validationLines(["a", "min", "max"]);
+  const lines = [];
   lines.push("data modify storage math:internal x set from storage math: a");
   lines.push("data modify storage math:internal z set from storage math: min");
   lines.push("data modify storage math:internal w set from storage math: max");
-  lines.push(...stagePredicate("range/min_greater_than_max"));
-  lines.push("execute if predicate math:internal/range/min_greater_than_max run data remove storage math: ans");
-  lines.push("execute if predicate math:internal/range/min_greater_than_max run data modify storage math: error set value \"invalid_clamp_range\"");
-  lines.push("execute if predicate math:internal/range/min_greater_than_max run return fail");
   lines.push("data modify storage math: ans set compute default math:common/comparison/clamp");
-  lines.push("return 1");
-  emitPublicFunction("clamp", lines);
+  emitDirectPublicFunction("clamp", lines);
 }
 
 function generate(targetRoot) {

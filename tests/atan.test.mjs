@@ -15,7 +15,7 @@ function adjacentPositiveFloat(value, direction) {
 
 function assertSuccess(name, input, expected, tolerance) {
   const result = runFunction(name, { ...input, ans: 91, error: "stale_error" });
-  assert.equal(result.returned, 1, `${name}(${JSON.stringify(input)})`);
+  assert.equal(result.returned, undefined, `${name}(${JSON.stringify(input)})`);
   assert.equal(result.storage["math:"].error, undefined);
   assert.equal(result.numericTags.get(storageFieldKey("math:", "ans")), "float");
   assert.ok(Math.abs(result.storage["math:"].ans - expected) <= tolerance,
@@ -56,20 +56,6 @@ test("atan2 returns the correct quadrant and exact origin convention", () => {
   }
 });
 
-test("atan and atan2 reject non-finite inputs without stale answers", () => {
-  for (const [name, input] of [
-    ["atan", { a: Infinity }],
-    ["atan_degrees", { a: NaN }],
-    ["atan2", { a: 1, b: -Infinity }],
-    ["atan2_degrees", { a: NaN, b: 1 }],
-  ]) {
-    const result = runFunction(name, { ...input, ans: 91, error: "stale_error" });
-    assert.equal(result.returned, 0);
-    assert.equal(result.storage["math:"].ans, undefined);
-    assert.equal(result.storage["math:"].error, "invalid_number");
-  }
-});
-
 test("atan functions accept every numeric NBT type and return floats", () => {
   for (const [name, snbt, expected] of [
     ["atan", "{a:1b}", Math.fround(Math.PI / 4)],
@@ -79,7 +65,7 @@ test("atan functions accept every numeric NBT type and return floats", () => {
     ["atan2", "{a:0.0d,b:0}", 0],
   ]) {
     const result = runFunctionFromSnbt(name, snbt);
-    assert.equal(result.returned, 1, `${name} ${snbt}`);
+    assert.equal(result.returned, undefined, `${name} ${snbt}`);
     assert.equal(result.storage["math:"].ans, expected, `${name} ${snbt}`);
     assert.equal(result.numericTags.get(storageFieldKey("math:", "ans")), "float");
   }

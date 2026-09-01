@@ -1,16 +1,7 @@
 data remove storage math: error
-data modify storage math: internal.w_validation_a set compute default float math:.validation/finite/a
-execute unless data storage math: {internal:{w_validation_a:0.0f}} run return run function math:.common/_error/invalid_number
-data modify storage math: internal.w_validation_min set compute default float math:.validation/finite/min
-execute unless data storage math: {internal:{w_validation_min:0.0f}} run return run function math:.common/_error/invalid_number
-data modify storage math: internal.w_validation_max set compute default float math:.validation/finite/max
-execute unless data storage math: {internal:{w_validation_max:0.0f}} run return run function math:.common/_error/invalid_number
+data remove storage math: ans
 data modify storage math: internal.x set from storage math: a
 data modify storage math: internal.z set from storage math: min
 data modify storage math: internal.w set from storage math: max
-data modify storage math: internal.w_comparison.predicate.range_min_greater_than_max set compute default float math:.validation/predicate/range/min_greater_than_max/value
-execute if predicate math:.validation/range/min_greater_than_max run data remove storage math: ans
-execute if predicate math:.validation/range/min_greater_than_max run data modify storage math: error set value "invalid_clamp_range"
-execute if predicate math:.validation/range/min_greater_than_max run return fail
 data modify storage math: ans set compute default float math:.common/clamp
-return 1
+data remove storage math: internal

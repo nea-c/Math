@@ -52,7 +52,7 @@ const BOUNDARY_INPUTS = {
 const COMMAND_BUDGETS = {
   tan: { baseline: 93, boundary: 68 },
   tan_degrees: { baseline: 94, boundary: 69 },
-  log: { baseline: 40, boundary: 11 },
+  log: { baseline: 40, boundary: 31 },
   div: { baseline: 91, boundary: 9 },
   sqrt: { baseline: 76, boundary: 10 },
   bezier: { baseline: 189, boundary: 58 },
@@ -105,10 +105,10 @@ test("harness exposes dynamically executed command count", () => {
   assert.ok(result.commandsExecuted > 0);
 });
 
-test("harness counts only the conditional branch that executes", () => {
-  const normal = runFunction("add", { a: 1, b: 2 });
-  const invalid = runFunction("add", { a: Infinity, b: 2 });
-  assert.ok(normal.commandsExecuted > invalid.commandsExecuted);
+test("harness counts only the controlled branch that executes", () => {
+  const normal = runFunction("sqrt", { a: 3 });
+  const boundary = runFunction("sqrt", { a: 0 });
+  assert.ok(normal.commandsExecuted > boundary.commandsExecuted);
 });
 
 test("runtime cost caps recursive function calls", () => {
@@ -252,7 +252,7 @@ test("quaternion conversion keeps deterministic path budgets and shares inverse 
 });
 
 test("native remainder removes the custom reduction work while mod keeps floor semantics", () => {
-  assert.equal(runFunction("remainder", BASELINE_INPUTS.remainder).commandsExecuted, 13);
+  assert.equal(runFunction("remainder", BASELINE_INPUTS.remainder).commandsExecuted, 7);
   assert.ok(runFunction("mod", BASELINE_INPUTS.mod).commandsExecuted <= 140);
 });
 
@@ -302,7 +302,7 @@ test("honest static log and div costs stay within measured head budgets", () => 
 
 test("adaptive square root improves its Task 3 representative cost and preserves the boundary", () => {
   assert.ok(runFunction("sqrt", { a: 3 }).commandsExecuted < 96);
-  assert.equal(runFunction("sqrt", { a: 0 }).commandsExecuted, 10);
+  assert.equal(runFunction("sqrt", { a: 0 }).commandsExecuted, 9);
 });
 
 test("active divide providers do not exceed the honestly recomputed Task 1 node maximum", () => {

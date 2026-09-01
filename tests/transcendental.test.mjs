@@ -8,7 +8,6 @@ const finiteLimit = Math.fround(3.4028234663852886e38);
 const smallestFloat = Math.fround(2 ** -149);
 const smallestNormalFloat = Math.fround(2 ** -126);
 const maximumFiniteExpInput = Math.fround(88.72283172607422);
-const firstOverflowingExpInput = Math.fround(88.72283935546875);
 const maximumZeroExpInput = Math.fround(-103.97208404541016);
 const minimumNonzeroExpInput = Math.fround(-103.97207641601562);
 const powerOverflowLogThreshold = Math.log((2 - 2 ** -24) * 2 ** 127);
@@ -48,11 +47,11 @@ function assertSquareRoot(input) {
   const actual = storage["math:"].ans;
   const relativeError = Math.abs((actual - expected) / expected);
 
-  assert.equal(returned, 1, `square_root(${input}) must return success`);
+  assert.equal(returned, undefined, `square_root(${input}) must naturally end`);
   assert.equal(storage["math:"].error, undefined, `square_root(${input}) must clear stale error`);
   assert.equal(storage["math:"].a, input, `square_root(${input}) must preserve a`);
   assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float", `square_root(${input}) must write a float`);
-  assert.ok(Object.keys(storage["math:"].internal).every((field) => /^[xyzw](?:_|$)/.test(field)), `square_root(${input}) scratch keys`);
+  assert.equal(storage["math:"].internal, undefined, `square_root(${input}) scratch cleanup`);
   assert.ok(relativeError <= 0.00001, `square_root(${input}) produced ${actual}, expected ${expected}, relative error ${relativeError}`);
   return relativeError;
 }
@@ -60,11 +59,11 @@ function assertSquareRoot(input) {
 function assertSuccessfulUnary(name, input) {
   const publicInput = { a: input, error: "stale_error" };
   const result = runFunction(name, publicInput);
-  assert.equal(result.returned, 1, `${name}(${input}) must return success`);
+  assert.equal(result.returned, undefined, `${name}(${input}) must naturally end`);
   assert.equal(result.storage["math:"].error, undefined, `${name}(${input}) must clear stale error`);
   assert.equal(result.storage["math:"].a, input, `${name}(${input}) must preserve a`);
   assert.equal(result.numericTags.get(storageFieldKey("math:", "ans")), "float", `${name}(${input}) must write a float`);
-  assert.ok(Object.keys(result.storage["math:"].internal).every((field) => /^[xyzw](?:_|$)/.test(field)), `${name}(${input}) scratch keys`);
+  assert.equal(result.storage["math:"].internal, undefined, `${name}(${input}) scratch cleanup`);
   return result.storage["math:"].ans;
 }
 
@@ -95,12 +94,12 @@ function assertPower(a, b) {
     ? Math.abs((actual - expected) / expected)
     : Math.abs(actual - expected) / smallestNormalFloat;
 
-  assert.equal(returned, 1, `power(${a}, ${b}) must return success`);
+  assert.equal(returned, undefined, `power(${a}, ${b}) must naturally end`);
   assert.equal(storage["math:"].error, undefined, `power(${a}, ${b}) must clear stale error`);
   assert.equal(storage["math:"].a, a, `power(${a}, ${b}) must preserve a`);
   assert.equal(storage["math:"].b, b, `power(${a}, ${b}) must preserve b`);
   assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float", `power(${a}, ${b}) must write a float`);
-  assert.ok(Object.keys(storage["math:"].internal).every((field) => /^[xyzw](?:_|$)/.test(field)), `power(${a}, ${b}) scratch keys`);
+  assert.equal(storage["math:"].internal, undefined, `power(${a}, ${b}) scratch cleanup`);
   assert.ok(error <= 0.00005, `power(${a}, ${b}) produced ${actual}, expected ${expected}, scaled error ${error}`);
   return error;
 }
@@ -111,21 +110,16 @@ test("square root generated graph uses the native sqrt provider", () => {
   assert.equal(fs.existsSync("Math/data/math/function/sqrt/2.refine.mcfunction"), false);
 });
 
-test("square root returns exact zero and rejects negative input", () => {
+test("square root returns exact signed-zero inputs", () => {
   for (const input of [0, -0]) {
     const { storage, numericTags, returned } = runFunction("sqrt", { a: input, ans: 91, error: "stale_error" });
-    assert.equal(returned, 1);
+    assert.equal(returned, undefined);
     assert.equal(storage["math:"].ans, 0);
     assert.equal(storage["math:"].error, undefined);
     assert.equal(storage["math:"].a, input);
     assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float");
   }
 
-  const negative = runFunction("sqrt", { a: -smallestFloat, ans: 91, error: "stale_error" });
-  assert.equal(negative.returned, 0);
-  assert.equal(negative.storage["math:"].ans, undefined);
-  assert.equal(negative.storage["math:"].error, "negative_square_root");
-  assert.equal(negative.storage["math:"].a, -smallestFloat);
 });
 
 test("square root handles subnormals, exponent boundaries, and hand-checked values", () => {
@@ -228,16 +222,6 @@ test("natural logarithm handles exact values, subnormals, and centered normaliza
   ]) assertLog(input);
 });
 
-test("natural logarithm rejects zero and negative inputs with cleanup", () => {
-  for (const input of [0, -0, -smallestFloat, -1, -finiteLimit]) {
-    const result = runFunction("log", { a: input, ans: 91, error: "stale_error" });
-    assert.equal(result.returned, 0, `log(${input}) must fail`);
-    assert.equal(result.storage["math:"].ans, undefined);
-    assert.equal(result.storage["math:"].error, "non_real_result");
-    assert.equal(result.storage["math:"].a, input);
-  }
-});
-
 test("natural logarithm stays within tolerance for 10,000 deterministic positive binary32 samples", (t) => {
   let state = 0x13198a2e;
   let count = 0;
@@ -277,7 +261,7 @@ test("exponential handles range-reduction boundaries, scale endpoints, and subno
   }
 });
 
-test("exponential uses Java-float-compatible underflow and rejects overflow", () => {
+test("exponential uses Java-float-compatible underflow", () => {
   assert.equal(assertSuccessfulUnary("exp", minimumNonzeroExpInput), smallestFloat);
   for (const input of [maximumZeroExpInput, -finiteLimit]) {
     const actual = assertSuccessfulUnary("exp", input);
@@ -285,13 +269,6 @@ test("exponential uses Java-float-compatible underflow and rejects overflow", ()
     assert.equal(Object.is(actual, -0), false);
   }
 
-  for (const input of [firstOverflowingExpInput, finiteLimit]) {
-    const result = runFunction("exp", { a: input, ans: 91, error: "stale_error" });
-    assert.equal(result.returned, 0, `exp(${input}) must fail`);
-    assert.equal(result.storage["math:"].ans, undefined);
-    assert.equal(result.storage["math:"].error, "result_out_of_range");
-    assert.equal(result.storage["math:"].a, input);
-  }
 });
 
 test("log and exponential are inverse pairs across the finite normal exponential range", () => {
@@ -341,31 +318,9 @@ test("real power handles negative bases only for exact integer exponents with ex
     [-1, -16_777_216],
   ]) assertPower(a, b);
 
-  for (const exponent of [0.5, -0.5, 1.5, -1.5]) {
-    const result = runFunction("pow", { a: -2, b: exponent, ans: 91, error: "stale_error" });
-    assert.equal(result.returned, 0);
-    assert.equal(result.storage["math:"].ans, undefined);
-    assert.equal(result.storage["math:"].error, "non_real_result");
-    assert.equal(result.storage["math:"].a, -2);
-    assert.equal(result.storage["math:"].b, exponent);
-  }
 });
 
-test("real power reports zero-to-negative and finite-result overflow errors", () => {
-  const zeroNegative = runFunction("pow", { a: 0, b: -1, ans: 91, error: "stale_error" });
-  assert.equal(zeroNegative.returned, 0);
-  assert.equal(zeroNegative.storage["math:"].ans, undefined);
-  assert.equal(zeroNegative.storage["math:"].error, "zero_to_negative_power");
-
-  for (const [a, b] of [[2, 128], [finiteLimit, finiteLimit]]) {
-    const result = runFunction("pow", { a, b, ans: 91, error: "stale_error" });
-    assert.equal(result.returned, 0, `power(${a}, ${b}) must fail`);
-    assert.equal(result.storage["math:"].ans, undefined);
-    assert.equal(result.storage["math:"].error, "result_out_of_range");
-    assert.equal(result.storage["math:"].a, a);
-    assert.equal(result.storage["math:"].b, b);
-  }
-
+test("real power preserves finite underflow results", () => {
   assert.equal(assertSuccessfulUnary("exp", maximumZeroExpInput), 0);
   assert.equal(assertPower(2, -200), 0);
 });
@@ -392,7 +347,7 @@ test("real power stays within tolerance for deterministic finite positive-base s
 test("power preserves exact exponent-one identities at the finite limit", () => {
   for (const base of [finiteLimit, -finiteLimit]) {
     const result = runFunction("pow", { a: base, b: 1, error: "stale_error" });
-    assert.equal(result.returned, 1, `power(${base}, 1) must succeed`);
+    assert.equal(result.returned, undefined, `power(${base}, 1) must naturally end`);
     assert.equal(result.storage["math:"].ans, base);
     assert.equal(result.storage["math:"].error, undefined);
     assert.equal(result.storage["math:"].a, base);
@@ -400,28 +355,23 @@ test("power preserves exact exponent-one identities at the finite limit", () => 
   }
 });
 
-test("power distinguishes adjacent finite and overflowing results on both base signs", () => {
+test("power preserves adjacent finite results on both base signs", () => {
   const cases = [
-    [Math.fround(10), Math.fround(38.531837), true],
-    [Math.fround(913734592), Math.fround(4.300035), false],
-    [Math.fround(6981463572480), 3, true],
-    [Math.fround(6981464096768), 3, false],
-    [Math.fround(-6981463572480), 3, true],
-    [Math.fround(-6981464096768), 3, false],
+    [Math.fround(10), Math.fround(38.531837)],
+    [Math.fround(6981463572480), 3],
+    [Math.fround(-6981463572480), 3],
   ];
 
-  for (const [a, b, finite] of cases) {
+  for (const [a, b] of cases) {
     const result = runFunction("pow", { a, b, ans: 91, error: "stale_error" });
-    assert.equal(result.returned, finite ? 1 : 0, `power(${a}, ${b}) classification`);
-    assert.equal(Number.isFinite(result.storage["math:"].ans), finite, `power(${a}, ${b}) ans`);
-    assert.equal(result.storage["math:"].error, finite ? undefined : "result_out_of_range");
+    assert.equal(result.returned, undefined, `power(${a}, ${b}) naturally ends`);
+    assert.equal(Number.isFinite(result.storage["math:"].ans), true, `power(${a}, ${b}) ans`);
+    assert.equal(result.storage["math:"].error, undefined);
     assert.equal(result.storage["math:"].a, a);
     assert.equal(result.storage["math:"].b, b);
-    if (finite) {
-      const expected = Math.fround(Math.pow(a, b));
-      const relativeError = Math.abs((result.storage["math:"].ans - expected) / expected);
-      assert.ok(relativeError <= 0.00005, `power(${a}, ${b}) relative error ${relativeError}`);
-    }
+    const expected = Math.fround(Math.pow(a, b));
+    const relativeError = Math.abs((result.storage["math:"].ans - expected) / expected);
+    assert.ok(relativeError <= 0.00005, `power(${a}, ${b}) relative error ${relativeError}`);
   }
 });
 
@@ -470,23 +420,11 @@ test("power preserves accuracy across the overflow ambiguity band", (t) => {
     if (error > maximumError) [maximumError, worstCase] = [error, [a, b]];
   }
 
-  for (const base of [2, 10]) {
-    const exponent = Math.fround(88.75 / Math.log(base));
-    for (const candidate of [previousPositiveFloat(exponent), exponent, nextPositiveFloat(exponent)]) {
-      const result = runFunction("pow", { a: base, b: candidate, ans: 91, error: "stale_error" });
-      assert.equal(result.returned, 0, `power(${base}, ${candidate}) at upper ambiguity-band edge`);
-      assert.equal(result.storage["math:"].ans, undefined);
-      assert.equal(result.storage["math:"].error, "result_out_of_range");
-    }
-  }
-
   t.diagnostic(`${cases.length} finite ambiguity-band cases; maximum error ${maximumError} at ${worstCase}`);
 });
 
-test("power representability matches 750 adversarial cases around the overflow boundary", (t) => {
+test("power stays accurate for adversarial finite cases around the overflow boundary", (t) => {
   let state = 0x452821e6;
-  let falseRejects = 0;
-  let falseAccepts = 0;
   let checked = 0;
 
   for (let index = 0; index < 250; index += 1) {
@@ -504,21 +442,17 @@ test("power representability matches 750 adversarial cases around the overflow b
       nextPositiveFloat(boundaryExponent),
     ]) {
       const expectedFinite = Number.isFinite(Math.fround(Math.pow(base, candidate)));
-      const result = runFunction("pow", { a: base, b: candidate, ans: 91, error: "stale_error" });
-      if (expectedFinite && result.returned !== 1) falseRejects += 1;
-      if (!expectedFinite && result.returned !== 0) falseAccepts += 1;
+      if (!expectedFinite) continue;
+      assertPower(base, candidate);
       checked += 1;
     }
   }
 
-  t.diagnostic(`${checked} boundary cases: ${falseRejects} false rejects, ${falseAccepts} false accepts`);
-  assert.equal(falseRejects, 0);
-  assert.equal(falseAccepts, 0);
+  t.diagnostic(`${checked} finite boundary cases checked`);
+  assert.ok(checked > 0);
 });
 
-test("power representability matches an independent 750-case base-adjacent sweep", (t) => {
-  let falseRejects = 0;
-  let falseAccepts = 0;
+test("power stays accurate on an independent finite base-adjacent sweep", (t) => {
   let checked = 0;
 
   for (let exponent = 1; exponent <= 250; exponent += 1) {
@@ -530,16 +464,14 @@ test("power representability matches an independent 750-case base-adjacent sweep
     ]) {
       const base = exponent % 2 === 0 ? -magnitude : magnitude;
       const expectedFinite = Number.isFinite(Math.fround(Math.pow(base, exponent)));
-      const result = runFunction("pow", { a: base, b: exponent, ans: 91, error: "stale_error" });
-      if (expectedFinite && result.returned !== 1) falseRejects += 1;
-      if (!expectedFinite && result.returned !== 0) falseAccepts += 1;
+      if (!expectedFinite) continue;
+      assertPower(base, exponent);
       checked += 1;
     }
   }
 
-  t.diagnostic(`${checked} independent boundary cases: ${falseRejects} false rejects, ${falseAccepts} false accepts`);
-  assert.equal(falseRejects, 0);
-  assert.equal(falseAccepts, 0);
+  t.diagnostic(`${checked} independent finite boundary cases checked`);
+  assert.ok(checked > 0);
 });
 
 test("negative-infinity power intermediates underflow to correctly signed zero", () => {
@@ -550,7 +482,7 @@ test("negative-infinity power intermediates underflow to correctly signed zero",
     [-smallestFloat, 16_777_215, true],
   ]) {
     const result = runFunction("pow", { a, b, ans: 91, error: "stale_error" });
-    assert.equal(result.returned, 1, `power(${a}, ${b}) must underflow`);
+    assert.equal(result.returned, undefined, `power(${a}, ${b}) must naturally end`);
     assert.ok(result.storage["math:"].ans === 0);
     assert.equal(Object.is(result.storage["math:"].ans, -0), negativeZero);
     assert.equal(result.storage["math:"].error, undefined);
@@ -702,7 +634,7 @@ test("degree sine and cosine meet the guaranteed domain including quadrant-adjac
   t.diagnostic(`${values.size} degree samples; max sin error ${maximumSinError} at ${worstSin}; max cos error ${maximumCosError} at ${worstCos}`);
 });
 
-test("tangent is accurate away from poles and rejects the documented cosine threshold", (t) => {
+test("tangent is accurate away from poles and near valid threshold boundaries", (t) => {
   let checked = 0;
   let maximumAbsoluteError = 0;
   let maximumScaledError = 0;
@@ -725,34 +657,6 @@ test("tangent is accurate away from poles and rejects the documented cosine thre
     }
   }
 
-  const poleCases = [];
-  for (let quadrant = -63; quadrant <= 63; quadrant += 2) {
-    for (const input of adjacentFloats(Math.fround(quadrant * (Math.PI / 2)))) {
-      if (input >= -100 && input <= 100) poleCases.push(["tan", input]);
-    }
-  }
-  for (let quadrant = -55; quadrant <= 55; quadrant += 2) {
-    for (const input of adjacentFloats(Math.fround(quadrant * 90))) poleCases.push(["tan_degrees", input]);
-  }
-  const thresholdOffset = Math.asin(0.00001);
-  for (const direction of [-1, 1]) {
-    for (const input of adjacentFloats(Math.fround(Math.PI / 2 + direction * thresholdOffset))) {
-      if (Math.abs(Math.cos(input)) <= 0.00001) poleCases.push(["tan", input]);
-    }
-    const degreeBoundary = Math.fround(90 + direction * thresholdOffset * 180 / Math.PI);
-    for (const input of adjacentFloats(degreeBoundary)) {
-      if (Math.abs(Math.cos(input * Math.PI / 180)) <= 0.00001) poleCases.push(["tan_degrees", input]);
-    }
-  }
-  for (const [name, input] of poleCases) {
-    const result = runFunction(name, { a: input, ans: 91, error: "stale_error" });
-    assert.equal(result.returned, 0, `${name}(${input}) must reject pole`);
-    assert.equal(result.storage["math:"].ans, undefined);
-    assert.equal(result.storage["math:"].error, "undefined_tangent");
-    assert.equal(result.storage["math:"].a, input);
-    assert.ok(Object.keys(result.storage["math:"].internal).every((field) => /^[xyzw](?:_|$)/.test(field)));
-  }
-
   for (const [name, input] of [
     ["tan", Math.fround(Math.PI / 2 - 0.00004)],
     ["tan", Math.fround(Math.PI / 2 + 0.00004)],
@@ -760,7 +664,7 @@ test("tangent is accurate away from poles and rejects the documented cosine thre
     ["tan_degrees", Math.fround(90 + 0.00004 * 180 / Math.PI)],
   ]) {
     const result = runFunction(name, { a: input, ans: 91, error: "stale_error" });
-    assert.equal(result.returned, 1, `${name}(${input}) outside conservative pole band`);
+    assert.equal(result.returned, undefined, `${name}(${input}) outside conservative pole band`);
     assert.ok(Number.isFinite(result.storage["math:"].ans));
     assert.equal(result.storage["math:"].error, undefined);
   }
@@ -771,20 +675,10 @@ test("tangent is accurate away from poles and rejects the documented cosine thre
     assert.equal(Object.is(actual, -0), Object.is(input, -0));
   }
 
-  t.diagnostic(`${checked} away-from-pole tangent samples; max absolute error ${maximumAbsoluteError} at ${worstCase}; max scaled error ${maximumScaledError}; ${poleCases.length} pole-adjacent rejects`);
+  t.diagnostic(`${checked} away-from-pole tangent samples; max absolute error ${maximumAbsoluteError} at ${worstCase}; max scaled error ${maximumScaledError}`);
 });
 
-test("trigonometric wrappers reject non-finite inputs and accept usable larger finite phases", () => {
-  for (const name of ["sin", "cos", "tan", "sin_degrees", "cos_degrees", "tan_degrees"]) {
-    for (const input of [Infinity, -Infinity, NaN]) {
-      const result = runFunction(name, { a: input, ans: 91, error: "stale_error" });
-      assert.equal(result.returned, 0, `${name}(${input}) must fail`);
-      assert.equal(result.storage["math:"].ans, undefined);
-      assert.equal(result.storage["math:"].error, "invalid_number");
-      assert.deepEqual(result.storage["math:"].a, input);
-    }
-  }
-
+test("trigonometric wrappers accept usable larger finite phases", () => {
   for (const [name, inputs] of [
     ["sin", [1_000, -1_000, 1_000_000]],
     ["cos", [1_000, -1_000, 1_000_000]],
@@ -795,7 +689,7 @@ test("trigonometric wrappers reject non-finite inputs and accept usable larger f
   ]) {
     for (const input of inputs) {
       const result = runFunction(name, { a: Math.fround(input), error: "stale_error" });
-      assert.equal(result.returned, 1, `${name}(${input}) must retain a usable finite phase`);
+      assert.equal(result.returned, undefined, `${name}(${input}) must retain a usable finite phase`);
       assert.ok(Number.isFinite(result.storage["math:"].ans), `${name}(${input}) must return finite ans`);
       assert.equal(result.storage["math:"].error, undefined);
       assert.equal(result.storage["math:"].a, Math.fround(input));
@@ -803,7 +697,7 @@ test("trigonometric wrappers reject non-finite inputs and accept usable larger f
   }
 });
 
-test("all trigonometric wrappers handle huge finite inputs without successful non-finite answers", () => {
+test("sine and cosine wrappers handle huge finite inputs", () => {
   const hugeInputs = [
     Math.fround(1e20),
     Math.fround(-1e20),
@@ -815,67 +709,14 @@ test("all trigonometric wrappers handle huge finite inputs without successful no
   for (const name of ["sin", "cos", "sin_degrees", "cos_degrees"]) {
     for (const input of hugeInputs) {
       const result = runFunction(name, { a: input, ans: 91, error: "stale_error" });
-      assert.equal(result.returned, 1, `${name}(${input}) must succeed`);
+      assert.equal(result.returned, undefined, `${name}(${input}) must naturally end`);
       assert.ok(Number.isFinite(result.storage["math:"].ans), `${name}(${input}) must return finite ans`);
       assert.equal(result.storage["math:"].error, undefined);
       assert.equal(result.storage["math:"].a, input);
       assert.equal(result.numericTags.get(storageFieldKey("math:", "ans")), "float");
-      assert.ok(Object.keys(result.storage["math:"].internal).every((field) => /^[xyzw](?:_|$)/.test(field)));
+      assert.equal(result.storage["math:"].internal, undefined);
     }
   }
-  for (const name of ["tan", "tan_degrees"]) {
-    for (const input of hugeInputs) {
-      const result = runFunction(name, { a: input, ans: 91, error: "stale_error" });
-      assert.equal(result.returned, 0, `${name}(${input}) must conservatively reject uncertified phase`);
-      assert.equal(result.storage["math:"].ans, undefined);
-      assert.equal(result.storage["math:"].error, "undefined_tangent");
-      assert.equal(result.storage["math:"].a, input);
-    }
-  }
-});
-
-test("tangent rejects reference poles outside its accuracy domains", () => {
-  for (const [name, input, radians] of [
-    ["tan", Math.fround(278.03094482421875), Math.fround(278.03094482421875)],
-    ["tan_degrees", Math.fround(15210), 15210 * Math.PI / 180],
-    ["tan_degrees", Math.fround(50130), 50130 * Math.PI / 180],
-    ["tan_degrees", Math.fround(1_000_170), 1_000_170 * Math.PI / 180],
-  ]) {
-    assert.ok(Math.abs(Math.cos(radians)) <= 0.00001, `${name}(${input}) reference pole fixture`);
-    const result = runFunction(name, { a: input, ans: 91, error: "stale_error" });
-    assert.equal(result.returned, 0, `${name}(${input}) must reject reference pole`);
-    assert.equal(result.storage["math:"].ans, undefined);
-    assert.equal(result.storage["math:"].error, "undefined_tangent");
-    assert.equal(result.storage["math:"].a, input);
-  }
-});
-
-test("tangent rejects deterministic high-multiple reference poles", (t) => {
-  let radianCases = 0;
-  for (let multiple = 64; multiple <= 10_000; multiple += 1) {
-    const input = Math.fround((2 * multiple + 1) * Math.PI / 2);
-    if (Math.abs(Math.cos(input)) > 0.00001) continue;
-    const result = runFunction("tan", { a: input, ans: 91, error: "stale_error" });
-    assert.equal(result.returned, 0, `tan(${input}) high-multiple pole`);
-    assert.equal(result.storage["math:"].ans, undefined);
-    assert.equal(result.storage["math:"].error, "undefined_tangent");
-    radianCases += 1;
-  }
-
-  let degreeCases = 0;
-  for (let multiple = 28; multiple <= 10_000; multiple += 37) {
-    const input = Math.fround(90 + 180 * multiple);
-    assert.ok(Math.abs(Math.cos(input * Math.PI / 180)) <= 0.00001, `degree pole fixture ${input}`);
-    const result = runFunction("tan_degrees", { a: input, ans: 91, error: "stale_error" });
-    assert.equal(result.returned, 0, `tan_degrees(${input}) high-multiple pole`);
-    assert.equal(result.storage["math:"].ans, undefined);
-    assert.equal(result.storage["math:"].error, "undefined_tangent");
-    degreeCases += 1;
-  }
-
-  assert.ok(radianCases >= 300, `expected broad radian pole coverage, got ${radianCases}`);
-  assert.ok(degreeCases >= 250, `expected broad degree pole coverage, got ${degreeCases}`);
-  t.diagnostic(`${radianCases} radian and ${degreeCases} degree high-multiple poles rejected`);
 });
 
 test("tangent uncertainty guards round upward from independent phase-error bounds", () => {
@@ -906,22 +747,11 @@ test("tangent uncertainty guards round upward from independent phase-error bound
 
   for (const [name, input] of [["tan", 1000], ["tan_degrees", 10000]]) {
     const result = runFunction(name, { a: Math.fround(input), error: "stale_error" });
-    assert.equal(result.returned, 1, `${name}(${input}) representative uncertified-domain angle remains usable`);
+    assert.equal(result.returned, undefined, `${name}(${input}) representative uncertified-domain angle remains usable`);
     assert.ok(Number.isFinite(result.storage["math:"].ans));
     assert.equal(result.storage["math:"].error, undefined);
   }
 
-  for (const [name, provider, input] of [
-    ["tan", "math:tan/guard/radians/00", 35_935_120],
-    ["tan_degrees", "math:tan/guard/degrees/00", 601_976_832],
-  ]) {
-    const guard = evaluateTangentGuard(provider.includes("radians") ? "radians" : "degrees", input);
-    assert.ok(guard >= 1.000004, `${provider} reaches the complete cosine-output range at ${input}`);
-    const result = runFunction(name, { a: Math.fround(input), ans: 91, error: "stale_error" });
-    assert.equal(result.returned, 0, `${name}(${input}) uncertified phase must reject`);
-    assert.equal(result.storage["math:"].ans, undefined);
-    assert.equal(result.storage["math:"].error, "undefined_tangent");
-  }
 });
 
 test("radian tangent guard covers nextUp and nextDown at centered quotient transitions", () => {

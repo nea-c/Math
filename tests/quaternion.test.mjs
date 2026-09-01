@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { runFunction, runImplementation, storageFieldKey } from "./mcfunction-test-harness.mjs";
+import { runFunction, storageFieldKey } from "./mcfunction-test-harness.mjs";
 
 const finiteLimit = Math.fround(3.4028234663852886e38);
 const smallestFloat = Math.fround(2 ** -149);
@@ -35,9 +35,10 @@ function assertQuaternion(rotation, label = JSON.stringify(rotation), { reconstr
     ans: 91,
     error: "stale_error",
   });
-  assert.equal(result.returned, 1, label);
+  assert.equal(result.returned, undefined, label);
   assert.equal(result.storage["math:"].error, undefined, `${label} stale error`);
   assert.deepEqual(result.storage["math:"].rotation, original, `${label} rotation`);
+  assert.equal(result.storage["math:"].internal, undefined, `${label} scratch cleanup`);
   assertFloatOutput(result, label);
 
   const { angle, axis } = result.storage["math:"].ans;
@@ -99,78 +100,6 @@ test("four-dimensional and vector normalization stay safe across the binary32 ra
     [[smallestFloat, 0, 0, finiteLimit], false, [1, 0, 0]],
   ]) {
     const result = assertQuaternion(rotation, JSON.stringify(rotation), { reconstructResult });
-    const squareSum = result.storage["math:"].internal.w_quaternion_scaled_square_sum;
-    assert.ok(squareSum >= 1 && squareSum <= 4, `scaled square sum ${squareSum} must stay in [1, 4]`);
     if (expectedAxis) assert.deepEqual(result.storage["math:"].ans.axis, expectedAxis);
   }
-});
-
-function assertInvalid(rotation, label, ans) {
-  const publicInput = { ans, error: "stale_error" };
-  if (rotation !== undefined) publicInput.rotation = rotation;
-  const original = structuredClone(rotation);
-  const result = runFunction("quaternion_to_axis_angle", publicInput);
-  assert.equal(result.returned, 0, label);
-  assert.equal(result.storage["math:"].ans, undefined, `${label} stale ans`);
-  assert.equal(result.storage["math:"].error, "invalid_quaternion", `${label} error`);
-  if (rotation !== undefined) assert.deepEqual(result.storage["math:"].rotation, original, `${label} rotation`);
-}
-
-// Catches missing exact-length and numeric-element validation.
-test("malformed quaternion lists fail with the dedicated cleanup contract", () => {
-  const cases = [
-    [undefined, "absent rotation"],
-    [[], "empty rotation"],
-    [[0, 0, 0], "length three"],
-    [[0, 0, 0, 1, 0], "length five"],
-    [["0", "0", "0", "1"], "string list"],
-    [[false, false, false, true], "boolean list"],
-    [[{}, {}, {}, {}], "compound list"],
-    [[[], [], [], []], "nested list"],
-  ];
-  cases.forEach(([rotation, label], index) => assertInvalid(
-    rotation,
-    label,
-    index % 2 ? { angle: 3, axis: [1, 0, 0] } : 91,
-  ));
-});
-
-// Catches validation that checks only some components or allows NaN/infinity through float conversion.
-test("every non-finite component position fails with invalid_quaternion", () => {
-  for (const nonfinite of [NaN, Infinity, -Infinity]) {
-    for (let index = 0; index < 4; index += 1) {
-      const rotation = [1, 1, 1, 1];
-      rotation[index] = nonfinite;
-      assertInvalid(rotation, `${nonfinite} at ${index}`, index % 2 ? 91 : { angle: 3, axis: [1, 0, 0] });
-    }
-  }
-});
-
-// Catches a zero test that depends on sign or one particular numeric representation.
-test("all signed-zero quaternion forms fail with invalid_quaternion", () => {
-  const cases = [[0, -0, 0, -0]];
-  for (let index = 0; index < 4; index += 1) {
-    const negativeAtIndex = [0, 0, 0, 0];
-    negativeAtIndex[index] = -0;
-    cases.push(negativeAtIndex);
-    const positiveAtIndex = [-0, -0, -0, -0];
-    positiveAtIndex[index] = 0;
-    cases.push(positiveAtIndex);
-  }
-  cases.forEach((rotation, index) => assertInvalid(rotation, `signed zero ${index}`, index % 2 ? 91 : { angle: 3, axis: [1, 0, 0] }));
-});
-
-test("non-finite defensive output failures use result_out_of_range", () => {
-  const result = runImplementation("quaternion_to_axis_angle/3.finish", {
-    ans: 91,
-    error: "stale_error",
-  }, {
-    w_quaternion_angle: Infinity,
-    w_quaternion_axis_0: 0,
-    w_quaternion_axis_1: 1,
-    w_quaternion_axis_2: 0,
-  });
-  assert.equal(result.returned, 0);
-  assert.equal(result.storage["math:"].ans, undefined);
-  assert.equal(result.storage["math:"].error, "result_out_of_range");
 });

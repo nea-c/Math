@@ -64,11 +64,10 @@ test("shared float providers use the private .common namespace", () => {
   }
 });
 
-test("validation assets and shared reciprocal kernels use distinct private namespaces", () => {
+test("remaining validation assets and shared reciprocal kernels use distinct private namespaces", () => {
   const predicateRoot = path.join(packRoot, "data", "math", "predicate");
   for (const relativePath of [
-    ".validation/finite/a.json",
-    ".validation/predicate/range/min_greater_than_max/value.json",
+    ".validation/predicate/bezier/x1_in_range/value.json",
     ".common/reciprocal/newton.json",
   ]) {
     assert.equal(fs.existsSync(path.join(providerRoot, relativePath)), true, `missing provider ${relativePath}`);
@@ -77,6 +76,11 @@ test("validation assets and shared reciprocal kernels use distinct private names
     fs.existsSync(path.join(predicateRoot, ".validation/range/min_greater_than_max.json")),
     true,
     "validation predicate is not in the private .validation namespace",
+  );
+  assert.equal(
+    fs.existsSync(path.join(providerRoot, ".validation", "finite", "a.json")),
+    false,
+    "unused public finite-input validation provider remains",
   );
   assert.equal(fs.existsSync(path.join(providerRoot, "internal")), false, "legacy provider internal directory remains");
   assert.equal(fs.existsSync(path.join(predicateRoot, "internal")), false, "legacy predicate internal directory remains");
@@ -114,7 +118,7 @@ test("constant functions assign float literals without providers", () => {
 
 test("bezier copies curve inputs directly from storage", () => {
   assert.equal(fs.existsSync(path.join(providerRoot, "bezier", "input")), false, "obsolete Bezier input providers remain");
-  const source = fs.readFileSync(path.join(packRoot, "data", "math", "function", "bezier", "0.start.mcfunction"), "utf8");
+  const source = fs.readFileSync(path.join(packRoot, "data", "math", "function", "bezier", "1.compute.mcfunction"), "utf8");
   for (const [target, index] of [["x1", 0], ["y1", 1], ["x2", 2], ["y2", 3]]) {
     assert.match(source, new RegExp(`data modify storage math: internal\\.w_bezier_${target} set from storage math: curve\\[${index}\\]`));
   }

@@ -469,18 +469,12 @@ test("function tags expose every public function in the generated function layou
 
   const errorDirectory = path.join(functionRoot, ".common", "_error");
   assert.deepEqual(
-    fs.readdirSync(errorDirectory, { withFileTypes: true })
-      .map((entry) => entry.name)
-      .sort(),
-    [
-      "invalid_bounce.mcfunction",
-      "invalid_curve.mcfunction",
-      "invalid_duration.mcfunction",
-      "invalid_elastic.mcfunction",
-      "invalid_number.mcfunction",
-      "invalid_quaternion.mcfunction",
-      "result_out_of_range.mcfunction",
-    ],
+    fs.existsSync(errorDirectory)
+      ? fs.readdirSync(errorDirectory, { withFileTypes: true })
+        .map((entry) => entry.name)
+        .sort()
+      : [],
+    [],
   );
   assert.equal(fs.existsSync(path.join(functionRoot, ".common", "invalid_number")), false);
   assert.equal(fs.existsSync(path.join(functionRoot, ".common", "result_out_of_range")), false);
@@ -515,6 +509,16 @@ test("generated providers are current", () => {
   });
 });
 
+test("public entries naturally end without exposing function results", () => {
+  for (const name of PUBLIC_FUNCTION_NAMES) {
+    const source = fs.readFileSync(`Math/data/math/function/${name}/0.start.mcfunction`, "utf8");
+    assert.doesNotMatch(source, /(?:^|\n)return(?: |\n)/, name);
+    assert.doesNotMatch(source, /storage math: error set/, name);
+    assert.match(source, /^data remove storage math: ans$/m, name);
+    assert.match(source, /^data remove storage math: internal$/m, name);
+  }
+});
+
 test("generated resources use one math storage with nested internal scratch", () => {
   const manifest = JSON.parse(fs.readFileSync("tools/generated-math-files.json", "utf8"));
   for (const relativePath of manifest.files) {
@@ -546,11 +550,9 @@ test("easing, inverse-sine, and quaternion assets are generator-owned", () => {
     "Math/data/math/tags/function/elastic.json",
     "Math/data/math/function/bounce/0.start.mcfunction",
     "Math/data/math/function/bounce_decay/0.start.mcfunction",
-    "Math/data/math/function/.common/_error/invalid_bounce.mcfunction",
     "Math/data/math/tags/function/bounce.json",
     "Math/data/math/tags/function/bounce_decay.json",
     "Math/data/math/function/quaternion_to_axis_angle/0.start.mcfunction",
-    "Math/data/math/function/.common/_error/invalid_quaternion.mcfunction",
     "Math/data/math/context_float_provider/quaternion_to_axis_angle/input/rotation_0.json",
     "Math/data/math/tags/function/quaternion_to_axis_angle.json",
   ]) assert.ok(manifest.files.includes(file), `${file} must be generated`);
