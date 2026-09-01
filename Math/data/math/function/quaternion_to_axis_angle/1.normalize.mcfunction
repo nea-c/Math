@@ -33,7 +33,7 @@ execute if predicate math:internal/quaternion_to_axis_angle/scaled_3_positive_ma
 execute if predicate math:internal/quaternion_to_axis_angle/scaled_3_negative_maximum run data modify storage math:internal w_quaternion_scaled_3 set value -1.0f
 data modify storage math:internal w_quaternion_scaled_square_sum set compute default float math:quaternion_to_axis_angle/normalize/scaled_square_sum
 data modify storage math:internal x set compute default float math:quaternion_to_axis_angle/normalize/scaled_square_sum
-data modify storage math:internal w_quaternion_length set compute default float math:square_root/00
+data modify storage math:internal w_quaternion_length set compute default float math:sqrt/00
 data modify storage math:internal x set from storage math:internal w_quaternion_length
 data modify storage math:internal y set value 1.0f
 function math:.common/reciprocal/0.start

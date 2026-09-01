@@ -6,6 +6,6 @@
       "storage": "math:internal",
       "path": "w_normalize_mantissa"
     },
-    "math:square_root/normalize/mantissa_multiplier"
+    "math:sqrt/normalize/mantissa_multiplier"
   ]
 }

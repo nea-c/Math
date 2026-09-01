@@ -17,18 +17,10 @@ execute store success storage math:internal w_validation_curve_numeric_2 byte 1 
 execute unless data storage math:internal {w_validation_curve_numeric_2:1b} run return run function math:.common/_error/invalid_curve
 execute store success storage math:internal w_validation_curve_numeric_3 byte 1 run data get storage math: curve[3] 1
 execute unless data storage math:internal {w_validation_curve_numeric_3:1b} run return run function math:.common/_error/invalid_curve
-data remove storage math:internal w_bezier_x1
-data modify storage math:internal w_bezier_x1 set compute default float math:bezier/input/x1
-execute unless data storage math:internal w_bezier_x1 run return run function math:.common/_error/invalid_curve
-data remove storage math:internal w_bezier_y1
-data modify storage math:internal w_bezier_y1 set compute default float math:bezier/input/y1
-execute unless data storage math:internal w_bezier_y1 run return run function math:.common/_error/invalid_curve
-data remove storage math:internal w_bezier_x2
-data modify storage math:internal w_bezier_x2 set compute default float math:bezier/input/x2
-execute unless data storage math:internal w_bezier_x2 run return run function math:.common/_error/invalid_curve
-data remove storage math:internal w_bezier_y2
-data modify storage math:internal w_bezier_y2 set compute default float math:bezier/input/y2
-execute unless data storage math:internal w_bezier_y2 run return run function math:.common/_error/invalid_curve
+data modify storage math:internal w_bezier_x1 set from storage math: curve[0]
+data modify storage math:internal w_bezier_y1 set from storage math: curve[1]
+data modify storage math:internal w_bezier_x2 set from storage math: curve[2]
+data modify storage math:internal w_bezier_y2 set from storage math: curve[3]
 data remove storage math:internal w_validation_curve_0
 data modify storage math:internal w_validation_curve_0 set compute default float math:internal/comparison/finite/curve_0
 execute unless data storage math:internal w_validation_curve_0 run return run function math:.common/_error/invalid_curve

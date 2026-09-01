@@ -3,6 +3,6 @@ data modify storage math:internal w_validation_a set compute default float math:
 execute unless data storage math:internal {w_validation_a:0.0f} run return run function math:.common/_error/invalid_number
 data modify storage math:internal x set compute default float math:.common/input/a
 function math:.common/atan/0.start
-data modify storage math:internal x set compute default float math:.common/conversion/deg
+data modify storage math:internal x set compute default float math:.common/deg
 data modify storage math: ans set from storage math:internal x
 return 1

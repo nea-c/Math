@@ -1,7 +1,7 @@
 data modify storage math:internal w_comparison.predicate.rounding_remainder_can_subtract_y set compute default float math:internal/comparison/predicate/rounding/remainder/can_subtract_y/value
 execute unless predicate math:internal/rounding/remainder/can_subtract_y run return 1
 data modify storage math:internal w_comparison.predicate.rounding_remainder_within_double set compute default float math:internal/comparison/predicate/rounding/remainder/within_double/value
-execute if predicate math:internal/rounding/remainder/within_double run data modify storage math:internal x set compute default float math:.common/arithmetic/subtract
+execute if predicate math:internal/rounding/remainder/within_double run data modify storage math:internal x set compute default float math:.common/sub
 execute if predicate math:internal/rounding/remainder/within_double run return 1
 data modify storage math:internal w_comparison.predicate.rounding_remainder_near_ratio set compute default float math:internal/comparison/predicate/rounding/remainder/near_ratio/value
 execute if predicate math:internal/rounding/remainder/near_ratio run return run function math:.common/reduce_remainder/1.near

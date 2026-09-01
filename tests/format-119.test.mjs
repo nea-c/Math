@@ -64,6 +64,45 @@ test("shared float providers use the private .common namespace", () => {
   }
 });
 
+test("public calculation providers mirror their function names", () => {
+  for (const name of [
+    "abs", "add", "clamp", "cube", "deg", "div", "lerp",
+    "max", "min", "mul", "rad", "reciprocal", "square", "sub",
+  ]) {
+    assert.equal(fs.existsSync(path.join(providerRoot, ".common", `${name}.json`)), true, `missing provider ${name}`);
+  }
+
+  for (const obsolete of ["arithmetic", "comparison", "constant", "conversion"]) {
+    assert.equal(fs.existsSync(path.join(providerRoot, ".common", obsolete)), false, `obsolete provider group ${obsolete} remains`);
+  }
+  assert.equal(fs.existsSync(path.join(providerRoot, "pow")), true, "pow provider directory is missing");
+  assert.equal(fs.existsSync(path.join(providerRoot, "sqrt")), true, "sqrt provider directory is missing");
+  assert.equal(fs.existsSync(path.join(providerRoot, "power")), false, "obsolete power provider directory remains");
+  assert.equal(fs.existsSync(path.join(providerRoot, "square_root")), false, "obsolete square_root provider directory remains");
+});
+
+test("constant functions assign float literals without providers", () => {
+  const expected = new Map([
+    ["e", "2.7182817459106445f"],
+    ["pi", "3.1415927410125732f"],
+    ["tau", "6.2831854820251465f"],
+  ]);
+  for (const [name, literal] of expected) {
+    const source = fs.readFileSync(path.join(packRoot, "data", "math", "function", name, "0.start.mcfunction"), "utf8");
+    assert.match(source, new RegExp(`data modify storage math: ans set value ${literal.replace(".", "\\.")}`), name);
+    assert.doesNotMatch(source, / set compute /, name);
+  }
+});
+
+test("bezier copies curve inputs directly from storage", () => {
+  assert.equal(fs.existsSync(path.join(providerRoot, "bezier", "input")), false, "obsolete Bezier input providers remain");
+  const source = fs.readFileSync(path.join(packRoot, "data", "math", "function", "bezier", "0.start.mcfunction"), "utf8");
+  for (const [target, index] of [["x1", 0], ["y1", 1], ["x2", 2], ["y2", 3]]) {
+    assert.match(source, new RegExp(`data modify storage math:internal w_bezier_${target} set from storage math: curve\\[${index}\\]`));
+  }
+  assert.doesNotMatch(source, /math:bezier\/input\//);
+});
+
 test("generated commands select float provider evaluation explicitly", () => {
   const functionRoot = path.join(packRoot, "data", "math", "function");
   for (const entry of fs.readdirSync(functionRoot, { recursive: true, withFileTypes: true })) {
@@ -79,13 +118,13 @@ test("generated commands select float provider evaluation explicitly", () => {
 
 test("native operations back directly supported public calculations", () => {
   const expectedTypes = new Map([
-    [".common/comparison/absolute.json", "minecraft:abs"],
-    [".common/arithmetic/subtract.json", "minecraft:sub"],
-    [".common/arithmetic/multiply.json", "minecraft:mul"],
-    [".common/arithmetic/divide.json", "minecraft:div"],
-    [".common/arithmetic/reciprocal.json", "minecraft:div"],
-    [".common/comparison/minimum.json", "minecraft:min"],
-    [".common/comparison/maximum.json", "minecraft:max"],
+    [".common/abs.json", "minecraft:abs"],
+    [".common/sub.json", "minecraft:sub"],
+    [".common/mul.json", "minecraft:mul"],
+    [".common/div.json", "minecraft:div"],
+    [".common/reciprocal.json", "minecraft:div"],
+    [".common/min.json", "minecraft:min"],
+    [".common/max.json", "minecraft:max"],
     [".common/rounding/floor.json", "minecraft:floor"],
     [".common/rounding/ceil.json", "minecraft:ceil"],
     [".common/rounding/round.json", "minecraft:round"],
@@ -93,8 +132,8 @@ test("native operations back directly supported public calculations", () => {
     ["remainder/00.json", "minecraft:mod"],
     ["sin/00.json", "minecraft:sin"],
     ["cos/00.json", "minecraft:cos"],
-    ["square_root/00.json", "minecraft:sqrt"],
-    ["power/positive/00.json", "minecraft:pow"],
+    ["sqrt/00.json", "minecraft:sqrt"],
+    ["pow/positive/00.json", "minecraft:pow"],
   ]);
   for (const [relative, expectedType] of expectedTypes) {
     const provider = JSON.parse(fs.readFileSync(path.join(providerRoot, relative), "utf8"));

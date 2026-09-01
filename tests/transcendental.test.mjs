@@ -106,7 +106,7 @@ function assertPower(a, b) {
 }
 
 test("square root generated graph uses the native sqrt provider", () => {
-  const provider = JSON.parse(fs.readFileSync("Math/data/math/context_float_provider/square_root/00.json", "utf8"));
+  const provider = JSON.parse(fs.readFileSync("Math/data/math/context_float_provider/sqrt/00.json", "utf8"));
   assert.equal(provider.type, "minecraft:sqrt");
   assert.equal(fs.existsSync("Math/data/math/function/sqrt/2.refine.mcfunction"), false);
 });
@@ -195,7 +195,7 @@ test("log exp and power generated graphs use responsibility subdirectories", () 
     "exp/reduce/remainder/00.json",
     "exp/polynomial/00.json",
     "exp/scale/00.json",
-    "power/positive/00.json",
+    "pow/positive/00.json",
   ]) {
     assert.ok(fs.existsSync(path.join("Math/data/math/context_float_provider", provider)), `missing ${provider}`);
   }

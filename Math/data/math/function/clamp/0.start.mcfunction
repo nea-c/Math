@@ -12,5 +12,5 @@ data modify storage math:internal w_comparison.predicate.range_min_greater_than_
 execute if predicate math:internal/range/min_greater_than_max run data remove storage math: ans
 execute if predicate math:internal/range/min_greater_than_max run data modify storage math: error set value "invalid_clamp_range"
 execute if predicate math:internal/range/min_greater_than_max run return fail
-data modify storage math: ans set compute default float math:.common/comparison/clamp
+data modify storage math: ans set compute default float math:.common/clamp
 return 1

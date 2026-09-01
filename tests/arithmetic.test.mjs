@@ -114,12 +114,12 @@ const providers = providerRegistry();
 
 test("common exact providers evaluate hand-checked arithmetic and conversions", () => {
   const cases = [
-    ["math:.common/arithmetic/add", { x: 1.25, y: -0.5 }, 0.75],
-    ["math:.common/arithmetic/subtract", { x: 1.25, y: -0.5 }, 1.75],
-    ["math:.common/arithmetic/multiply", { x: 1.25, y: -0.5 }, -0.625],
-    ["math:.common/comparison/absolute", { x: -3.5 }, 3.5],
-    ["math:.common/conversion/rad", { x: 180 }, Math.fround(Math.PI)],
-    ["math:.common/conversion/deg", { x: Math.PI }, 180],
+    ["math:.common/add", { x: 1.25, y: -0.5 }, 0.75],
+    ["math:.common/sub", { x: 1.25, y: -0.5 }, 1.75],
+    ["math:.common/mul", { x: 1.25, y: -0.5 }, -0.625],
+    ["math:.common/abs", { x: -3.5 }, 3.5],
+    ["math:.common/rad", { x: 180 }, Math.fround(Math.PI)],
+    ["math:.common/deg", { x: Math.PI }, 180],
   ];
   for (const [id, internal, expected] of cases) {
     assert.equal(run(id, internal), Math.fround(expected));
@@ -337,9 +337,9 @@ test("divide stays within one min-subnormal ULP on a 12,288-case boundary grid",
 });
 
 test("div public wrapper evaluates the native float provider", () => {
-  const provider = JSON.parse(fs.readFileSync(path.join(providerRoot, ".common/arithmetic/divide.json"), "utf8"));
+  const provider = JSON.parse(fs.readFileSync(path.join(providerRoot, ".common/div.json"), "utf8"));
   assert.equal(provider.type, "minecraft:div");
-  assert.equal(fs.readFileSync("Math/data/math/function/div/0.start.mcfunction", "utf8").includes("math:.common/arithmetic/divide"), true);
+  assert.equal(fs.readFileSync("Math/data/math/function/div/0.start.mcfunction", "utf8").includes("math:.common/div"), true);
 });
 
 test("rounding wrappers honor signed half boundaries and the float integer limit", () => {

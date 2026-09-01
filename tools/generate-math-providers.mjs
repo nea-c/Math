@@ -52,12 +52,38 @@ const powerClassifierDegree = 18;
 const squareRootResidualThreshold = Math.fround(0.00004839897155761719);
 const generatedFiles = [];
 
-function privateProviderPath(relativePath) {
-  return relativePath.replace(/^common\//, ".common/");
+const renamedSharedProviders = new Map([
+  ["common/arithmetic/add", "common/add"],
+  ["common/arithmetic/subtract", "common/sub"],
+  ["common/arithmetic/multiply", "common/mul"],
+  ["common/arithmetic/divide", "common/div"],
+  ["common/arithmetic/reciprocal", "common/reciprocal"],
+  ["common/arithmetic/square", "common/square"],
+  ["common/arithmetic/cube", "common/cube"],
+  ["common/arithmetic/lerp", "common/lerp"],
+  ["common/comparison/absolute", "common/abs"],
+  ["common/comparison/minimum", "common/min"],
+  ["common/comparison/maximum", "common/max"],
+  ["common/comparison/clamp", "common/clamp"],
+  ["common/conversion/rad", "common/rad"],
+  ["common/conversion/deg", "common/deg"],
+]);
+
+function canonicalProviderPath(relativePath) {
+  const renamed = renamedSharedProviders.get(relativePath) ?? relativePath;
+  return renamed
+    .replace(/^common\//, ".common/")
+    .replace(/^power\//, "pow/")
+    .replace(/^square_root\//, "sqrt/");
+}
+
+function canonicalProviderReference(value) {
+  if (!value.startsWith("math:")) return value;
+  return `math:${canonicalProviderPath(value.slice("math:".length))}`;
 }
 
 function privateProviderReferences(value) {
-  if (typeof value === "string") return value.replace(/^math:common\//, "math:.common/");
+  if (typeof value === "string") return canonicalProviderReference(value);
   if (Array.isArray(value)) return value.map(privateProviderReferences);
   if (!value || typeof value !== "object") return value;
   return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, privateProviderReferences(child)]));
@@ -66,7 +92,7 @@ function privateProviderReferences(value) {
 function emit(relativePath, value) {
   generatedFiles.push({
     kind: "json",
-    relativePath: `Math/data/math/context_float_provider/${privateProviderPath(relativePath)}.json`,
+    relativePath: `Math/data/math/context_float_provider/${canonicalProviderPath(relativePath)}.json`,
     value: privateProviderReferences(value),
   });
 }
@@ -78,7 +104,8 @@ function emitPredicate(relativePath, value) {
 function emitFunction(path, lines) {
   const migratedLines = lines.map(line => line
     .replaceAll("compute default ", "compute default float ")
-    .replaceAll("math:common/", "math:.common/"));
+    .replaceAll(/math:(?:common\/(?:arithmetic\/(?:add|subtract|multiply|divide|reciprocal|square|cube|lerp)|comparison\/(?:absolute|minimum|maximum|clamp)|conversion\/(?:rad|deg))|common\/[^ ]+|power\/[^ ]+|square_root\/[^ ]+)/g,
+      reference => canonicalProviderReference(reference)));
   generatedFiles.push({ kind: "function", relativePath: `Math/data/math/function/${path}.mcfunction`, text: `${migratedLines.join("\n")}\n` });
 }
 
@@ -308,9 +335,6 @@ emit("common/normalize/binary32/mantissa_b", product(storedNormalizeMantissa, st
 
 for (const [name, provider] of Object.entries({ a: publicA, b: publicB, x, y, z, w })) emit(`common/input/${name}`, provider);
 
-emit("common/constant/pi", Math.fround(Math.PI));
-emit("common/constant/tau", Math.fround(Math.PI * 2));
-emit("common/constant/e", Math.fround(Math.E));
 emit("common/arithmetic/add", sum(x, y));
 emit("common/arithmetic/subtract", subtract(x, y));
 emit("common/arithmetic/multiply", product(x, y));
@@ -344,12 +368,6 @@ function cubicBezier(parameter, firstControl, secondControl) {
   );
 }
 
-for (const [name, provider] of Object.entries({
-  x1: publicCurveX1,
-  y1: publicCurveY1,
-  x2: publicCurveX2,
-  y2: publicCurveY2,
-})) emit(`bezier/input/${name}`, provider);
 const bezierCurveX = cubicBezier(bezierMidpoint, bezierCurveX1, bezierCurveX2);
 emit("bezier/midpoint", product(0.5, sum(bezierLow, bezierHigh)));
 emit("bezier/x", bezierCurveX);
@@ -1607,10 +1625,8 @@ emitFunction(FUNCTION_PATHS.bezierFinish, [
     lines.push(`execute store success storage math:internal w_validation_curve_numeric_${index} byte 1 run data get storage math: curve[${index}] 1`);
     lines.push(`execute unless data storage math:internal {w_validation_curve_numeric_${index}:1b} run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
   }
-  for (const field of ["x1", "y1", "x2", "y2"]) {
-    lines.push(`data remove storage math:internal w_bezier_${field}`);
-    lines.push(`data modify storage math:internal w_bezier_${field} set compute default math:bezier/input/${field}`);
-    lines.push(`execute unless data storage math:internal w_bezier_${field} run return run function ${functionId(FUNCTION_PATHS.invalidCurve)}`);
+  for (const [field, index] of [["x1", 0], ["y1", 1], ["x2", 2], ["y2", 3]]) {
+    lines.push(`data modify storage math:internal w_bezier_${field} set from storage math: curve[${index}]`);
   }
   for (let index = 0; index < 4; index += 1) {
     lines.push(`data remove storage math:internal w_validation_curve_${index}`);
@@ -1670,7 +1686,17 @@ wrapper("floor", ["a"], "math:common/rounding/floor", { x: "a" });
 wrapper("ceil", ["a"], "math:common/rounding/ceil", { x: "a" });
 wrapper("round", ["a"], "math:common/rounding/round", { x: "a" });
 wrapper("truncate", ["a"], "math:common/rounding/truncate", { x: "a" });
-for (const name of ["pi", "tau", "e"]) wrapper(name, [], `math:common/constant/${name}`, {});
+for (const [name, literal] of [
+  ["e", "2.7182817459106445f"],
+  ["pi", "3.1415927410125732f"],
+  ["tau", "6.2831854820251465f"],
+]) {
+  emitPublicFunction(name, [
+    "data remove storage math: error",
+    `data modify storage math: ans set value ${literal}`,
+    "return 1",
+  ]);
+}
 
 emitFunction(FUNCTION_PATHS.floor, [
   "data modify storage math:internal z set compute default math:common/rounding/floor",
@@ -1928,7 +1954,7 @@ emitFunction(FUNCTION_PATHS.quaternionScalar, [
   "data modify storage math:internal w_quaternion_axis_2 set value 0.0f",
   "data modify storage math:internal w_quaternion_angle set value 0.0f",
   ...stagePredicate("quaternion_to_axis_angle/scalar_negative"),
-  "execute if predicate math:internal/quaternion_to_axis_angle/scalar_negative run data modify storage math:internal w_quaternion_angle set compute default math:common/constant/tau",
+  "execute if predicate math:internal/quaternion_to_axis_angle/scalar_negative run data modify storage math:internal w_quaternion_angle set value 6.2831854820251465f",
   `return run function ${functionId(FUNCTION_PATHS.quaternionFinish)}`,
 ]);
 
@@ -2427,6 +2453,17 @@ function generate(targetRoot) {
   }
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "number_provider"), { recursive: true, force: true });
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "context_float_provider", "common"), { recursive: true, force: true });
+  for (const obsolete of [
+    [".common", "arithmetic"],
+    [".common", "comparison"],
+    [".common", "constant"],
+    [".common", "conversion"],
+    ["bezier", "input"],
+    ["power"],
+    ["square_root"],
+  ]) {
+    fs.rmSync(path.join(targetRoot, "Math", "data", "math", "context_float_provider", ...obsolete), { recursive: true, force: true });
+  }
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "function", "internal"), { recursive: true, force: true });
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "function", "common"), { recursive: true, force: true });
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "function", ".common", "invalid_number"), { recursive: true, force: true });

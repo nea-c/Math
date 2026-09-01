@@ -8,5 +8,5 @@ execute if predicate math:internal/range/negative run data modify storage math: 
 execute if predicate math:internal/range/negative run return fail
 execute if data storage math:internal {x:0.0f} run data modify storage math: ans set value 0.0f
 execute if data storage math:internal {x:0.0f} run return 1
-data modify storage math: ans set compute default float math:square_root/00
+data modify storage math: ans set compute default float math:sqrt/00
 return 1
