@@ -810,6 +810,8 @@ public final class FakeServer {
     if (!(seed < firstCall && firstCall < firstAnswer && firstAnswer < secondCall && secondCall < secondAnswer)) {
       throw new AssertionError("sequential stale-scratch regression is not ordered");
     }
+    indexOf(lines, "execute unless score #asin_mid_domain math_test matches 523659..523663 run return run function math_test:fail/asin_mid_domain_answer");
+    indexOf(lines, "execute unless score #quaternion_angle math_test matches 4712573..4712585 run return run function math_test:fail/quaternion_to_axis_angle_angle");
 
     String marker = lines.stream().filter(line -> line.startsWith("say MATH_TEST_PASS:"))
       .findFirst().orElseThrow().substring(4);
