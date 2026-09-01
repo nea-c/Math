@@ -1,11 +1,12 @@
 {
-  "type": "minecraft:value_check",
+  "type": "minecraft:float_value_check",
   "value": {
     "type": "minecraft:storage",
     "storage": "math:internal",
-    "path": "w_comparison.predicate.rounding_public_b_negative.maximum"
+    "path": "w_comparison.predicate.rounding_public_b_negative"
   },
-  "range": {
-    "max": 0
+  "test": {
+    "min": 1,
+    "max": 1
   }
 }

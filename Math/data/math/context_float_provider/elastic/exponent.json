@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:mul",
+  "inputs": [
+    -6.931471824645996,
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_elastic_u"
+    }
+  ]
+}

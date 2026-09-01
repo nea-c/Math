@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:number_dispatcher",
+  "cases": [
+    {
+      "condition": {
+        "type": "minecraft:float_value_check",
+        "value": {
+          "type": "minecraft:max",
+          "inputs": [
+            {
+              "type": "minecraft:storage",
+              "storage": "math:internal",
+              "path": "w_sqrt_residual"
+            },
+            {
+              "type": "minecraft:mul",
+              "inputs": [
+                -1,
+                {
+                  "type": "minecraft:storage",
+                  "storage": "math:internal",
+                  "path": "w_sqrt_residual"
+                }
+              ]
+            }
+          ]
+        },
+        "test": {
+          "min": 0.00004839897155761719
+        }
+      },
+      "value": 1
+    }
+  ],
+  "default": 0
+}

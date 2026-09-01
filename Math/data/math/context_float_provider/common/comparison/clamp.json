@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:max",
+  "inputs": [
+    {
+      "type": "minecraft:min",
+      "inputs": [
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        },
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w"
+        }
+      ]
+    },
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "z"
+    }
+  ]
+}

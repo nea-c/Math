@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:number_dispatcher",
+  "cases": [
+    {
+      "condition": {
+        "type": "minecraft:float_value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:",
+          "path": "a"
+        },
+        "test": {
+          "max": -1.401298464324817e-45
+        }
+      },
+      "value": 1
+    }
+  ],
+  "default": 0
+}

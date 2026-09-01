@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:mul",
+  "inputs": [
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_normalize_mantissa"
+    },
+    "math:square_root/normalize/mantissa_multiplier"
+  ]
+}

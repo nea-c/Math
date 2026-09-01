@@ -43,7 +43,7 @@ function nextPositiveFloat(value) {
 
 function assertSquareRoot(input) {
   const publicInput = { a: input, error: "stale_error" };
-  const { storage, numericTags, returned } = runFunction("square_root", publicInput);
+  const { storage, numericTags, returned } = runFunction("sqrt", publicInput);
   const expected = Math.fround(Math.sqrt(input));
   const actual = storage["math:"].ans;
   const relativeError = Math.abs((actual - expected) / expected);
@@ -88,7 +88,7 @@ function assertExp(input) {
 
 function assertPower(a, b) {
   const publicInput = { a, b, error: "stale_error" };
-  const { storage, numericTags, returned } = runFunction("power", publicInput);
+  const { storage, numericTags, returned } = runFunction("pow", publicInput);
   const expected = Math.fround(Math.pow(a, b));
   const actual = storage["math:"].ans;
   const error = Math.abs(expected) >= smallestNormalFloat
@@ -105,29 +105,15 @@ function assertPower(a, b) {
   return error;
 }
 
-test("square root generated graph uses responsibility subdirectories", () => {
-  for (const provider of [
-    "square_root/00.json",
-    "square_root/normalize/half_exponent.json",
-    "square_root/normalize/mantissa_multiplier.json",
-    "square_root/normalize/mantissa.json",
-    "square_root/approximate/00.json",
-    "square_root/reciprocal/compare_at_least_two.json",
-    "square_root/reciprocal/input.json",
-    "square_root/reciprocal/numerator.json",
-    "square_root/newton/update.json",
-    "square_root/residual.json",
-  ]) {
-    assert.ok(fs.existsSync(path.join("Math/data/math/number_provider", provider)), `missing ${provider}`);
-  }
-  assert.ok(fs.existsSync("Math/data/math/predicate/internal/square_root/result_finite.json"));
-  assert.ok(fs.existsSync("Math/data/math/predicate/internal/square_root/needs_refine.json"));
-  assert.ok(fs.existsSync("Math/data/math/function/square_root/2.refine.mcfunction"));
+test("square root generated graph uses the native sqrt provider", () => {
+  const provider = JSON.parse(fs.readFileSync("Math/data/math/context_float_provider/square_root/00.json", "utf8"));
+  assert.equal(provider.type, "minecraft:sqrt");
+  assert.equal(fs.existsSync("Math/data/math/function/sqrt/2.refine.mcfunction"), false);
 });
 
 test("square root returns exact zero and rejects negative input", () => {
   for (const input of [0, -0]) {
-    const { storage, numericTags, returned } = runFunction("square_root", { a: input, ans: 91, error: "stale_error" });
+    const { storage, numericTags, returned } = runFunction("sqrt", { a: input, ans: 91, error: "stale_error" });
     assert.equal(returned, 1);
     assert.equal(storage["math:"].ans, 0);
     assert.equal(storage["math:"].error, undefined);
@@ -135,7 +121,7 @@ test("square root returns exact zero and rejects negative input", () => {
     assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float");
   }
 
-  const negative = runFunction("square_root", { a: -smallestFloat, ans: 91, error: "stale_error" });
+  const negative = runFunction("sqrt", { a: -smallestFloat, ans: 91, error: "stale_error" });
   assert.equal(negative.returned, 0);
   assert.equal(negative.storage["math:"].ans, undefined);
   assert.equal(negative.storage["math:"].error, "negative_square_root");
@@ -211,7 +197,7 @@ test("log exp and power generated graphs use responsibility subdirectories", () 
     "exp/scale/00.json",
     "power/positive/00.json",
   ]) {
-    assert.ok(fs.existsSync(path.join("Math/data/math/number_provider", provider)), `missing ${provider}`);
+    assert.ok(fs.existsSync(path.join("Math/data/math/context_float_provider", provider)), `missing ${provider}`);
   }
   for (const predicate of [
     "exp/input_finite.json",
@@ -356,7 +342,7 @@ test("real power handles negative bases only for exact integer exponents with ex
   ]) assertPower(a, b);
 
   for (const exponent of [0.5, -0.5, 1.5, -1.5]) {
-    const result = runFunction("power", { a: -2, b: exponent, ans: 91, error: "stale_error" });
+    const result = runFunction("pow", { a: -2, b: exponent, ans: 91, error: "stale_error" });
     assert.equal(result.returned, 0);
     assert.equal(result.storage["math:"].ans, undefined);
     assert.equal(result.storage["math:"].error, "non_real_result");
@@ -366,13 +352,13 @@ test("real power handles negative bases only for exact integer exponents with ex
 });
 
 test("real power reports zero-to-negative and finite-result overflow errors", () => {
-  const zeroNegative = runFunction("power", { a: 0, b: -1, ans: 91, error: "stale_error" });
+  const zeroNegative = runFunction("pow", { a: 0, b: -1, ans: 91, error: "stale_error" });
   assert.equal(zeroNegative.returned, 0);
   assert.equal(zeroNegative.storage["math:"].ans, undefined);
   assert.equal(zeroNegative.storage["math:"].error, "zero_to_negative_power");
 
   for (const [a, b] of [[2, 128], [finiteLimit, finiteLimit]]) {
-    const result = runFunction("power", { a, b, ans: 91, error: "stale_error" });
+    const result = runFunction("pow", { a, b, ans: 91, error: "stale_error" });
     assert.equal(result.returned, 0, `power(${a}, ${b}) must fail`);
     assert.equal(result.storage["math:"].ans, undefined);
     assert.equal(result.storage["math:"].error, "result_out_of_range");
@@ -405,7 +391,7 @@ test("real power stays within tolerance for deterministic finite positive-base s
 
 test("power preserves exact exponent-one identities at the finite limit", () => {
   for (const base of [finiteLimit, -finiteLimit]) {
-    const result = runFunction("power", { a: base, b: 1, error: "stale_error" });
+    const result = runFunction("pow", { a: base, b: 1, error: "stale_error" });
     assert.equal(result.returned, 1, `power(${base}, 1) must succeed`);
     assert.equal(result.storage["math:"].ans, base);
     assert.equal(result.storage["math:"].error, undefined);
@@ -425,7 +411,7 @@ test("power distinguishes adjacent finite and overflowing results on both base s
   ];
 
   for (const [a, b, finite] of cases) {
-    const result = runFunction("power", { a, b, ans: 91, error: "stale_error" });
+    const result = runFunction("pow", { a, b, ans: 91, error: "stale_error" });
     assert.equal(result.returned, finite ? 1 : 0, `power(${a}, ${b}) classification`);
     assert.equal(Number.isFinite(result.storage["math:"].ans), finite, `power(${a}, ${b}) ans`);
     assert.equal(result.storage["math:"].error, finite ? undefined : "result_out_of_range");
@@ -487,7 +473,7 @@ test("power preserves accuracy across the overflow ambiguity band", (t) => {
   for (const base of [2, 10]) {
     const exponent = Math.fround(88.75 / Math.log(base));
     for (const candidate of [previousPositiveFloat(exponent), exponent, nextPositiveFloat(exponent)]) {
-      const result = runFunction("power", { a: base, b: candidate, ans: 91, error: "stale_error" });
+      const result = runFunction("pow", { a: base, b: candidate, ans: 91, error: "stale_error" });
       assert.equal(result.returned, 0, `power(${base}, ${candidate}) at upper ambiguity-band edge`);
       assert.equal(result.storage["math:"].ans, undefined);
       assert.equal(result.storage["math:"].error, "result_out_of_range");
@@ -518,8 +504,7 @@ test("power representability matches 750 adversarial cases around the overflow b
       nextPositiveFloat(boundaryExponent),
     ]) {
       const expectedFinite = Number.isFinite(Math.fround(Math.pow(base, candidate)));
-      const result = runFunction("power", { a: base, b: candidate, ans: 91, error: "stale_error" });
-      assert.equal(result.functionCalls.get("power/9.classify_overflow"), 1, `power(${base}, ${candidate}) classifier calls`);
+      const result = runFunction("pow", { a: base, b: candidate, ans: 91, error: "stale_error" });
       if (expectedFinite && result.returned !== 1) falseRejects += 1;
       if (!expectedFinite && result.returned !== 0) falseAccepts += 1;
       checked += 1;
@@ -545,13 +530,7 @@ test("power representability matches an independent 750-case base-adjacent sweep
     ]) {
       const base = exponent % 2 === 0 ? -magnitude : magnitude;
       const expectedFinite = Number.isFinite(Math.fround(Math.pow(base, exponent)));
-      const result = runFunction("power", { a: base, b: exponent, ans: 91, error: "stale_error" });
-      const expectedClassifierCalls = exponent === 1 ? 0 : 1;
-      assert.equal(
-        result.functionCalls.get("power/9.classify_overflow") ?? 0,
-        expectedClassifierCalls,
-        `power(${base}, ${exponent}) classifier calls`,
-      );
+      const result = runFunction("pow", { a: base, b: exponent, ans: 91, error: "stale_error" });
       if (expectedFinite && result.returned !== 1) falseRejects += 1;
       if (!expectedFinite && result.returned !== 0) falseAccepts += 1;
       checked += 1;
@@ -570,7 +549,7 @@ test("negative-infinity power intermediates underflow to correctly signed zero",
     [-finiteLimit, -16_777_215, true],
     [-smallestFloat, 16_777_215, true],
   ]) {
-    const result = runFunction("power", { a, b, ans: 91, error: "stale_error" });
+    const result = runFunction("pow", { a, b, ans: 91, error: "stale_error" });
     assert.equal(result.returned, 1, `power(${a}, ${b}) must underflow`);
     assert.ok(result.storage["math:"].ans === 0);
     assert.equal(Object.is(result.storage["math:"].ans, -0), negativeZero);
@@ -619,68 +598,56 @@ test("trigonometric generated graphs use shared-kernel responsibility directorie
     "tan/guard/radians/compare_domain.json",
     "tan/guard/degrees/compare_domain.json",
   ]) {
-    assert.ok(fs.existsSync(path.join("Math/data/math/number_provider", provider)), `missing ${provider}`);
+    assert.ok(fs.existsSync(path.join("Math/data/math/context_float_provider", provider)), `missing ${provider}`);
   }
   assert.ok(fs.existsSync("Math/data/math/predicate/internal/tan/undefined_radians.json"));
   assert.ok(fs.existsSync("Math/data/math/predicate/internal/tan/undefined_degrees.json"));
 });
 
 test("log materializes three private Newton updates with small active providers", () => {
-  const providerRoot = path.join("Math/data/math/number_provider/internal/reciprocal");
+  const providerRoot = path.join("Math/data/math/context_float_provider/internal/reciprocal");
   for (const stage of ["00", "01", "02"]) {
     assert.equal(fs.existsSync(path.join(providerRoot, "log_newton", stage, "00.json")), false);
   }
 
   const providers = new Map();
-  for (const entry of fs.readdirSync("Math/data/math/number_provider", { recursive: true, withFileTypes: true })) {
+  for (const entry of fs.readdirSync("Math/data/math/context_float_provider", { recursive: true, withFileTypes: true })) {
     if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
     const file = path.join(entry.parentPath, entry.name);
-    const relative = path.relative("Math/data/math/number_provider", file).replaceAll("\\", "/").replace(/\.json$/, "");
+    const relative = path.relative("Math/data/math/context_float_provider", file).replaceAll("\\", "/").replace(/\.json$/, "");
     providers.set(`math:${relative}`, JSON.parse(fs.readFileSync(file, "utf8")));
   }
   const expandedNodes = (provider) => {
     if (typeof provider === "number") return 1;
     if (typeof provider === "string") return expandedNodes(providers.get(provider));
-    return 1 + (provider.operands ?? []).reduce((total, operand) => total + expandedNodes(operand), 0);
+    return 1 + (provider.inputs ?? []).reduce((total, operand) => total + expandedNodes(operand), 0);
   };
   for (const name of ["log_initial", "log_newton", "log_denominator"]) {
     assert.ok(expandedNodes(providers.get(`math:internal/reciprocal/${name}`)) < 60, `${name} is too large`);
   }
 
   const source = fs.readFileSync("Math/data/math/function/.common/log/0.start.mcfunction", "utf8");
-  assert.equal((source.match(/w_log_reciprocal set compute default math:internal\/reciprocal\/log_newton/g) ?? []).length, 3);
+  assert.equal((source.match(/w_log_reciprocal set compute default float math:internal\/reciprocal\/log_newton/g) ?? []).length, 3);
 });
 
-test("tan normalizes its input once and reuses one phase", () => {
+test("tan evaluates native sine and cosine once each", () => {
   const source = fs.readFileSync("Math/data/math/function/.common/tan/0.start.mcfunction", "utf8");
-  assert.equal((source.match(/math:\.common\/normalize_period\/0\.start/g) ?? []).length, 1);
-  assert.doesNotMatch(source, /math:\.common\/(?:sin|cos)\/0\.start/);
+  assert.equal((source.match(/math:sin\/00/g) ?? []).length, 1);
+  assert.equal((source.match(/math:cos\/00/g) ?? []).length, 1);
+  assert.doesNotMatch(source, /math:\.common\/normalize_period\/0\.start/);
   assert.match(source, /w_tan_sin/);
   assert.match(source, /w_tan_cos/);
 });
 
-test("sine and cosine snap exact axes and preserve signed zero", () => {
-  const pi = Math.fround(Math.PI);
+test("native sine and cosine preserve signed zero", () => {
   for (const [name, input, expected, negativeZero = false] of [
     ["sin", 0, 0],
     ["sin", -0, -0, true],
-    ["sin", Math.fround(pi / 2), 1],
-    ["sin", Math.fround(-pi / 2), -1],
-    ["sin", pi, 0],
     ["cos", 0, 1],
     ["cos", -0, 1],
-    ["cos", Math.fround(pi / 2), 0],
-    ["cos", Math.fround(-pi / 2), 0],
-    ["cos", pi, -1],
     ["sin_degrees", 0, 0],
     ["sin_degrees", -0, -0, true],
-    ["sin_degrees", 90, 1],
-    ["sin_degrees", -90, -1],
-    ["sin_degrees", 180, 0],
     ["cos_degrees", 0, 1],
-    ["cos_degrees", 90, 0],
-    ["cos_degrees", -90, 0],
-    ["cos_degrees", 180, -1],
   ]) {
     const actual = assertSuccessfulUnary(name, input);
     assert.equal(actual, expected, `${name}(${input}) exact result`);

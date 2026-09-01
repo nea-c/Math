@@ -4,7 +4,7 @@ import { evaluateProvider } from "../tools/math-provider-lib.mjs";
 
 const functionRoot = path.resolve("Math/data/math/function");
 const functionTagRoot = path.resolve("Math/data/math/tags/function");
-const providerRoot = path.resolve("Math/data/math/number_provider");
+const providerRoot = path.resolve("Math/data/math/context_float_provider");
 const predicateRoot = path.resolve("Math/data/math/predicate");
 
 function clone(value) {
@@ -276,17 +276,11 @@ function runWithStorage(name, publicInput, internalInput, initialPublicTags = ne
     if (predicate.type === "minecraft:all_of") {
       return predicate.terms.every(inlinePredicateMatches);
     }
-    if (predicate.type !== "minecraft:value_check") throw new Error(`Unsupported predicate type: ${predicate.type}`);
-    const asJavaInt = value => {
-      if (Number.isNaN(value)) return 0;
-      if (value >= 2_147_483_647) return 2_147_483_647;
-      if (value <= -2_147_483_648) return -2_147_483_648;
-      return Math.trunc(value);
-    };
+    if (predicate.type !== "minecraft:float_value_check") throw new Error(`Unsupported predicate type: ${predicate.type}`);
     const values = new Map(Object.entries(storage));
-    const value = asJavaInt(evaluateProvider(predicate.value, providers, values));
-    const minimum = predicate.range?.min === undefined ? undefined : asJavaInt(Math.fround(predicate.range.min));
-    const maximum = predicate.range?.max === undefined ? undefined : asJavaInt(Math.fround(predicate.range.max));
+    const value = evaluateProvider(predicate.value, providers, values);
+    const minimum = predicate.test?.min === undefined ? undefined : evaluateProvider(predicate.test.min, providers, values);
+    const maximum = predicate.test?.max === undefined ? undefined : evaluateProvider(predicate.test.max, providers, values);
     return (minimum === undefined || value >= minimum)
       && (maximum === undefined || value <= maximum);
   }
@@ -322,7 +316,7 @@ function runWithStorage(name, publicInput, internalInput, initialPublicTags = ne
       copyTypedPath(storage[match[1]] ??= {}, numericTags, match[1], match[2], match[3], match[4], getPath(storage[match[3]], match[4]));
       return undefined;
     }
-    match = command.match(/^data modify storage (\S+) (\S+) set compute default (\S+)$/);
+    match = command.match(/^data modify storage (\S+) (\S+) set compute default float (\S+)$/);
     if (match) {
       setTypedPath(storage[match[1]] ??= {}, numericTags, match[1], match[2], {
         value: evaluateProvider(match[3], providers, new Map(Object.entries(storage))),
@@ -345,7 +339,7 @@ function runWithStorage(name, publicInput, internalInput, initialPublicTags = ne
       });
       return undefined;
     }
-    match = command.match(/^execute store result storage (\S+) (\S+) float (-?\d+(?:\.\d+)?) run compute default (\S+)$/);
+    match = command.match(/^execute store result storage (\S+) (\S+) float (-?\d+(?:\.\d+)?) run compute default float (\S+)$/);
     if (match) {
       const value = evaluateProvider(match[4], providers, new Map(Object.entries(storage)));
       const result = computeCommandResult(value);

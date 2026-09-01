@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:max",
+  "inputs": [
+    -1,
+    {
+      "type": "minecraft:min",
+      "inputs": [
+        1,
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_quaternion_normalized_3"
+        }
+      ]
+    }
+  ]
+}

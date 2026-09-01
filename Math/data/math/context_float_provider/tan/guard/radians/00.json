@@ -1,0 +1,71 @@
+{
+  "type": "minecraft:number_dispatcher",
+  "cases": [
+    {
+      "condition": {
+        "type": "minecraft:float_value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_comparison.tan_domain"
+        },
+        "test": {
+          "max": 0
+        }
+      },
+      "value": 0.00002
+    }
+  ],
+  "default": {
+    "type": "minecraft:min",
+    "inputs": [
+      2,
+      {
+        "type": "minecraft:add",
+        "inputs": [
+          0.000020000001313746907,
+          1.74845737888063e-7,
+          {
+            "type": "minecraft:mul",
+            "inputs": [
+              {
+                "type": "minecraft:max",
+                "inputs": [
+                  0,
+                  {
+                    "type": "minecraft:add",
+                    "inputs": [
+                      {
+                        "type": "minecraft:max",
+                        "inputs": [
+                          {
+                            "type": "minecraft:storage",
+                            "storage": "math:",
+                            "path": "a"
+                          },
+                          {
+                            "type": "minecraft:mul",
+                            "inputs": [
+                              -1,
+                              {
+                                "type": "minecraft:storage",
+                                "storage": "math:",
+                                "path": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      -100
+                    ]
+                  }
+                ]
+              },
+              2.7827564252902448e-8
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

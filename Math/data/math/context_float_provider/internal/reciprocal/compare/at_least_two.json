@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:mul",
+  "inputs": [
+    {
+      "type": "minecraft:add",
+      "inputs": [
+        {
+          "type": "minecraft:max",
+          "inputs": [
+            {
+              "type": "minecraft:storage",
+              "storage": "math:internal",
+              "path": "x"
+            },
+            {
+              "type": "minecraft:mul",
+              "inputs": [
+                -1,
+                {
+                  "type": "minecraft:storage",
+                  "storage": "math:internal",
+                  "path": "x"
+                }
+              ]
+            }
+          ]
+        },
+        -2
+      ]
+    },
+    16777216
+  ]
+}

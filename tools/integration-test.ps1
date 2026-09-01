@@ -96,8 +96,8 @@ try {
 {
   "pack": {
     "description": "Temporary Math integration assertions",
-    "min_format": 118,
-    "max_format": 118
+    "min_format": 119,
+    "max_format": 119
   }
 }
 '@
@@ -190,37 +190,37 @@ try {
     Add-Guard -Condition 'unless score #return math_test matches 0' -Case 'add_overflow_return'
     Add-Guard -Condition 'if data storage math: ans' -Case 'add_overflow_stale_answer'
     Add-Guard -Condition 'unless data storage math: {error:"result_out_of_range"}' -Case 'add_overflow_error'
-    Add-SuccessCase -Case 'signed_divide' -Function 'divide' -ExpectedAnswer '-3.5f' -Setup @(
+    Add-SuccessCase -Case 'signed_divide' -Function 'div' -ExpectedAnswer '-3.5f' -Setup @(
         'data modify storage math: a set value 7.0f'
         'data modify storage math: b set value -2.0f'
     )
-    Add-SuccessCase -Case 'signed_zero_divide' -Function 'divide' -ExpectedAnswer '-0.0f' -Setup @(
+    Add-SuccessCase -Case 'signed_zero_divide' -Function 'div' -ExpectedAnswer '-0.0f' -Setup @(
         'data modify storage math: a set value 0.0f'
         'data modify storage math: b set value -2.0f'
     )
     Add-SuccessCase -Case 'small_reciprocal' -Function 'reciprocal' -ExpectedAnswer '16384.0f' -Setup @(
         'data modify storage math: a set value 0.00006103515625f'
     )
-    Add-SuccessCase -Case 'subnormal_divide_equal' -Function 'divide' -ExpectedAnswer '1.0f' -Setup @(
+    Add-SuccessCase -Case 'subnormal_divide_equal' -Function 'div' -ExpectedAnswer '1.0f' -Setup @(
         'data modify storage math: a set value 1.401298464324817E-45f'
         'data modify storage math: b set value 1.401298464324817E-45f'
     )
-    Add-SuccessCase -Case 'subnormal_divide_band' -Function 'divide' -ExpectedAnswer '8388608.0f' -Setup @(
+    Add-SuccessCase -Case 'subnormal_divide_band' -Function 'div' -ExpectedAnswer '8388608.0f' -Setup @(
         'data modify storage math: a set value 1.1754943508222875E-38f'
         'data modify storage math: b set value 1.401298464324817E-45f'
     )
-    Add-SuccessCase -Case 'subnormal_divide_precision' -Function 'divide' -ExpectedAnswer '1.1723450726535639E-38f' -Setup @(
+    Add-SuccessCase -Case 'subnormal_divide_precision' -Function 'div' -ExpectedAnswer '1.1723450726535639E-38f' -Setup @(
         'data modify storage math: a set value 1.1754942106924411E-38f'
         'data modify storage math: b set value 1.0026861429214478f'
     )
-    Add-SuccessCase -Case 'top_finite_divide' -Function 'divide' -ExpectedAnswer '3.4028234663852886E38f' -Setup @(
+    Add-SuccessCase -Case 'top_finite_divide' -Function 'div' -ExpectedAnswer '3.4028234663852886E38f' -Setup @(
         'data modify storage math: a set value 3.4028234663852886E38f'
         'data modify storage math: b set value 1.0f'
     )
     Add-SuccessCase -Case 'round' -Function 'round' -ExpectedAnswer '-1.0f' -Setup @(
         'data modify storage math: a set value -1.5f'
     )
-    Add-SuccessCase -Case 'square_root' -Function 'square_root' -ExpectedAnswer '1.9999999f' -Setup @(
+    Add-SuccessCase -Case 'square_root' -Function 'sqrt' -ExpectedAnswer '2.0f' -Setup @(
         'data modify storage math: a set value 4.0f'
     )
     Add-SuccessCase -Case 'log' -Function 'log' -ExpectedAnswer '0.0f' -Setup @(
@@ -229,15 +229,15 @@ try {
     Add-SuccessCase -Case 'exp' -Function 'exp' -ExpectedAnswer '1.0f' -Setup @(
         'data modify storage math: a set value 0.0f'
     )
-    Add-SuccessCase -Case 'power_positive' -Function 'power' -ExpectedAnswer '8.0f' -Setup @(
+    Add-SuccessCase -Case 'power_positive' -Function 'pow' -ExpectedAnswer '8.0f' -Setup @(
         'data modify storage math: a set value 2.0f'
         'data modify storage math: b set value 3.0f'
     )
-    Add-SuccessCase -Case 'power_negative_base' -Function 'power' -ExpectedAnswer '-8.0f' -Setup @(
+    Add-SuccessCase -Case 'power_negative_base' -Function 'pow' -ExpectedAnswer '-8.0f' -Setup @(
         'data modify storage math: a set value -2.0f'
         'data modify storage math: b set value 3.0f'
     )
-    Add-SuccessCase -Case 'power_negative_exponent' -Function 'power' -ExpectedAnswer '0.25f' -Setup @(
+    Add-SuccessCase -Case 'power_negative_exponent' -Function 'pow' -ExpectedAnswer '0.25f' -Setup @(
         'data modify storage math: a set value 2.0f'
         'data modify storage math: b set value -2.0f'
     )
@@ -512,7 +512,7 @@ try {
     $assertionCommands.Add('data modify storage math: b set value 0.99999994039535522f')
     $assertionCommands.Add('data modify storage math: ans set value 99.0f')
     $assertionCommands.Add('data modify storage math: error set value "stale_error"')
-    $assertionCommands.Add('execute store result score #return math_test run function #math:divide')
+    $assertionCommands.Add('execute store result score #return math_test run function #math:div')
     Add-Guard -Condition 'unless score #return math_test matches 0' -Case 'divide_top_overflow_return'
     Add-Guard -Condition 'if data storage math: ans' -Case 'divide_top_overflow_stale_answer'
     Add-Guard -Condition 'unless data storage math: {error:"result_out_of_range"}' -Case 'divide_top_overflow_error'

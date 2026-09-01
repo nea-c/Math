@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:min",
+  "inputs": [
+    {
+      "type": "minecraft:add",
+      "inputs": [
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_power_product_high"
+        },
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_power_product_low"
+        }
+      ]
+    },
+    88.72283172607422
+  ]
+}

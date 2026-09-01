@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:add",
+  "inputs": [
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "x"
+    },
+    {
+      "type": "minecraft:mul",
+      "inputs": [
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "z"
+        },
+        {
+          "type": "minecraft:sub",
+          "left": {
+            "type": "minecraft:storage",
+            "storage": "math:internal",
+            "path": "y"
+          },
+          "right": {
+            "type": "minecraft:storage",
+            "storage": "math:internal",
+            "path": "x"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:number_dispatcher",
+  "cases": [
+    {
+      "condition": {
+        "type": "minecraft:float_value_check",
+        "value": {
+          "type": "minecraft:sub",
+          "left": {
+            "type": "minecraft:storage",
+            "storage": "math:internal",
+            "path": "y"
+          },
+          "right": {
+            "type": "minecraft:sub",
+            "left": {
+              "type": "minecraft:storage",
+              "storage": "math:internal",
+              "path": "x"
+            },
+            "right": {
+              "type": "minecraft:storage",
+              "storage": "math:internal",
+              "path": "y"
+            }
+          }
+        },
+        "test": {
+          "min": 1.401298464324817e-45
+        }
+      },
+      "value": 1
+    }
+  ],
+  "default": 0
+}

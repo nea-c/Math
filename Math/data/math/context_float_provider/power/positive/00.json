@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:pow",
+  "base": {
+    "type": "minecraft:storage",
+    "storage": "math:",
+    "path": "a"
+  },
+  "exponent": {
+    "type": "minecraft:storage",
+    "storage": "math:",
+    "path": "b"
+  }
+}

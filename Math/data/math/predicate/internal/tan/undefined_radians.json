@@ -1,11 +1,12 @@
 {
-  "type": "minecraft:value_check",
+  "type": "minecraft:float_value_check",
   "value": {
     "type": "minecraft:storage",
     "storage": "math:internal",
-    "path": "w_comparison.predicate.tan_undefined_radians.maximum"
+    "path": "w_comparison.predicate.tan_undefined_radians"
   },
-  "range": {
-    "max": 0
+  "test": {
+    "min": 1,
+    "max": 1
   }
 }

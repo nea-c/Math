@@ -1,8 +1,0 @@
-{
-  "type": "minecraft:product",
-  "operands": [
-    "math:exp/polynomial/00",
-    "math:exp/factor/00",
-    "math:exp/scale/00"
-  ]
-}

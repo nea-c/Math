@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { runImplementation } from "./mcfunction-test-harness.mjs";
 
-const providerRoot = path.resolve("Math/data/math/number_provider");
+const providerRoot = path.resolve("Math/data/math/context_float_provider");
 
 function loadProviders() {
   const registry = new Map();
@@ -23,7 +23,7 @@ function expandedProviderCost(provider) {
   if (typeof provider === "number") return 1;
   if (typeof provider === "string") return expandedProviderCost(providers.get(provider));
   assert.ok(provider && typeof provider === "object");
-  return 1 + (provider.operands ?? []).reduce(
+  return 1 + (provider.inputs ?? []).reduce(
     (total, operand) => total + expandedProviderCost(operand),
     0,
   );
@@ -31,7 +31,7 @@ function expandedProviderCost(provider) {
 
 function finishProviderCost(name) {
   const source = fs.readFileSync(`Math/data/math/function/.common/reciprocal/${name}.mcfunction`, "utf8");
-  return [...source.matchAll(/compute default (math:\S+)/g)].reduce(
+  return [...source.matchAll(/compute default float (math:\S+)/g)].reduce(
     (total, match) => total + expandedProviderCost(match[1]),
     0,
   );

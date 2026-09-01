@@ -5,7 +5,7 @@ import path from "node:path";
 import { runImplementation } from "./mcfunction-test-harness.mjs";
 import { expandedProviderNodes, loadGeneratedGraph } from "./runtime-cost.mjs";
 
-const providerRoot = path.resolve("Math/data/math/number_provider");
+const providerRoot = path.resolve("Math/data/math/context_float_provider");
 const graph = loadGeneratedGraph();
 
 function adjacentPositiveFloat(value, direction) {
@@ -32,7 +32,7 @@ function dispatcherDepth(provider) {
   assert.ok(provider && typeof provider === "object");
   if (provider.type !== "minecraft:number_dispatcher") return 0;
   return 1 + Math.max(
-    ...provider.cases.map(entry => dispatcherDepth(entry.number_provider)),
+    ...provider.cases.map(entry => dispatcherDepth(entry.value)),
     dispatcherDepth(provider.default),
   );
 }
@@ -41,11 +41,11 @@ function maximumBreadth(provider) {
   if (typeof provider === "number" || typeof provider === "string") return 0;
   assert.ok(provider && typeof provider === "object");
   const children = [
-    ...(provider.operands ?? []),
-    ...(provider.cases ?? []).flatMap(entry => [entry.condition, entry.number_provider]),
+    ...(provider.inputs ?? []),
+    ...(provider.cases ?? []).flatMap(entry => [entry.condition, entry.value]),
     ...("default" in provider ? [provider.default] : []),
     ...("value" in provider ? [provider.value] : []),
-    ...Object.values(provider.range ?? {}),
+    ...Object.values(provider.test ?? {}),
   ];
   return Math.max(children.length, ...children.map(maximumBreadth));
 }
@@ -113,8 +113,8 @@ test("normalization and divide lookup pack growth stays within an explicit load 
   ];
   for (const alias of [
     path.join(providerRoot, "common", "normalize", "binary32", "scale.json"),
-    path.join(providerRoot, "internal", "divide", "scale.json"),
-    path.join(providerRoot, "internal", "divide", "factor.json"),
+    path.join(providerRoot, "internal", "div", "scale.json"),
+    path.join(providerRoot, "internal", "div", "factor.json"),
   ]) assert.equal(fs.existsSync(alias), false, `${alias} must not duplicate a shared exp provider`);
   const serializedBytes = files.reduce((total, file) => {
     const serialized = fs.readFileSync(file, "utf8").replaceAll("\r\n", "\n");

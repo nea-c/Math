@@ -9,14 +9,14 @@ const BASELINE_INPUTS = {
   tan: { a: 1 },
   tan_degrees: { a: 45 },
   log: { a: 3 },
-  divide: { a: 7, b: 3 },
-  square_root: { a: 3 },
+  div: { a: 7, b: 3 },
+  sqrt: { a: 3 },
   bezier: { t: 5, max: 10, a: 0, b: 1, curve: [0.25, 0.1, 0.25, 1] },
   bounce: { t: 5, max: 10, a: 0, b: 1 },
   bounce_decay: { t: 5, max: 10, a: 0, b: 1, bounces: 3.5, decay: 2 },
   remainder: { a: 12345.5, b: 7 },
-  modulo: { a: -12345.5, b: 7 },
-  power: { a: 3, b: 2.5 },
+  mod: { a: -12345.5, b: 7 },
+  pow: { a: 3, b: 2.5 },
   asin: { a: 0.5 },
   asin_degrees: { a: 0.5 },
   acos: { a: 0.5 },
@@ -31,14 +31,14 @@ const BOUNDARY_INPUTS = {
   tan: { a: Math.PI / 2 },
   tan_degrees: { a: 90 },
   log: { a: 0 },
-  divide: { a: 7, b: 0 },
-  square_root: { a: 0 },
+  div: { a: 7, b: 0 },
+  sqrt: { a: 0 },
   bezier: { t: 0, max: 10, a: 0, b: 1, curve: [0.25, 0.1, 0.25, 1] },
   bounce: { t: 0, max: 10, a: 0, b: 1 },
   bounce_decay: { t: 0, max: 10, a: 0, b: 1, bounces: 3.5, decay: 2 },
   remainder: { a: 12345.5, b: 0 },
-  modulo: { a: -12345.5, b: -7 },
-  power: { a: -2, b: 0.5 },
+  mod: { a: -12345.5, b: -7 },
+  pow: { a: -2, b: 0.5 },
   asin: { a: 1 },
   asin_degrees: { a: 1 },
   acos: { a: -1 },
@@ -53,14 +53,14 @@ const COMMAND_BUDGETS = {
   tan: { baseline: 93, boundary: 68 },
   tan_degrees: { baseline: 94, boundary: 69 },
   log: { baseline: 40, boundary: 11 },
-  divide: { baseline: 91, boundary: 9 },
-  square_root: { baseline: 76, boundary: 10 },
+  div: { baseline: 91, boundary: 9 },
+  sqrt: { baseline: 76, boundary: 10 },
   bezier: { baseline: 189, boundary: 58 },
   bounce: { baseline: 67, boundary: 14 },
   bounce_decay: { baseline: 95, boundary: 22 },
   remainder: { baseline: 134, boundary: 9 },
-  modulo: { baseline: 140, boundary: 137 },
-  power: { baseline: 62, boundary: 25 },
+  mod: { baseline: 140, boundary: 137 },
+  pow: { baseline: 62, boundary: 25 },
   asin: { baseline: 705, boundary: 22 },
   asin_degrees: { baseline: 706, boundary: 23 },
   acos: { baseline: 716, boundary: 17 },
@@ -159,12 +159,12 @@ test("runtime cost retains an independent provider maximum from a shorter branch
   const branchingGraph = {
     functions: new Map([
       ["start", ["execute if data storage math: {a:1} run return run function math:left", "function math:right"]],
-      ["left", ["data modify storage math:internal x set compute default math:heavy"]],
+      ["left", ["data modify storage math:internal x set compute default float math:heavy"]],
       ["right", ["say right", "say right again"]],
     ]),
     providers: new Map([["math:heavy", {
-      type: "minecraft:sum",
-      operands: Array.from({ length: 20 }, () => 1),
+      type: "minecraft:add",
+      inputs: Array.from({ length: 20 }, () => 1),
     }]]),
     predicates: new Map(),
   };
@@ -180,11 +180,11 @@ test("runtime cost includes number-dispatcher case conditions", () => {
     type: "minecraft:number_dispatcher",
     cases: [{
       condition: {
-        type: "minecraft:value_check",
+        type: "minecraft:float_value_check",
         value: { type: "minecraft:storage", storage: "math:internal", path: "x" },
-        range: { max: 0 },
+        test: { max: 0 },
       },
-      number_provider: 1,
+      value: 1,
     }],
     default: 2,
   };
@@ -251,9 +251,9 @@ test("quaternion conversion keeps deterministic path budgets and shares inverse 
   }
 });
 
-test("direct remainder start removes ascent work from public reduction", () => {
-  assert.equal(runFunction("remainder", BASELINE_INPUTS.remainder).commandsExecuted, 134);
-  assert.equal(runFunction("modulo", BASELINE_INPUTS.modulo).commandsExecuted, 140);
+test("native remainder removes the custom reduction work while mod keeps floor semantics", () => {
+  assert.equal(runFunction("remainder", BASELINE_INPUTS.remainder).commandsExecuted, 13);
+  assert.ok(runFunction("mod", BASELINE_INPUTS.mod).commandsExecuted <= 140);
 });
 
 test("large-angle trigonometry stays below its recursive-remainder phase baselines", () => {
@@ -275,37 +275,34 @@ test("large-angle trigonometry stays below its recursive-remainder phase baselin
 
 test("shared normalization reduces representative log and divide command counts", () => {
   assert.ok(runFunction("log", { a: 3 }).commandsExecuted < 40);
-  assert.ok(runFunction("divide", { a: 7, b: 3 }).commandsExecuted < 91);
+  assert.ok(runFunction("div", { a: 7, b: 3 }).commandsExecuted < 91);
 });
 
 test("power keeps explicit ordinary, negative, boundary, underflow, and nonfinite budgets", () => {
   for (const [name, [input, budget]] of Object.entries(POWER_PATH_BUDGETS)) {
-    const commands = runFunction("power", input).commandsExecuted;
+    const commands = runFunction("pow", input).commandsExecuted;
     assert.ok(commands <= budget, `power ${name} used ${commands} commands; budget ${budget}`);
   }
 });
 
-test("static divide cost includes both sequential normalizer calls", () => {
-  const cost = staticFunctionCost("divide/0.start", graph, { recursionLimit: 320 });
-  assert.equal(cost.commands, 77);
-  assert.equal(
-    cost.calls.commands.filter(call => call === ".common/normalize_binary32/0.start").length,
-    2,
-  );
+test("static div cost uses the native provider without normalizer calls", () => {
+  const cost = staticFunctionCost("div/0.start", graph, { recursionLimit: 320 });
+  assert.ok(cost.commands <= 17);
+  assert.equal(cost.calls.commands.includes(".common/normalize_binary32/0.start"), false);
 });
 
-test("honest static log and divide costs stay within measured head budgets", () => {
+test("honest static log and div costs stay within measured head budgets", () => {
   const log = staticFunctionCost("log/0.start", graph, { recursionLimit: 320 });
-  const divide = staticFunctionCost("divide/0.start", graph, { recursionLimit: 320 });
+  const divide = staticFunctionCost("div/0.start", graph, { recursionLimit: 320 });
   assert.ok(log.commands <= 39);
   assert.ok(log.providerNodes <= 5_000);
-  assert.ok(divide.commands <= 77);
-  assert.ok(divide.providerNodes <= 11_300);
+  assert.ok(divide.commands <= 17);
+  assert.ok(divide.providerNodes <= 20);
 });
 
 test("adaptive square root improves its Task 3 representative cost and preserves the boundary", () => {
-  assert.ok(runFunction("square_root", { a: 3 }).commandsExecuted < 96);
-  assert.equal(runFunction("square_root", { a: 0 }).commandsExecuted, 10);
+  assert.ok(runFunction("sqrt", { a: 3 }).commandsExecuted < 96);
+  assert.equal(runFunction("sqrt", { a: 0 }).commandsExecuted, 10);
 });
 
 test("active divide providers do not exceed the honestly recomputed Task 1 node maximum", () => {

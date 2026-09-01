@@ -1,0 +1,162 @@
+{
+  "type": "minecraft:number_dispatcher",
+  "cases": [
+    {
+      "condition": {
+        "type": "minecraft:float_value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_comparison.bounce_0"
+        },
+        "test": {
+          "max": 0
+        }
+      },
+      "value": {
+        "type": "minecraft:mul",
+        "inputs": [
+          7.5625,
+          {
+            "type": "minecraft:storage",
+            "storage": "math:internal",
+            "path": "w_bounce_u"
+          },
+          {
+            "type": "minecraft:storage",
+            "storage": "math:internal",
+            "path": "w_bounce_u"
+          }
+        ]
+      }
+    },
+    {
+      "condition": {
+        "type": "minecraft:float_value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_comparison.bounce_1"
+        },
+        "test": {
+          "max": 0
+        }
+      },
+      "value": {
+        "type": "minecraft:add",
+        "inputs": [
+          0.75,
+          {
+            "type": "minecraft:mul",
+            "inputs": [
+              7.5625,
+              {
+                "type": "minecraft:add",
+                "inputs": [
+                  {
+                    "type": "minecraft:storage",
+                    "storage": "math:internal",
+                    "path": "w_bounce_u"
+                  },
+                  -0.5454545617103577
+                ]
+              },
+              {
+                "type": "minecraft:add",
+                "inputs": [
+                  {
+                    "type": "minecraft:storage",
+                    "storage": "math:internal",
+                    "path": "w_bounce_u"
+                  },
+                  -0.5454545617103577
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "condition": {
+        "type": "minecraft:float_value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_comparison.bounce_2"
+        },
+        "test": {
+          "max": 0
+        }
+      },
+      "value": {
+        "type": "minecraft:add",
+        "inputs": [
+          0.9375,
+          {
+            "type": "minecraft:mul",
+            "inputs": [
+              7.5625,
+              {
+                "type": "minecraft:add",
+                "inputs": [
+                  {
+                    "type": "minecraft:storage",
+                    "storage": "math:internal",
+                    "path": "w_bounce_u"
+                  },
+                  -0.8181818127632141
+                ]
+              },
+              {
+                "type": "minecraft:add",
+                "inputs": [
+                  {
+                    "type": "minecraft:storage",
+                    "storage": "math:internal",
+                    "path": "w_bounce_u"
+                  },
+                  -0.8181818127632141
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "default": {
+    "type": "minecraft:add",
+    "inputs": [
+      0.984375,
+      {
+        "type": "minecraft:mul",
+        "inputs": [
+          7.5625,
+          {
+            "type": "minecraft:add",
+            "inputs": [
+              {
+                "type": "minecraft:storage",
+                "storage": "math:internal",
+                "path": "w_bounce_u"
+              },
+              -0.9545454382896423
+            ]
+          },
+          {
+            "type": "minecraft:add",
+            "inputs": [
+              {
+                "type": "minecraft:storage",
+                "storage": "math:internal",
+                "path": "w_bounce_u"
+              },
+              -0.9545454382896423
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

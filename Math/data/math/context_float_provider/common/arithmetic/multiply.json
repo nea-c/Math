@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:mul",
+  "inputs": [
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "x"
+    },
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "y"
+    }
+  ]
+}

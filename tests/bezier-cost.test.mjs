@@ -53,15 +53,15 @@ function createFloat32Counter() {
   };
 }
 
-function f32Product(counter, ...operands) {
-  let result = Math.fround(operands[0]);
-  for (const operand of operands.slice(1)) result = counter.multiply(result, operand);
+function f32Product(counter, ...inputs) {
+  let result = Math.fround(inputs[0]);
+  for (const operand of inputs.slice(1)) result = counter.multiply(result, operand);
   return result;
 }
 
-function f32Sum(counter, ...operands) {
-  let result = Math.fround(operands[0]);
-  for (const operand of operands.slice(1)) result = counter.add(result, operand);
+function f32Sum(counter, ...inputs) {
+  let result = Math.fround(inputs[0]);
+  for (const operand of inputs.slice(1)) result = counter.add(result, operand);
   return result;
 }
 

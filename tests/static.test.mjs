@@ -61,30 +61,53 @@ function validatePackGraph(packRoot) {
   const walkProvider = (provider, source, location) => {
     if (typeof provider === "number") return;
     if (typeof provider === "string") {
-      checkReference("number_provider", provider, source, location);
+      checkReference("context_float_provider", provider, source, location);
       return;
     }
     assert.ok(provider && typeof provider === "object" && !Array.isArray(provider), `${relativeSource(source)}${location}: invalid number provider`);
     switch (provider.type) {
       case "minecraft:storage":
         return;
-      case "minecraft:sum":
-      case "minecraft:product":
-      case "minecraft:maximum":
-      case "minecraft:minimum":
-        assert.ok(Array.isArray(provider.operands), `${relativeSource(source)}${location}: operands must be an array`);
-        provider.operands.forEach((operand, index) => walkProvider(operand, source, `${location}.operands[${index}]`));
+      case "minecraft:add":
+      case "minecraft:mul":
+      case "minecraft:max":
+      case "minecraft:min":
+      case "minecraft:avg":
+      case "minecraft:length":
+        assert.ok(Array.isArray(provider.inputs), `${relativeSource(source)}${location}: inputs must be an array`);
+        provider.inputs.forEach((input, index) => walkProvider(input, source, `${location}.inputs[${index}]`));
+        return;
+      case "minecraft:abs":
+      case "minecraft:negate":
+      case "minecraft:floor":
+      case "minecraft:ceil":
+      case "minecraft:round":
+      case "minecraft:truncate":
+      case "minecraft:sqrt":
+      case "minecraft:sin":
+      case "minecraft:cos":
+        walkProvider(provider.input, source, `${location}.input`);
+        return;
+      case "minecraft:sub":
+      case "minecraft:div":
+      case "minecraft:mod":
+        walkProvider(provider.left, source, `${location}.left`);
+        walkProvider(provider.right, source, `${location}.right`);
+        return;
+      case "minecraft:pow":
+        walkProvider(provider.base, source, `${location}.base`);
+        walkProvider(provider.exponent, source, `${location}.exponent`);
         return;
       case "minecraft:number_dispatcher":
         assert.ok(Array.isArray(provider.cases), `${relativeSource(source)}${location}: cases must be an array`);
         provider.cases.forEach((entry, index) => {
           walkPredicate(entry.condition, source, `${location}.cases[${index}].condition`);
-          walkProvider(entry.number_provider, source, `${location}.cases[${index}].number_provider`);
+          walkProvider(entry.value, source, `${location}.cases[${index}].value`);
         });
         walkProvider(provider.default, source, `${location}.default`);
         return;
       case "minecraft:conditional":
-        walkPredicate(provider.condition, source, `${location}.condition`);
+        walkPredicate(provider.conditions, source, `${location}.conditions`);
         walkProvider(provider.on_true, source, `${location}.on_true`);
         walkProvider(provider.on_false, source, `${location}.on_false`);
         return;
@@ -100,10 +123,10 @@ function validatePackGraph(packRoot) {
     }
     assert.ok(predicate && typeof predicate === "object" && !Array.isArray(predicate), `${relativeSource(source)}${location}: invalid predicate`);
     switch (predicate.type) {
-      case "minecraft:value_check":
+      case "minecraft:float_value_check":
         walkProvider(predicate.value, source, `${location}.value`);
-        if (Object.hasOwn(predicate.range, "min")) walkProvider(predicate.range.min, source, `${location}.range.min`);
-        if (Object.hasOwn(predicate.range, "max")) walkProvider(predicate.range.max, source, `${location}.range.max`);
+        if (Object.hasOwn(predicate.test, "min")) walkProvider(predicate.test.min, source, `${location}.test.min`);
+        if (Object.hasOwn(predicate.test, "max")) walkProvider(predicate.test.max, source, `${location}.test.max`);
         return;
       case "minecraft:all_of":
       case "minecraft:any_of":
@@ -164,8 +187,8 @@ function validatePackGraph(packRoot) {
       const operation = tokens[operationIndex];
       if (!["append", "insert", "merge", "prepend", "set"].includes(operation)) return;
       const sourceIndex = operationIndex + (operation === "insert" ? 2 : 1);
-      if (tokens[sourceIndex] === "compute" && tokens[sourceIndex + 1] === "default") {
-        checkAt("number_provider", sourceIndex + 2);
+      if (tokens[sourceIndex] === "compute" && tokens[sourceIndex + 2] === "float") {
+        checkAt("context_float_provider", sourceIndex + 3);
       }
     };
     const scanExecute = () => {
@@ -225,7 +248,7 @@ function validatePackGraph(packRoot) {
         checkAt("function", start + 1);
         return;
       case "compute":
-        if (tokens[start + 1] === "default") checkAt("number_provider", start + 2);
+        if (tokens[start + 2] === "float") checkAt("context_float_provider", start + 3);
         return;
       case "data":
         scanDataModify();
@@ -257,7 +280,7 @@ function validatePackGraph(packRoot) {
     for (const namespace of fs.readdirSync(dataRoot, { withFileTypes: true })) {
       if (!namespace.isDirectory()) continue;
       const namespaceRoot = path.join(dataRoot, namespace.name);
-      visitFiles(path.join(namespaceRoot, "number_provider"), ".json", (file) => {
+      visitFiles(path.join(namespaceRoot, "context_float_provider"), ".json", (file) => {
         walkProvider(JSON.parse(fs.readFileSync(file, "utf8")), file, "");
       });
       visitFiles(path.join(namespaceRoot, "predicate"), ".json", (file) => {
@@ -290,15 +313,15 @@ test("pack graph validator detects controlled dangling registry references", () 
       fs.mkdirSync(path.dirname(file), { recursive: true });
       fs.writeFileSync(file, typeof value === "string" ? value : `${JSON.stringify(value, null, 2)}\n`);
     };
-    write("data/math/number_provider/fixture/aggregate.json", {
-      type: "minecraft:sum",
-      operands: ["math:missing/operand", 1],
+    write("data/math/context_float_provider/fixture/aggregate.json", {
+      type: "minecraft:add",
+      inputs: ["math:missing/input", 1],
     });
-    write("data/math/number_provider/fixture/dispatcher.json", {
+    write("data/math/context_float_provider/fixture/dispatcher.json", {
       type: "minecraft:number_dispatcher",
       cases: [{
         condition: "math:missing/case_condition",
-        number_provider: "math:missing/case_provider",
+        value: "math:missing/case_provider",
       }],
       default: "math:missing/default_provider",
     });
@@ -311,16 +334,16 @@ test("pack graph validator detects controlled dangling registry references", () 
       ],
     });
     write("data/math/predicate/fixture/value_check.json", {
-      type: "minecraft:value_check",
+      type: "minecraft:float_value_check",
       value: "math:missing/value",
-      range: {
+      test: {
         min: "math:missing/range_min",
         max: "math:missing/range_max",
       },
     });
-    write("data/math/number_provider/fixture/conditional.json", {
+    write("data/math/context_float_provider/fixture/conditional.json", {
       type: "minecraft:conditional",
-      condition: "math:missing/conditional_condition",
+      conditions: "math:missing/conditional_condition",
       on_true: "math:missing/on_true",
       on_false: "math:missing/on_false",
     });
@@ -332,13 +355,13 @@ test("pack graph validator detects controlled dangling registry references", () 
       "execute unless predicate math:missing/unless_predicate run return 1",
       "return if predicate math:missing/return_if_predicate",
       "return unless predicate math:missing/return_unless_predicate",
-      "compute default math:missing/direct_compute",
-      "execute if score #x fixture matches 1 run compute default math:missing/executed_compute",
-      "data modify storage math:internal x append compute default math:missing/data_append",
-      "data modify storage math:internal x insert 0 compute default math:missing/data_insert",
-      "data modify storage math:internal x merge compute default math:missing/data_merge",
-      "data modify storage math:internal x prepend compute default math:missing/data_prepend",
-      "data modify storage math:internal x set compute default math:missing/data_set",
+      "compute default float math:missing/direct_compute",
+      "execute if score #x fixture matches 1 run compute default float math:missing/executed_compute",
+      "data modify storage math:internal x append compute default float math:missing/data_append",
+      "data modify storage math:internal x insert 0 compute default float math:missing/data_insert",
+      "data modify storage math:internal x merge compute default float math:missing/data_merge",
+      "data modify storage math:internal x prepend compute default float math:missing/data_prepend",
+      "data modify storage math:internal x set compute default float math:missing/data_set",
       'tellraw @a {"text":"function math:missing/literal is prose"}',
       "say function math:missing/chat",
       'tellraw @a {"text":"escaped \\\" quote; function math:missing/escaped is prose"}',
@@ -355,26 +378,26 @@ test("pack graph validator detects controlled dangling registry references", () 
       "data/math/function/fixture/root.mcfunction:5: dangling predicate math:missing/unless_predicate",
       "data/math/function/fixture/root.mcfunction:6: dangling predicate math:missing/return_if_predicate",
       "data/math/function/fixture/root.mcfunction:7: dangling predicate math:missing/return_unless_predicate",
-      "data/math/function/fixture/root.mcfunction:8: dangling number_provider math:missing/direct_compute",
-      "data/math/function/fixture/root.mcfunction:9: dangling number_provider math:missing/executed_compute",
-      "data/math/function/fixture/root.mcfunction:10: dangling number_provider math:missing/data_append",
-      "data/math/function/fixture/root.mcfunction:11: dangling number_provider math:missing/data_insert",
-      "data/math/function/fixture/root.mcfunction:12: dangling number_provider math:missing/data_merge",
-      "data/math/function/fixture/root.mcfunction:13: dangling number_provider math:missing/data_prepend",
-      "data/math/function/fixture/root.mcfunction:14: dangling number_provider math:missing/data_set",
-      "data/math/number_provider/fixture/aggregate.json:operands[0]: dangling number_provider math:missing/operand",
-      "data/math/number_provider/fixture/conditional.json:condition: dangling predicate math:missing/conditional_condition",
-      "data/math/number_provider/fixture/conditional.json:on_false: dangling number_provider math:missing/on_false",
-      "data/math/number_provider/fixture/conditional.json:on_true: dangling number_provider math:missing/on_true",
-      "data/math/number_provider/fixture/dispatcher.json:cases[0].condition: dangling predicate math:missing/case_condition",
-      "data/math/number_provider/fixture/dispatcher.json:cases[0].number_provider: dangling number_provider math:missing/case_provider",
-      "data/math/number_provider/fixture/dispatcher.json:default: dangling number_provider math:missing/default_provider",
+      "data/math/function/fixture/root.mcfunction:8: dangling context_float_provider math:missing/direct_compute",
+      "data/math/function/fixture/root.mcfunction:9: dangling context_float_provider math:missing/executed_compute",
+      "data/math/function/fixture/root.mcfunction:10: dangling context_float_provider math:missing/data_append",
+      "data/math/function/fixture/root.mcfunction:11: dangling context_float_provider math:missing/data_insert",
+      "data/math/function/fixture/root.mcfunction:12: dangling context_float_provider math:missing/data_merge",
+      "data/math/function/fixture/root.mcfunction:13: dangling context_float_provider math:missing/data_prepend",
+      "data/math/function/fixture/root.mcfunction:14: dangling context_float_provider math:missing/data_set",
+      "data/math/context_float_provider/fixture/aggregate.json:inputs[0]: dangling context_float_provider math:missing/input",
+      "data/math/context_float_provider/fixture/conditional.json:conditions: dangling predicate math:missing/conditional_condition",
+      "data/math/context_float_provider/fixture/conditional.json:on_false: dangling context_float_provider math:missing/on_false",
+      "data/math/context_float_provider/fixture/conditional.json:on_true: dangling context_float_provider math:missing/on_true",
+      "data/math/context_float_provider/fixture/dispatcher.json:cases[0].condition: dangling predicate math:missing/case_condition",
+      "data/math/context_float_provider/fixture/dispatcher.json:cases[0].value: dangling context_float_provider math:missing/case_provider",
+      "data/math/context_float_provider/fixture/dispatcher.json:default: dangling context_float_provider math:missing/default_provider",
       "data/math/predicate/fixture/nesting.json:terms[0]: dangling predicate math:missing/term",
       "data/math/predicate/fixture/nesting.json:terms[1].term: dangling predicate math:missing/inverted",
       "data/math/predicate/fixture/nesting.json:terms[2].terms[0]: dangling predicate math:missing/any_of",
-      "data/math/predicate/fixture/value_check.json:range.max: dangling number_provider math:missing/range_max",
-      "data/math/predicate/fixture/value_check.json:range.min: dangling number_provider math:missing/range_min",
-      "data/math/predicate/fixture/value_check.json:value: dangling number_provider math:missing/value",
+      "data/math/predicate/fixture/value_check.json:test.max: dangling context_float_provider math:missing/range_max",
+      "data/math/predicate/fixture/value_check.json:test.min: dangling context_float_provider math:missing/range_min",
+      "data/math/predicate/fixture/value_check.json:value: dangling context_float_provider math:missing/value",
       "data/math/tags/function/fixture.json:values[0]: dangling function math:missing/entry",
     ]));
   } finally {
@@ -386,10 +409,10 @@ test("all pack registry references resolve", () => {
   assert.deepEqual(validatePackGraph("Math"), []);
 });
 
-test("pack targets data pack format 118", () => {
+test("pack targets data pack format 119", () => {
   const meta = JSON.parse(fs.readFileSync("Math/pack.mcmeta", "utf8"));
-  assert.equal(meta.pack.min_format, 118);
-  assert.equal(meta.pack.max_format, 118);
+  assert.equal(meta.pack.min_format, 119);
+  assert.equal(meta.pack.max_format, 119);
 });
 
 test("public documentation uses function tags", () => {
@@ -398,7 +421,7 @@ test("public documentation uses function tags", () => {
   const prose = readme.replace(/```[\s\S]*?```/g, "");
   assert.doesNotMatch(prose, /function math:(?!internal)/);
   assert.doesNotMatch(integrationHarness, /run function math:(?!internal)/);
-  assert.match(readme, /function #math:divide/);
+  assert.match(readme, /function #math:div/);
   assert.match(integrationHarness, /run function #math:add/);
 });
 
@@ -487,7 +510,7 @@ test("easing, inverse-sine, and quaternion assets are generator-owned", () => {
     "Math/data/math/function/.common/asin_positive/0.start.mcfunction",
     "Math/data/math/function/elastic/0.start.mcfunction",
     "Math/data/math/function/elastic_decay/0.start.mcfunction",
-    "Math/data/math/number_provider/common/asin_positive/midpoint.json",
+    "Math/data/math/context_float_provider/common/asin_positive/midpoint.json",
     "Math/data/math/tags/function/elastic.json",
     "Math/data/math/function/bounce/0.start.mcfunction",
     "Math/data/math/function/bounce_decay/0.start.mcfunction",
@@ -496,19 +519,21 @@ test("easing, inverse-sine, and quaternion assets are generator-owned", () => {
     "Math/data/math/tags/function/bounce_decay.json",
     "Math/data/math/function/quaternion_to_axis_angle/0.start.mcfunction",
     "Math/data/math/function/.common/_error/invalid_quaternion.mcfunction",
-    "Math/data/math/number_provider/quaternion_to_axis_angle/input/rotation_0.json",
+    "Math/data/math/context_float_provider/quaternion_to_axis_angle/input/rotation_0.json",
     "Math/data/math/tags/function/quaternion_to_axis_angle.json",
   ]) assert.ok(manifest.files.includes(file), `${file} must be generated`);
 });
 
-test("generated value-check predicates use the format 118 type discriminator", () => {
+test("generated value-check predicates use the format 119 float type discriminator", () => {
   function assertTyped(condition, file) {
     if (condition.type === "minecraft:all_of") {
       for (const term of condition.terms) assertTyped(term, file);
       return;
     }
-    assert.equal(condition.type, "minecraft:value_check", file);
+    assert.equal(condition.type, "minecraft:float_value_check", file);
     assert.equal(condition.condition, undefined, file);
+    assert.equal(condition.range, undefined, file);
+    assert.ok(Object.hasOwn(condition, "test"), file);
   }
 
   const predicateRoot = path.join("Math/data/math/predicate/internal");
@@ -519,7 +544,7 @@ test("generated value-check predicates use the format 118 type discriminator", (
     assertTyped(predicate, file);
   }
 
-  const providerRoot = path.join("Math/data/math/number_provider");
+  const providerRoot = path.join("Math/data/math/context_float_provider");
   for (const entry of fs.readdirSync(providerRoot, { recursive: true, withFileTypes: true })) {
     if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
     const provider = JSON.parse(fs.readFileSync(path.join(entry.parentPath, entry.name), "utf8"));
@@ -530,8 +555,8 @@ test("generated value-check predicates use the format 118 type discriminator", (
   }
 });
 
-test("every number-provider document has a Snapshot-valid object or numeric root", () => {
-  const providerRoot = path.join("Math/data/math/number_provider");
+test("every context-float-provider document has a Snapshot-valid object or numeric root", () => {
+  const providerRoot = path.join("Math/data/math/context_float_provider");
   for (const entry of fs.readdirSync(providerRoot, { recursive: true, withFileTypes: true })) {
     if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
     const file = path.join(entry.parentPath, entry.name);
@@ -541,28 +566,29 @@ test("every number-provider document has a Snapshot-valid object or numeric root
   }
 });
 
-test("every dispatcher condition reads an integer-valued staged or reduced field", () => {
-  assert.equal(fs.existsSync("Math/data/math/number_provider/reciprocal"), false);
-  assert.equal(fs.existsSync("Math/data/math/number_provider/divide.json"), false);
-  const legacyNormalizer = "Math/data/math/number_provider/common/normalize/power_of_two";
+test("every dispatcher condition uses a float value check", () => {
+  assert.equal(fs.existsSync("Math/data/math/context_float_provider/reciprocal"), false);
+  assert.equal(fs.existsSync("Math/data/math/context_float_provider/divide.json"), false);
+  const legacyNormalizer = "Math/data/math/context_float_provider/common/normalize/power_of_two";
   const legacyFiles = fs.existsSync(legacyNormalizer)
     ? fs.readdirSync(legacyNormalizer, { recursive: true }).filter((name) => name.endsWith(".json"))
     : [];
   assert.deepEqual(legacyFiles, []);
 
-  const providerRoot = path.join("Math/data/math/number_provider");
+  const providerRoot = path.join("Math/data/math/context_float_provider");
   const dispatchers = [];
   const collectDispatchers = (provider, file) => {
     if (!provider || typeof provider !== "object") return;
     if (provider.type === "minecraft:number_dispatcher") {
       dispatchers.push([file, provider]);
       for (const dispatcherCase of provider.cases) {
-        collectDispatchers(dispatcherCase.number_provider, file);
+        collectDispatchers(dispatcherCase.value, file);
       }
       collectDispatchers(provider.default, file);
       return;
     }
-    for (const operand of provider.operands ?? []) collectDispatchers(operand, file);
+    for (const input of provider.inputs ?? []) collectDispatchers(input, file);
+    for (const field of ["input", "left", "right", "base", "exponent"]) collectDispatchers(provider[field], file);
   };
   for (const entry of fs.readdirSync(providerRoot, { recursive: true, withFileTypes: true })) {
     if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
@@ -571,36 +597,27 @@ test("every dispatcher condition reads an integer-valued staged or reduced field
     collectDispatchers(provider, file);
   }
 
-  function conditionValues(condition) {
-    if (condition.type === "minecraft:all_of") return condition.terms.flatMap(conditionValues);
-    return [condition.value];
+  function assertFloatChecks(condition, file) {
+    if (condition.type === "minecraft:all_of") {
+      condition.terms.forEach(term => assertFloatChecks(term, file));
+      return;
+    }
+    assert.equal(condition.type, "minecraft:float_value_check", file);
+    assert.ok(Object.hasOwn(condition, "test"), file);
   }
   for (const [file, dispatcher] of dispatchers) {
     for (const dispatcherCase of dispatcher.cases) {
-      for (const value of conditionValues(dispatcherCase.condition)) {
-        assert.equal(value.type, "minecraft:storage", `${file} condition must read a materialized field`);
-        const staged = value.storage === "math:internal" && value.path.startsWith("w_comparison.");
-        const reducedExponent = file.includes(`${path.sep}exp${path.sep}`)
-          && value.storage === "math:internal"
-          && value.path === "z";
-        const materializedInteger = value.storage === "math:internal"
-          && [
-            "w_normalize_exponent",
-            "w_divide_exponent",
-            "w_remainder_shift",
-          ].includes(value.path);
-        assert.ok(staged || reducedExponent || materializedInteger, `${file} condition source is not proven integer-valued`);
-      }
+      assertFloatChecks(dispatcherCase.condition, file);
     }
   }
 });
 
-test("every named predicate condition reads a materialized storage field", () => {
+test("every named predicate condition uses direct float-provider comparisons", () => {
   const predicateRoot = path.join("Math/data/math/predicate/internal");
 
   function conditionValues(condition) {
     if (condition.type === "minecraft:all_of") return condition.terms.flatMap(conditionValues);
-    assert.equal(condition.type, "minecraft:value_check");
+    assert.equal(condition.type, "minecraft:float_value_check");
     return [condition.value];
   }
 
@@ -609,12 +626,7 @@ test("every named predicate condition reads a materialized storage field", () =>
     const file = path.join(entry.parentPath, entry.name);
     const predicate = JSON.parse(fs.readFileSync(file, "utf8"));
     for (const value of conditionValues(predicate)) {
-      assert.equal(value.type, "minecraft:storage", `${file} condition must read a materialized field`);
-      const staged = value.storage === "math:internal" && value.path.startsWith("w_comparison.");
-      const normalizedInteger = value.storage === "math:internal"
-        && ((["x", "w"].includes(value.path) && file.includes(`${path.sep}comparison${path.sep}`))
-          || value.path === "w_remainder_remaining_shift");
-      assert.ok(staged || normalizedInteger, `${file} condition source is not proven integer-valued`);
+      assert.notEqual(value, undefined, `${file} condition must define a value`);
     }
   }
 });
@@ -634,7 +646,7 @@ test("generated functions and conditions use only declared storage with x/y/z/w-
     for (const child of Array.isArray(value) ? value : Object.values(value)) visit(child, file);
   };
 
-  for (const root of ["Math/data/math/number_provider", "Math/data/math/predicate"]) {
+  for (const root of ["Math/data/math/context_float_provider", "Math/data/math/predicate"]) {
     for (const entry of fs.readdirSync(root, { recursive: true, withFileTypes: true })) {
       if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
       const file = path.join(entry.parentPath, entry.name);

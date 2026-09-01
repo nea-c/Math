@@ -8,7 +8,9 @@ r1
 
 ## 動作要件
 
-Minecraft Java Edition 26.3
+Minecraft Java Edition 26.3 Pre-Release 1 以降
+
+データパック形式119の `context_float_provider` を使用します。基本演算、丸め、三角関数、平方根、累乗などは26.3で追加された公式のfloat providerで計算します。
 
 ## 使用方法
 
@@ -20,7 +22,7 @@ Minecraft Java Edition 26.3
 # 12 / 5を計算する
 data modify storage math: a set value 12.0f
 data modify storage math: b set value 5.0f
-function #math:divide
+function #math:div
 data get storage math: ans
 ```
 
@@ -53,16 +55,16 @@ data get storage math: ans
 | functionタグ | 入力 | 計算内容 |
 | :- | :-: | :- |
 | `#math:add` | `a`, `b` | `a + b` |
-| `#math:subtract` | `a`, `b` | `a - b` |
-| `#math:multiply` | `a`, `b` | `a * b` |
-| `#math:divide` | `a`, `b` | `a / b` |
+| `#math:sub` | `a`, `b` | `a - b` |
+| `#math:mul` | `a`, `b` | `a * b` |
+| `#math:div` | `a`, `b` | `a / b` |
 | `#math:reciprocal` | `a` | `1 / a` |
 | `#math:remainder` | `a`, `b` | 切り捨て除算を基準にした剰余 |
-| `#math:modulo` | `a`, `b` | floor除算を基準にした剰余 |
-| `#math:absolute` | `a` | 絶対値 |
+| `#math:mod` | `a`, `b` | floor除算を基準にした剰余 |
+| `#math:abs` | `a` | 絶対値 |
 | `#math:sign` | `a` | 符号 |
-| `#math:minimum` | `a`, `b` | 小さい方の値 |
-| `#math:maximum` | `a`, `b` | 大きい方の値 |
+| `#math:min` | `a`, `b` | 小さい方の値 |
+| `#math:max` | `a`, `b` | 大きい方の値 |
 | `#math:clamp` | `a`, `min`, `max` | `a` を `min` 以上 `max` 以下に制限 |
 
 #### 丸め
@@ -82,12 +84,12 @@ data get storage math: ans
 | :- | :-: | :- |
 | `#math:square` | `a` | `a²` |
 | `#math:cube` | `a` | `a³` |
-| `#math:square_root` | `a` | 平方根 |
-| `#math:power` | `a`, `b` | `a` の `b` 乗 |
+| `#math:sqrt` | `a` | 平方根 |
+| `#math:pow` | `a`, `b` | `a` の `b` 乗 |
 | `#math:exp` | `a` | `e` の `a` 乗 |
 | `#math:log` | `a` | 自然対数 |
 
-`power` は正の底で実数指数を扱えます。負の底では `b` が整数の場合のみ成功します。`power(0,0)` は `1.0f`、0の負数乗はエラーです。
+`pow` は正の底で実数指数を扱えます。負の底では `b` が整数の場合のみ成功します。`pow(0,0)` は `1.0f`、0の負数乗はエラーです。
 
 #### 三角関数
 

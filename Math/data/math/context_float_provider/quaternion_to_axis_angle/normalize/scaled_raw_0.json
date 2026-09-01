@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:mul",
+  "inputs": [
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_quaternion_component_0"
+    },
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_quaternion_scale_multiplier_a"
+    },
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_quaternion_scale_multiplier_b"
+    }
+  ]
+}

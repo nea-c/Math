@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:abs",
+  "input": {
+    "type": "minecraft:storage",
+    "storage": "math:internal",
+    "path": "x"
+  }
+}

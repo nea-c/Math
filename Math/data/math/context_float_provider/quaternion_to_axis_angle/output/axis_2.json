@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:mul",
+  "inputs": [
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_quaternion_vector_scaled_2"
+    },
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_quaternion_inverse_vector_length"
+    }
+  ]
+}

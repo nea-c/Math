@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:number_dispatcher",
+  "cases": [
+    {
+      "condition": {
+        "type": "minecraft:float_value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_comparison.sqrt_estimate_at_least_two"
+        },
+        "test": {
+          "min": 0
+        }
+      },
+      "value": 0.5
+    }
+  ],
+  "default": 1
+}

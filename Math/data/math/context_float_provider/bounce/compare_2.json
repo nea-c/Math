@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:mul",
+  "inputs": [
+    {
+      "type": "minecraft:add",
+      "inputs": [
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_bounce_u"
+        },
+        {
+          "type": "minecraft:mul",
+          "inputs": [
+            -1,
+            0.9090909361839294
+          ]
+        }
+      ]
+    },
+    16777216
+  ]
+}

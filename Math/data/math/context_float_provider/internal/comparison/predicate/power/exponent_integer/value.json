@@ -1,0 +1,37 @@
+{
+  "type": "minecraft:number_dispatcher",
+  "cases": [
+    {
+      "condition": {
+        "type": "minecraft:float_value_check",
+        "value": {
+          "type": "minecraft:add",
+          "inputs": [
+            {
+              "type": "minecraft:storage",
+              "storage": "math:",
+              "path": "b"
+            },
+            {
+              "type": "minecraft:mul",
+              "inputs": [
+                -1,
+                {
+                  "type": "minecraft:storage",
+                  "storage": "math:internal",
+                  "path": "z"
+                }
+              ]
+            }
+          ]
+        },
+        "test": {
+          "min": 0,
+          "max": 0
+        }
+      },
+      "value": 1
+    }
+  ],
+  "default": 0
+}

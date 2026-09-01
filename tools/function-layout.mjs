@@ -1,9 +1,9 @@
 export const PUBLIC_FUNCTION_NAMES = Object.freeze([
-  "absolute", "acos", "acos_degrees", "add", "asin", "asin_degrees", "atan", "atan2", "atan2_degrees", "atan_degrees", "bezier", "bounce", "bounce_decay", "ceil", "clamp", "cos", "cos_degrees", "cube",
-  "deg", "divide", "e", "elastic", "elastic_decay", "exp", "floor", "lerp", "log", "maximum",
-  "minimum", "modulo", "multiply", "pi", "power", "rad", "reciprocal",
+  "abs", "acos", "acos_degrees", "add", "asin", "asin_degrees", "atan", "atan2", "atan2_degrees", "atan_degrees", "bezier", "bounce", "bounce_decay", "ceil", "clamp", "cos", "cos_degrees", "cube",
+  "deg", "div", "e", "elastic", "elastic_decay", "exp", "floor", "lerp", "log", "max",
+  "min", "mod", "mul", "pi", "pow", "rad", "reciprocal",
   "quaternion_to_axis_angle", "remainder", "round", "sign", "sin", "sin_degrees", "square",
-  "square_root", "subtract", "tan", "tan_degrees", "tau", "truncate",
+  "sqrt", "sub", "tan", "tan_degrees", "tau", "truncate",
 ]);
 
 export const PUBLIC_FUNCTION_PATHS = Object.freeze(Object.fromEntries(
@@ -56,20 +56,20 @@ export const FUNCTION_PATHS = Object.freeze({
   elasticDecayFinish: "elastic_decay/1.finish",
   bounceFinish: "bounce/1.finish",
   bounceDecayFinish: "bounce_decay/1.finish",
-  divideUnderflow: "divide/4.underflow",
-  moduloNegativeB: "modulo/1.negative_b",
-  squareRootNormalize: "square_root/1.normalize",
-  squareRootNormalizeScaleUp: "square_root/2.normalize_scale_up",
-  squareRootNormalizeScaleDown: "square_root/3.normalize_scale_down",
-  powerZero: "power/1.zero",
-  powerNegative: "power/2.negative",
-  powerPositive: "power/3.positive",
-  powerNegativeOdd: "power/4.negative_odd",
-  powerNonfinitePositive: "power/5.nonfinite_positive",
-  powerNonfiniteNegative: "power/6.nonfinite_negative",
-  powerBoundaryPositive: "power/7.boundary_positive",
-  powerBoundaryNegative: "power/8.boundary_negative",
-  powerClassifyOverflow: "power/9.classify_overflow",
+  divideUnderflow: "div/4.underflow",
+  moduloNegativeB: "mod/1.negative_b",
+  squareRootNormalize: "sqrt/1.normalize",
+  squareRootNormalizeScaleUp: "sqrt/2.normalize_scale_up",
+  squareRootNormalizeScaleDown: "sqrt/3.normalize_scale_down",
+  powerZero: "pow/1.zero",
+  powerNegative: "pow/2.negative",
+  powerPositive: "pow/3.positive",
+  powerNegativeOdd: "pow/4.negative_odd",
+  powerNonfinitePositive: "pow/5.nonfinite_positive",
+  powerNonfiniteNegative: "pow/6.nonfinite_negative",
+  powerBoundaryPositive: "pow/7.boundary_positive",
+  powerBoundaryNegative: "pow/8.boundary_negative",
+  powerClassifyOverflow: "pow/9.classify_overflow",
 });
 
 export function functionId(path) {

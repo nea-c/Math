@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:mod",
+  "left": {
+    "type": "minecraft:storage",
+    "storage": "math:internal",
+    "path": "x"
+  },
+  "right": {
+    "type": "minecraft:storage",
+    "storage": "math:internal",
+    "path": "y"
+  }
+}

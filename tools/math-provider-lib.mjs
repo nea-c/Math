@@ -21,32 +21,55 @@ export function storage(storageId, providerPath) {
   };
 }
 
-function aggregate(type, operands) {
+function aggregate(type, inputs) {
   return {
     type: `minecraft:${type}`,
-    operands: operands.length === 1 && Array.isArray(operands[0]) ? operands[0] : operands,
+    inputs: inputs.length === 1 && Array.isArray(inputs[0]) ? inputs[0] : inputs,
   };
 }
 
-export function sum(...operands) {
-  return aggregate("sum", operands);
+export function sum(...inputs) {
+  return aggregate("add", inputs);
 }
 
-export function product(...operands) {
-  return aggregate("product", operands);
+export function product(...inputs) {
+  return aggregate("mul", inputs);
 }
 
-export function minimum(...operands) {
-  return aggregate("minimum", operands);
+export function minimum(...inputs) {
+  return aggregate("min", inputs);
 }
 
-export function maximum(...operands) {
-  return aggregate("maximum", operands);
+export function maximum(...inputs) {
+  return aggregate("max", inputs);
 }
 
-export function average(...operands) {
-  return aggregate("average", operands);
+export function average(...inputs) {
+  return aggregate("avg", inputs);
 }
+
+function unary(type, input) {
+  return { type: `minecraft:${type}`, input };
+}
+
+function binary(type, left, right) {
+  return { type: `minecraft:${type}`, left, right };
+}
+
+export const absolute = input => unary("abs", input);
+export const negate = input => unary("negate", input);
+export const floor = input => unary("floor", input);
+export const ceil = input => unary("ceil", input);
+export const round = input => unary("round", input);
+export const truncate = input => unary("truncate", input);
+export const squareRoot = input => unary("sqrt", input);
+export const sine = input => unary("sin", input);
+export const cosine = input => unary("cos", input);
+export const subtract = (left, right) => binary("sub", left, right);
+export const divide = (left, right) => binary("div", left, right);
+export const modulo = (left, right) => binary("mod", left, right);
+export const power = (base, exponent) => ({ type: "minecraft:pow", base, exponent });
+export const length = (...inputs) => aggregate("length", inputs);
 
 function minimumFloatSpacing(value) {
   const threshold = f32(Math.abs(value));
@@ -114,10 +137,10 @@ function registryValue(referenceId, registry) {
   return value;
 }
 
-function evaluateAggregate(operands, registry, storageValues, initial, operation) {
+function evaluateAggregate(inputs, registry, storageValues, initial, operation) {
   let result = f32(initial);
-  for (const operand of operands) {
-    result = f32(operation(result, evaluateProvider(operand, registry, storageValues)));
+  for (const input of inputs) {
+    result = f32(operation(result, evaluateProvider(input, registry, storageValues)));
   }
   return result;
 }
@@ -133,13 +156,17 @@ function evaluateInlinePredicate(predicate, registry, storageValues) {
     }
     return predicate.terms.every(term => evaluateInlinePredicate(term, registry, storageValues));
   }
-  if (condition !== "value_check") {
+  if (condition !== "float_value_check") {
     throw new Error(`Unsupported inline predicate type: ${predicate.type}`);
   }
-  const value = evaluateProviderInt(predicate.value, registry, storageValues);
-  const range = predicate.range ?? {};
-  return (range.min === undefined || value >= javaInt(f32(range.min)))
-    && (range.max === undefined || value <= javaInt(f32(range.max)));
+  const value = evaluateProvider(predicate.value, registry, storageValues);
+  const range = predicate.test ?? {};
+  if (typeof range === "number" || typeof range === "string") {
+    return value === evaluateProvider(range, registry, storageValues);
+  }
+  const minimum = range.min === undefined ? undefined : evaluateProvider(range.min, registry, storageValues);
+  const maximum = range.max === undefined ? undefined : evaluateProvider(range.max, registry, storageValues);
+  return (minimum === undefined || value >= minimum) && (maximum === undefined || value <= maximum);
 }
 
 function javaInt(value) {
@@ -167,27 +194,27 @@ function evaluateProviderInt(provider, registry, storageValues) {
   if (type === "number_dispatcher") {
     for (const dispatcherCase of provider.cases ?? []) {
       if (evaluateInlinePredicate(dispatcherCase.condition, registry, storageValues)) {
-        return evaluateProviderInt(dispatcherCase.number_provider, registry, storageValues);
+        return evaluateProviderInt(dispatcherCase.value, registry, storageValues);
       }
     }
     return evaluateProviderInt(provider.default ?? 0, registry, storageValues);
   }
 
-  const operands = provider.operands;
-  if (!Array.isArray(operands)) {
-    throw new TypeError(`Number provider ${provider.type} requires an operands array`);
+  const inputs = provider.inputs;
+  if (!Array.isArray(inputs)) {
+    throw new TypeError(`Number provider ${provider.type} requires an inputs array`);
   }
-  const values = operands.map(operand => evaluateProviderInt(operand, registry, storageValues));
+  const values = inputs.map(input => evaluateProviderInt(input, registry, storageValues));
   switch (type) {
-    case "sum":
+    case "add":
       return values.reduce((left, right) => (left + right) | 0, 0);
-    case "product":
+    case "mul":
       return values.reduce((left, right) => Math.imul(left, right), 1);
-    case "minimum":
+    case "min":
       return Math.min(...values);
-    case "maximum":
+    case "max":
       return Math.max(...values);
-    case "average":
+    case "avg":
       return Math.trunc(values.reduce((left, right) => (left + right) | 0, 0) / values.length);
     default:
       throw new Error(`Unsupported number provider type: ${provider.type}`);
@@ -221,29 +248,46 @@ export function evaluateProvider(provider, registry = new Map(), storageValues =
     }
     for (const dispatcherCase of provider.cases) {
       if (evaluateInlinePredicate(dispatcherCase.condition, registry, storageValues)) {
-        return evaluateProvider(dispatcherCase.number_provider, registry, storageValues);
+        return evaluateProvider(dispatcherCase.value, registry, storageValues);
       }
     }
     return evaluateProvider(provider.default ?? 0, registry, storageValues);
   }
 
-  const operands = provider.operands;
-  if (!Array.isArray(operands)) {
-    throw new TypeError(`Number provider ${provider.type} requires an operands array`);
-  }
+  const unaryValue = () => evaluateProvider(provider.input, registry, storageValues);
+  const left = () => evaluateProvider(provider.left, registry, storageValues);
+  const right = () => evaluateProvider(provider.right, registry, storageValues);
+  const inputs = provider.inputs;
   switch (type) {
-    case "sum":
-      return evaluateAggregate(operands, registry, storageValues, 0, (left, right) => left + right);
-    case "product":
-      return evaluateAggregate(operands, registry, storageValues, 1, (left, right) => left * right);
-    case "minimum":
-      return evaluateAggregate(operands, registry, storageValues, Infinity, Math.min);
-    case "maximum":
-      return evaluateAggregate(operands, registry, storageValues, -Infinity, Math.max);
-    case "average": {
-      const total = evaluateAggregate(operands, registry, storageValues, 0, (left, right) => left + right);
-      return f32(total / operands.length);
+    case "abs": return f32(Math.abs(unaryValue()));
+    case "negate": return f32(-unaryValue());
+    case "floor": return f32(Math.floor(unaryValue()));
+    case "ceil": return f32(Math.ceil(unaryValue()));
+    case "round": return f32(Math.floor(unaryValue() + 0.5));
+    case "truncate": return f32(Math.trunc(unaryValue()));
+    case "sqrt": return f32(Math.sqrt(unaryValue()));
+    case "sin": return f32(Math.sin(unaryValue()));
+    case "cos": return f32(Math.cos(unaryValue()));
+    case "sub": return f32(left() - right());
+    case "div": return f32(left() / right());
+    case "mod": return f32(left() % right());
+    case "pow": return f32(Math.pow(
+      evaluateProvider(provider.base, registry, storageValues),
+      evaluateProvider(provider.exponent, registry, storageValues),
+    ));
+    case "add":
+      return evaluateAggregate(inputs, registry, storageValues, 0, (leftValue, rightValue) => leftValue + rightValue);
+    case "mul":
+      return evaluateAggregate(inputs, registry, storageValues, 1, (leftValue, rightValue) => leftValue * rightValue);
+    case "min":
+      return Math.min(...inputs.map(input => evaluateProvider(input, registry, storageValues)));
+    case "max":
+      return Math.max(...inputs.map(input => evaluateProvider(input, registry, storageValues)));
+    case "avg": {
+      const total = evaluateAggregate(inputs, registry, storageValues, 0, (leftValue, rightValue) => leftValue + rightValue);
+      return f32(total / inputs.length);
     }
+    case "length": return f32(Math.hypot(...inputs.map(input => evaluateProvider(input, registry, storageValues))));
     default:
       throw new Error(`Unsupported number provider type: ${provider.type}`);
   }

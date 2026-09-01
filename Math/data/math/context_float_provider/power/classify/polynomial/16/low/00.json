@@ -1,0 +1,489 @@
+{
+  "type": "minecraft:add",
+  "inputs": [
+    {
+      "type": "minecraft:add",
+      "inputs": [
+        {
+          "type": "minecraft:sub",
+          "left": {
+            "type": "minecraft:mul",
+            "inputs": [
+              {
+                "type": "minecraft:storage",
+                "storage": "math:internal",
+                "path": "x"
+              },
+              {
+                "type": "minecraft:storage",
+                "storage": "math:internal",
+                "path": "z"
+              }
+            ]
+          },
+          "right": {
+            "type": "minecraft:sub",
+            "left": {
+              "type": "minecraft:add",
+              "inputs": [
+                {
+                  "type": "minecraft:mul",
+                  "inputs": [
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:internal",
+                      "path": "x"
+                    },
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:internal",
+                      "path": "z"
+                    }
+                  ]
+                },
+                -0.0625
+              ]
+            },
+            "right": {
+              "type": "minecraft:sub",
+              "left": {
+                "type": "minecraft:add",
+                "inputs": [
+                  {
+                    "type": "minecraft:mul",
+                    "inputs": [
+                      {
+                        "type": "minecraft:storage",
+                        "storage": "math:internal",
+                        "path": "x"
+                      },
+                      {
+                        "type": "minecraft:storage",
+                        "storage": "math:internal",
+                        "path": "z"
+                      }
+                    ]
+                  },
+                  -0.0625
+                ]
+              },
+              "right": {
+                "type": "minecraft:mul",
+                "inputs": [
+                  {
+                    "type": "minecraft:storage",
+                    "storage": "math:internal",
+                    "path": "x"
+                  },
+                  {
+                    "type": "minecraft:storage",
+                    "storage": "math:internal",
+                    "path": "z"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "type": "minecraft:sub",
+          "left": -0.0625,
+          "right": {
+            "type": "minecraft:sub",
+            "left": {
+              "type": "minecraft:add",
+              "inputs": [
+                {
+                  "type": "minecraft:mul",
+                  "inputs": [
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:internal",
+                      "path": "x"
+                    },
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:internal",
+                      "path": "z"
+                    }
+                  ]
+                },
+                -0.0625
+              ]
+            },
+            "right": {
+              "type": "minecraft:mul",
+              "inputs": [
+                {
+                  "type": "minecraft:storage",
+                  "storage": "math:internal",
+                  "path": "x"
+                },
+                {
+                  "type": "minecraft:storage",
+                  "storage": "math:internal",
+                  "path": "z"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "minecraft:add",
+      "inputs": [
+        {
+          "type": "minecraft:sub",
+          "left": {
+            "type": "minecraft:mul",
+            "inputs": [
+              {
+                "type": "minecraft:sub",
+                "left": {
+                  "type": "minecraft:mul",
+                  "inputs": [
+                    4097,
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:internal",
+                      "path": "x"
+                    }
+                  ]
+                },
+                "right": {
+                  "type": "minecraft:sub",
+                  "left": {
+                    "type": "minecraft:mul",
+                    "inputs": [
+                      4097,
+                      {
+                        "type": "minecraft:storage",
+                        "storage": "math:internal",
+                        "path": "x"
+                      }
+                    ]
+                  },
+                  "right": {
+                    "type": "minecraft:storage",
+                    "storage": "math:internal",
+                    "path": "x"
+                  }
+                }
+              },
+              {
+                "type": "minecraft:sub",
+                "left": {
+                  "type": "minecraft:mul",
+                  "inputs": [
+                    4097,
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:internal",
+                      "path": "z"
+                    }
+                  ]
+                },
+                "right": {
+                  "type": "minecraft:sub",
+                  "left": {
+                    "type": "minecraft:mul",
+                    "inputs": [
+                      4097,
+                      {
+                        "type": "minecraft:storage",
+                        "storage": "math:internal",
+                        "path": "z"
+                      }
+                    ]
+                  },
+                  "right": {
+                    "type": "minecraft:storage",
+                    "storage": "math:internal",
+                    "path": "z"
+                  }
+                }
+              }
+            ]
+          },
+          "right": {
+            "type": "minecraft:mul",
+            "inputs": [
+              {
+                "type": "minecraft:storage",
+                "storage": "math:internal",
+                "path": "x"
+              },
+              {
+                "type": "minecraft:storage",
+                "storage": "math:internal",
+                "path": "z"
+              }
+            ]
+          }
+        },
+        {
+          "type": "minecraft:mul",
+          "inputs": [
+            {
+              "type": "minecraft:sub",
+              "left": {
+                "type": "minecraft:mul",
+                "inputs": [
+                  4097,
+                  {
+                    "type": "minecraft:storage",
+                    "storage": "math:internal",
+                    "path": "x"
+                  }
+                ]
+              },
+              "right": {
+                "type": "minecraft:sub",
+                "left": {
+                  "type": "minecraft:mul",
+                  "inputs": [
+                    4097,
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:internal",
+                      "path": "x"
+                    }
+                  ]
+                },
+                "right": {
+                  "type": "minecraft:storage",
+                  "storage": "math:internal",
+                  "path": "x"
+                }
+              }
+            },
+            {
+              "type": "minecraft:sub",
+              "left": {
+                "type": "minecraft:storage",
+                "storage": "math:internal",
+                "path": "z"
+              },
+              "right": {
+                "type": "minecraft:sub",
+                "left": {
+                  "type": "minecraft:mul",
+                  "inputs": [
+                    4097,
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:internal",
+                      "path": "z"
+                    }
+                  ]
+                },
+                "right": {
+                  "type": "minecraft:sub",
+                  "left": {
+                    "type": "minecraft:mul",
+                    "inputs": [
+                      4097,
+                      {
+                        "type": "minecraft:storage",
+                        "storage": "math:internal",
+                        "path": "z"
+                      }
+                    ]
+                  },
+                  "right": {
+                    "type": "minecraft:storage",
+                    "storage": "math:internal",
+                    "path": "z"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:mul",
+          "inputs": [
+            {
+              "type": "minecraft:sub",
+              "left": {
+                "type": "minecraft:storage",
+                "storage": "math:internal",
+                "path": "x"
+              },
+              "right": {
+                "type": "minecraft:sub",
+                "left": {
+                  "type": "minecraft:mul",
+                  "inputs": [
+                    4097,
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:internal",
+                      "path": "x"
+                    }
+                  ]
+                },
+                "right": {
+                  "type": "minecraft:sub",
+                  "left": {
+                    "type": "minecraft:mul",
+                    "inputs": [
+                      4097,
+                      {
+                        "type": "minecraft:storage",
+                        "storage": "math:internal",
+                        "path": "x"
+                      }
+                    ]
+                  },
+                  "right": {
+                    "type": "minecraft:storage",
+                    "storage": "math:internal",
+                    "path": "x"
+                  }
+                }
+              }
+            },
+            {
+              "type": "minecraft:sub",
+              "left": {
+                "type": "minecraft:mul",
+                "inputs": [
+                  4097,
+                  {
+                    "type": "minecraft:storage",
+                    "storage": "math:internal",
+                    "path": "z"
+                  }
+                ]
+              },
+              "right": {
+                "type": "minecraft:sub",
+                "left": {
+                  "type": "minecraft:mul",
+                  "inputs": [
+                    4097,
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:internal",
+                      "path": "z"
+                    }
+                  ]
+                },
+                "right": {
+                  "type": "minecraft:storage",
+                  "storage": "math:internal",
+                  "path": "z"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:mul",
+          "inputs": [
+            {
+              "type": "minecraft:sub",
+              "left": {
+                "type": "minecraft:storage",
+                "storage": "math:internal",
+                "path": "x"
+              },
+              "right": {
+                "type": "minecraft:sub",
+                "left": {
+                  "type": "minecraft:mul",
+                  "inputs": [
+                    4097,
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:internal",
+                      "path": "x"
+                    }
+                  ]
+                },
+                "right": {
+                  "type": "minecraft:sub",
+                  "left": {
+                    "type": "minecraft:mul",
+                    "inputs": [
+                      4097,
+                      {
+                        "type": "minecraft:storage",
+                        "storage": "math:internal",
+                        "path": "x"
+                      }
+                    ]
+                  },
+                  "right": {
+                    "type": "minecraft:storage",
+                    "storage": "math:internal",
+                    "path": "x"
+                  }
+                }
+              }
+            },
+            {
+              "type": "minecraft:sub",
+              "left": {
+                "type": "minecraft:storage",
+                "storage": "math:internal",
+                "path": "z"
+              },
+              "right": {
+                "type": "minecraft:sub",
+                "left": {
+                  "type": "minecraft:mul",
+                  "inputs": [
+                    4097,
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:internal",
+                      "path": "z"
+                    }
+                  ]
+                },
+                "right": {
+                  "type": "minecraft:sub",
+                  "left": {
+                    "type": "minecraft:mul",
+                    "inputs": [
+                      4097,
+                      {
+                        "type": "minecraft:storage",
+                        "storage": "math:internal",
+                        "path": "z"
+                      }
+                    ]
+                  },
+                  "right": {
+                    "type": "minecraft:storage",
+                    "storage": "math:internal",
+                    "path": "z"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "minecraft:mul",
+      "inputs": [
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "y"
+        },
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "z"
+        }
+      ]
+    },
+    0
+  ]
+}

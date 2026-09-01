@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:mul",
+  "inputs": [
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_log_reciprocal"
+    },
+    {
+      "type": "minecraft:add",
+      "inputs": [
+        2,
+        {
+          "type": "minecraft:mul",
+          "inputs": [
+            -1,
+            {
+              "type": "minecraft:storage",
+              "storage": "math:internal",
+              "path": "w_log_mantissa"
+            },
+            {
+              "type": "minecraft:storage",
+              "storage": "math:internal",
+              "path": "w_log_reciprocal"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

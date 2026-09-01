@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:number_dispatcher",
+  "cases": [
+    {
+      "condition": {
+        "type": "minecraft:float_value_check",
+        "value": {
+          "type": "minecraft:add",
+          "inputs": [
+            {
+              "type": "minecraft:storage",
+              "storage": "math:internal",
+              "path": "w_quaternion_vector_scaled_raw_0"
+            },
+            {
+              "type": "minecraft:storage",
+              "storage": "math:internal",
+              "path": "w_quaternion_vector_maximum_mantissa"
+            }
+          ]
+        },
+        "test": {
+          "min": 0,
+          "max": 0
+        }
+      },
+      "value": 1
+    }
+  ],
+  "default": 0
+}

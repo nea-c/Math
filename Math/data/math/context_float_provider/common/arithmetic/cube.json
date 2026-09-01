@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:pow",
+  "base": {
+    "type": "minecraft:storage",
+    "storage": "math:internal",
+    "path": "x"
+  },
+  "exponent": 3
+}

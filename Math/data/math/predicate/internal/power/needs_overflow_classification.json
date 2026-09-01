@@ -1,27 +1,12 @@
 {
-  "type": "minecraft:all_of",
-  "terms": [
-    {
-      "type": "minecraft:value_check",
-      "value": {
-        "type": "minecraft:storage",
-        "storage": "math:internal",
-        "path": "w_comparison.predicate.power_needs_overflow_classification.minimum"
-      },
-      "range": {
-        "min": 0
-      }
-    },
-    {
-      "type": "minecraft:value_check",
-      "value": {
-        "type": "minecraft:storage",
-        "storage": "math:internal",
-        "path": "w_comparison.predicate.power_needs_overflow_classification.maximum"
-      },
-      "range": {
-        "max": 0
-      }
-    }
-  ]
+  "type": "minecraft:float_value_check",
+  "value": {
+    "type": "minecraft:storage",
+    "storage": "math:internal",
+    "path": "w_comparison.predicate.power_needs_overflow_classification"
+  },
+  "test": {
+    "min": 1,
+    "max": 1
+  }
 }

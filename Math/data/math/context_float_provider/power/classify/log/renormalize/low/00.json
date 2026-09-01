@@ -1,0 +1,55 @@
+{
+  "type": "minecraft:add",
+  "inputs": [
+    {
+      "type": "minecraft:sub",
+      "left": {
+        "type": "minecraft:storage",
+        "storage": "math:internal",
+        "path": "x"
+      },
+      "right": {
+        "type": "minecraft:sub",
+        "left": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_power_log_high"
+        },
+        "right": {
+          "type": "minecraft:sub",
+          "left": {
+            "type": "minecraft:storage",
+            "storage": "math:internal",
+            "path": "w_power_log_high"
+          },
+          "right": {
+            "type": "minecraft:storage",
+            "storage": "math:internal",
+            "path": "x"
+          }
+        }
+      }
+    },
+    {
+      "type": "minecraft:sub",
+      "left": {
+        "type": "minecraft:storage",
+        "storage": "math:internal",
+        "path": "z"
+      },
+      "right": {
+        "type": "minecraft:sub",
+        "left": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_power_log_high"
+        },
+        "right": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "x"
+        }
+      }
+    }
+  ]
+}

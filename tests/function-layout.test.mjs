@@ -16,7 +16,7 @@ test("function layout defines the complete public API", () => {
   assert.equal(PUBLIC_FUNCTION_PATHS.elastic, "elastic/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.elastic_decay, "elastic_decay/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.add, "add/0.start");
-  assert.equal(PUBLIC_FUNCTION_PATHS.divide, "divide/0.start");
+  assert.equal(PUBLIC_FUNCTION_PATHS.div, "div/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.tan_degrees, "tan_degrees/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.asin, "asin/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.asin_degrees, "asin_degrees/0.start");
@@ -27,7 +27,7 @@ test("function layout defines the complete public API", () => {
   assert.equal(PUBLIC_FUNCTION_PATHS.atan2, "atan2/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.atan2_degrees, "atan2_degrees/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.quaternion_to_axis_angle, "quaternion_to_axis_angle/0.start");
-  assert.deepEqual(publicTag("divide"), { values: ["math:divide/0.start"] });
+  assert.deepEqual(publicTag("div"), { values: ["math:div/0.start"] });
 });
 
 test("function layout assigns representative owned and common helpers", () => {
@@ -56,8 +56,8 @@ test("function layout assigns representative owned and common helpers", () => {
   assert.equal(FUNCTION_PATHS.elasticDecayFinish, "elastic_decay/1.finish");
   assert.equal(FUNCTION_PATHS.bounceFinish, "bounce/1.finish");
   assert.equal(FUNCTION_PATHS.bounceDecayFinish, "bounce_decay/1.finish");
-  assert.equal(FUNCTION_PATHS.divideUnderflow, "divide/4.underflow");
-  assert.equal(FUNCTION_PATHS.powerClassifyOverflow, "power/9.classify_overflow");
+  assert.equal(FUNCTION_PATHS.divideUnderflow, "div/4.underflow");
+  assert.equal(FUNCTION_PATHS.powerClassifyOverflow, "pow/9.classify_overflow");
   assert.equal(FUNCTION_PATHS.reciprocal, ".common/reciprocal/0.start");
   assert.equal(FUNCTION_PATHS.normalizeBinary32, ".common/normalize_binary32/0.start");
   for (const retired of [

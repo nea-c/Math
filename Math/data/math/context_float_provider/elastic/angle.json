@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:mul",
+  "inputs": [
+    {
+      "type": "minecraft:add",
+      "inputs": [
+        {
+          "type": "minecraft:storage",
+          "storage": "math:",
+          "path": "t"
+        },
+        {
+          "type": "minecraft:mul",
+          "inputs": [
+            -1,
+            {
+              "type": "minecraft:storage",
+              "storage": "math:internal",
+              "path": "w_elastic_phase"
+            }
+          ]
+        }
+      ]
+    },
+    6.2831854820251465,
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_elastic_inverse_period"
+    }
+  ]
+}

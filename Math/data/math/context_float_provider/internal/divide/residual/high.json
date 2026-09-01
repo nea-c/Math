@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:sub",
+  "left": {
+    "type": "minecraft:storage",
+    "storage": "math:internal",
+    "path": "w_divide_a_mantissa"
+  },
+  "right": {
+    "type": "minecraft:storage",
+    "storage": "math:internal",
+    "path": "w_divide_product_high"
+  }
+}

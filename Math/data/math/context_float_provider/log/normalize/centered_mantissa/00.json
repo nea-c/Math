@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:number_dispatcher",
+  "cases": [
+    {
+      "condition": {
+        "type": "minecraft:float_value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_comparison.log_center"
+        },
+        "test": {
+          "max": -1
+        }
+      },
+      "value": {
+        "type": "minecraft:storage",
+        "storage": "math:internal",
+        "path": "w_normalize_mantissa"
+      }
+    }
+  ],
+  "default": {
+    "type": "minecraft:mul",
+    "inputs": [
+      0.5,
+      {
+        "type": "minecraft:storage",
+        "storage": "math:internal",
+        "path": "w_normalize_mantissa"
+      }
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:mul",
+  "inputs": [
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "x"
+    },
+    0.25,
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_reciprocal_estimate"
+    },
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_reciprocal_estimate"
+    }
+  ]
+}

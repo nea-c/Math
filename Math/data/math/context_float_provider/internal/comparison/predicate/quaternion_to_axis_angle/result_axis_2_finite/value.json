@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:number_dispatcher",
+  "cases": [
+    {
+      "condition": {
+        "type": "minecraft:float_value_check",
+        "value": {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_quaternion_axis_2"
+        },
+        "test": {
+          "min": -3.4028234663852886e+38,
+          "max": 3.4028234663852886e+38
+        }
+      },
+      "value": 1
+    }
+  ],
+  "default": 0
+}

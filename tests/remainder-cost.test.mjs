@@ -9,13 +9,13 @@ const finiteLimit = Math.fround(3.4028234663852886e38);
 const smallestFloat = Math.fround(2 ** -149);
 const task1WideGapBaseline = 4_166;
 const minimumRemovedAscentWork = 276 * 8;
-const providerDirectory = path.resolve("Math/data/math/number_provider/common/reduce_remainder");
+const providerDirectory = path.resolve("Math/data/math/context_float_provider/common/reduce_remainder");
 const graph = loadGeneratedGraph();
 
 function dispatcherDepth(provider) {
   if (!provider || typeof provider !== "object" || provider.type !== "minecraft:number_dispatcher") return 0;
   return 1 + Math.max(
-    ...provider.cases.map(entry => dispatcherDepth(entry.number_provider)),
+    ...provider.cases.map(entry => dispatcherDepth(entry.value)),
     dispatcherDepth(provider.default),
   );
 }
@@ -23,7 +23,7 @@ function dispatcherDepth(provider) {
 function dispatcherLeaves(provider) {
   if (!provider || typeof provider !== "object" || provider.type !== "minecraft:number_dispatcher") return 1;
   return provider.cases.reduce(
-    (total, entry) => total + dispatcherLeaves(entry.number_provider),
+    (total, entry) => total + dispatcherLeaves(entry.value),
     dispatcherLeaves(provider.default),
   );
 }
@@ -42,7 +42,7 @@ test("wide exponent gaps remove the recursive ascent command work", () => {
   const counts = [
     runFunction("remainder", { a: finiteLimit, b: smallestFloat }).commandsExecuted,
     runFunction("remainder", { a: Math.fround(2 ** 127), b: threeSmallestFloats }).commandsExecuted,
-    runFunction("modulo", { a: -finiteLimit, b: threeSmallestFloats }).commandsExecuted,
+    runFunction("mod", { a: -finiteLimit, b: threeSmallestFloats }).commandsExecuted,
   ];
   const maximum = Math.max(...counts);
 
@@ -64,13 +64,13 @@ test("same-bin and adjacent exponent gaps retain their shallow reduction budgets
   }
 });
 
-test("direct selector stores the corrected exponent shift and scaled divisor", () => {
+test("mod selector stores the corrected exponent shift and scaled divisor", () => {
   for (const [a, b, expectedShift, expectedScaledDivisor] of [
     [finiteLimit, smallestFloat, 276, Math.fround(2 ** 127)],
     [finiteLimit, Math.fround(3 * smallestFloat), 275, Math.fround(1.5 * (2 ** 127))],
     [Math.fround(2 ** 127), Math.fround(3 * smallestFloat), 274, Math.fround(0.75 * (2 ** 127))],
   ]) {
-    const internal = runFunction("remainder", { a, b }).storage["math:internal"];
+    const internal = runFunction("mod", { a, b }).storage["math:internal"];
     assert.equal(internal.w_remainder_shift, expectedShift, `${a} / ${b} corrected shift`);
     assert.equal(internal.w_remainder_scaled_divisor, expectedScaledDivisor, `${a} / ${b} scaled divisor`);
   }

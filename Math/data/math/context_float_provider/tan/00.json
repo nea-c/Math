@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:div",
+  "left": {
+    "type": "minecraft:storage",
+    "storage": "math:internal",
+    "path": "w_tan_sin"
+  },
+  "right": {
+    "type": "minecraft:storage",
+    "storage": "math:internal",
+    "path": "w_tan_cos"
+  }
+}

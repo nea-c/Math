@@ -1,4 +1,2 @@
-data modify storage math:internal y set compute default math:common/constant/tau
-function math:.common/normalize_period/0.start
-function math:.common/sin/1.evaluate
+data modify storage math:internal x set compute default float math:sin/00
 return 1

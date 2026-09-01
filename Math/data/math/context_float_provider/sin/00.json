@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:sin",
+  "input": {
+    "type": "minecraft:storage",
+    "storage": "math:internal",
+    "path": "x"
+  }
+}

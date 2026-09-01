@@ -12,12 +12,12 @@ test("public function tags resolve exactly one implementation", () => {
 
 const wrappers = [
   ["add", { a: 1.25, b: -0.5 }, 0.75],
-  ["subtract", { a: 1.25, b: -0.5 }, 1.75],
-  ["multiply", { a: 1.25, b: -0.5 }, -0.625],
-  ["absolute", { a: -3.5 }, 3.5],
+  ["sub", { a: 1.25, b: -0.5 }, 1.75],
+  ["mul", { a: 1.25, b: -0.5 }, -0.625],
+  ["abs", { a: -3.5 }, 3.5],
   ["sign", { a: -3.5 }, -1],
-  ["minimum", { a: 1.25, b: -0.5 }, -0.5],
-  ["maximum", { a: 1.25, b: -0.5 }, 1.25],
+  ["min", { a: 1.25, b: -0.5 }, -0.5],
+  ["max", { a: 1.25, b: -0.5 }, 1.25],
   ["clamp", { a: 4, min: -1, max: 3 }, 3],
   ["square", { a: -3.5 }, 12.25],
   ["cube", { a: -3.5 }, -42.875],
@@ -28,11 +28,11 @@ const wrappers = [
   ["e", {}, Math.fround(Math.E)],
   ["lerp", { a: 10, b: 20, t: 0.25 }, 12.5],
   ["reciprocal", { a: -2 }, -0.5],
-  ["divide", { a: 7, b: -2 }, -3.5],
-  ["square_root", { a: 4 }, 2],
+  ["div", { a: 7, b: -2 }, -3.5],
+  ["sqrt", { a: 4 }, 2],
   ["log", { a: 1 }, 0],
   ["exp", { a: 0 }, 1],
-  ["power", { a: 0, b: 0 }, 1],
+  ["pow", { a: 0, b: 0 }, 1],
 ];
 
 const finiteLimit = Math.fround(3.4028234663852886e38);
@@ -79,10 +79,10 @@ test("provider-native wrappers reject non-finite results", () => {
   for (const [name, inputs] of [
     ["add", { a: finiteLimit, b: finiteLimit }],
     ["add", { a: -finiteLimit, b: -finiteLimit }],
-    ["subtract", { a: finiteLimit, b: -finiteLimit }],
-    ["subtract", { a: -finiteLimit, b: finiteLimit }],
-    ["multiply", { a: finiteLimit, b: 2 }],
-    ["multiply", { a: -finiteLimit, b: 2 }],
+    ["sub", { a: finiteLimit, b: -finiteLimit }],
+    ["sub", { a: -finiteLimit, b: finiteLimit }],
+    ["mul", { a: finiteLimit, b: 2 }],
+    ["mul", { a: -finiteLimit, b: 2 }],
     ["square", { a: finiteLimit }],
     ["cube", { a: finiteLimit }],
     ["cube", { a: -finiteLimit }],
@@ -103,7 +103,7 @@ test("provider-native wrappers reject non-finite results", () => {
 });
 
 test("reciprocal and divide reject zero without mutating public inputs", () => {
-  for (const [name, inputs] of [["reciprocal", { a: 0 }], ["divide", { a: 7, b: 0 }]]) {
+  for (const [name, inputs] of [["reciprocal", { a: 0 }], ["div", { a: 7, b: 0 }]]) {
     const publicInput = { ...inputs, ans: 91, error: "stale_error" };
     const { storage, returned } = runFunction(name, publicInput);
     assert.equal(returned, 0);
@@ -121,7 +121,7 @@ test("divide zero numerator uses IEEE sign xor for every finite denominator sign
     [-0, 2, -0],
     [-0, -2, 0],
   ]) {
-    const result = runFunction("divide", { a, b, ans: 91, error: "stale_error" });
+    const result = runFunction("div", { a, b, ans: 91, error: "stale_error" });
     assert.equal(result.returned, 1, `divide(${Object.is(a, -0) ? "-0" : "+0"}, ${b}) must succeed`);
     assert.ok(Object.is(result.storage["math:"].ans, expected), `divide(${Object.is(a, -0) ? "-0" : "+0"}, ${b}) sign`);
     assert.equal(result.storage["math:"].error, undefined);
@@ -136,7 +136,7 @@ test("reciprocal and divide distinguish small nonzero divisors from zero", () =>
   assert.equal(reciprocal.storage["math:"].ans, 16384);
   assert.equal(reciprocal.storage["math:"].error, undefined);
 
-  const divide = runFunction("divide", { a: 1, b: Math.fround(2 ** -14), error: "stale_error" });
+  const divide = runFunction("div", { a: 1, b: Math.fround(2 ** -14), error: "stale_error" });
   assert.equal(divide.returned, 1);
   assert.equal(divide.storage["math:"].ans, 16384);
   assert.equal(divide.storage["math:"].error, undefined);
@@ -188,7 +188,7 @@ test("divide coordinates subnormal operands across adjacent exponent bands", () 
   ];
 
   for (const [a, b, expected] of cases) {
-    const result = runFunction("divide", { a, b, error: "stale_error" });
+    const result = runFunction("div", { a, b, error: "stale_error" });
     assert.equal(result.returned, 1, `divide(${a}, ${b}) must succeed`);
     assert.equal(result.storage["math:"].ans, Math.fround(expected), `divide(${a}, ${b})`);
     assert.equal(result.storage["math:"].error, undefined);
@@ -205,14 +205,14 @@ test("divide distinguishes finite underflow from overflow", () => {
     [minSubnormal, finiteLimit, 0],
     [-minSubnormal, finiteLimit, -0],
   ]) {
-    const result = runFunction("divide", { a, b, ans: 91, error: "stale_error" });
+    const result = runFunction("div", { a, b, ans: 91, error: "stale_error" });
     assert.equal(result.returned, 1, `divide(${a}, ${b}) underflow must succeed`);
     assert.ok(Object.is(result.storage["math:"].ans, expected), `divide(${a}, ${b}) must preserve zero sign`);
     assert.equal(result.storage["math:"].error, undefined);
   }
 
   for (const [a, b] of [[finiteLimit, minSubnormal], [-finiteLimit, minSubnormal]]) {
-    const result = runFunction("divide", { a, b, ans: 91, error: "stale_error" });
+    const result = runFunction("div", { a, b, ans: 91, error: "stale_error" });
     assert.equal(result.returned, 0, `divide(${a}, ${b}) overflow must fail`);
     assert.equal(result.storage["math:"].ans, undefined);
     assert.equal(result.storage["math:"].error, "result_out_of_range");
@@ -220,13 +220,13 @@ test("divide distinguishes finite underflow from overflow", () => {
 });
 
 test("square root rejects invalid and negative inputs with stale-output cleanup", () => {
-  const invalidNumber = runFunction("square_root", { a: Infinity, ans: 91, error: "stale_error" });
+  const invalidNumber = runFunction("sqrt", { a: Infinity, ans: 91, error: "stale_error" });
   assert.equal(invalidNumber.returned, 0);
   assert.equal(invalidNumber.storage["math:"].ans, undefined);
   assert.equal(invalidNumber.storage["math:"].error, "invalid_number");
   assert.equal(invalidNumber.storage["math:"].a, Infinity);
 
-  const negative = runFunction("square_root", { a: -1, ans: 91, error: "stale_error" });
+  const negative = runFunction("sqrt", { a: -1, ans: 91, error: "stale_error" });
   assert.equal(negative.returned, 0);
   assert.equal(negative.storage["math:"].ans, undefined);
   assert.equal(negative.storage["math:"].error, "negative_square_root");
@@ -237,8 +237,8 @@ test("log exp and power reject non-finite inputs with stale-output cleanup", () 
   for (const [name, inputs] of [
     ["log", { a: Infinity }],
     ["exp", { a: -Infinity }],
-    ["power", { a: 2, b: Infinity }],
-    ["power", { a: NaN, b: 2 }],
+    ["pow", { a: 2, b: Infinity }],
+    ["pow", { a: NaN, b: 2 }],
   ]) {
     const publicInput = { ...inputs, ans: 91, error: "stale_error" };
     const result = runFunction(name, publicInput);

@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:mul",
+  "inputs": [
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "w_atan_numerator"
+    },
+    {
+      "type": "minecraft:storage",
+      "storage": "math:internal",
+      "path": "x"
+    }
+  ]
+}

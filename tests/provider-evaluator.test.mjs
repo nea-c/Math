@@ -20,8 +20,8 @@ import {
 
 test("provider evaluator rounds every aggregate operation to float", () => {
   const registry = new Map([["math:test", {
-    type: "minecraft:sum",
-    operands: [16777216, 1, -16777216],
+    type: "minecraft:add",
+    inputs: [16777216, 1, -16777216],
   }]]);
   assert.equal(evaluateProvider("math:test", registry, new Map()), 0);
 });
@@ -48,19 +48,19 @@ test("provider evaluator selects the first matching inline value-check dispatche
     cases: [
       {
         condition: {
-          type: "minecraft:value_check",
+          type: "minecraft:float_value_check",
           value: storage("math:internal", "x"),
-          range: { min: -10, max: -1 },
+          test: { min: -10, max: -1 },
         },
-        number_provider: -1,
+        value: -1,
       },
       {
         condition: {
-          type: "minecraft:value_check",
+          type: "minecraft:float_value_check",
           value: storage("math:internal", "x"),
-          range: { min: 0, max: 10 },
+          test: { min: 0, max: 10 },
         },
-        number_provider: 1,
+        value: 1,
       },
     ],
     default: 0,
@@ -71,16 +71,16 @@ test("provider evaluator selects the first matching inline value-check dispatche
   assert.equal(evaluateProvider(provider, new Map(), new Map([["math:internal", { x: 20 }]])), 0);
 });
 
-test("value-check dispatcher conditions use Minecraft integer coercion for values and bounds", () => {
+test("float-value-check dispatcher conditions preserve fractional values and bounds", () => {
   const zeroRange = {
     type: "minecraft:number_dispatcher",
     cases: [{
       condition: {
-        type: "minecraft:value_check",
+        type: "minecraft:float_value_check",
         value: storage("math:internal", "x"),
-        range: { min: 0, max: 0 },
+        test: { min: 0, max: 0 },
       },
-      number_provider: 11,
+      value: 11,
     }],
     default: 22,
   };
@@ -88,36 +88,36 @@ test("value-check dispatcher conditions use Minecraft integer coercion for value
     type: "minecraft:number_dispatcher",
     cases: [{
       condition: {
-        type: "minecraft:value_check",
+        type: "minecraft:float_value_check",
         value: storage("math:internal", "x"),
-        range: { min: 0.25, max: 0.75 },
+        test: { min: 0.25, max: 0.75 },
       },
-      number_provider: 33,
+      value: 33,
     }],
     default: 44,
   };
 
   for (const x of [0.5, -0.5]) {
-    assert.equal(evaluateProvider(zeroRange, new Map(), new Map([["math:internal", { x }]])), 11);
+    assert.equal(evaluateProvider(zeroRange, new Map(), new Map([["math:internal", { x }]])), 22);
   }
   assert.equal(evaluateProvider(fractionalRange, new Map(), new Map([["math:internal", { x: 0.5 }]])), 33);
 });
 
-test("integer predicate evaluation propagates through nested provider operands", () => {
+test("float predicate evaluation propagates through nested provider inputs", () => {
   const provider = {
     type: "minecraft:number_dispatcher",
     cases: [{
       condition: {
-        type: "minecraft:value_check",
+        type: "minecraft:float_value_check",
         value: product(storage("math:internal", "x"), 4),
-        range: { min: 2, max: 2 },
+        test: { min: 2, max: 2 },
       },
-      number_provider: 11,
+      value: 11,
     }],
     default: 22,
   };
 
-  assert.equal(evaluateProvider(provider, new Map(), new Map([["math:internal", { x: 0.5 }]])), 22);
+  assert.equal(evaluateProvider(provider, new Map(), new Map([["math:internal", { x: 0.5 }]])), 11);
 });
 
 test("dispatcher conditions compose lower and upper comparisons with all-of", () => {
@@ -128,18 +128,18 @@ test("dispatcher conditions compose lower and upper comparisons with all-of", ()
         type: "minecraft:all_of",
         terms: [
           {
-            type: "minecraft:value_check",
+            type: "minecraft:float_value_check",
             value: storage("math:internal", "x"),
-            range: { min: 1 },
+            test: { min: 1 },
           },
           {
-            type: "minecraft:value_check",
+            type: "minecraft:float_value_check",
             value: storage("math:internal", "x"),
-            range: { max: 3 },
+            test: { max: 3 },
           },
         ],
       },
-      number_provider: 55,
+      value: 55,
     }],
     default: 66,
   };
@@ -154,11 +154,11 @@ test("materialized comparisons distinguish adjacent floats at signed power-of-tw
     type: "minecraft:number_dispatcher",
     cases: [{
       condition: {
-        type: "minecraft:value_check",
+        type: "minecraft:float_value_check",
         value: storage("math:internal", "w_value"),
-        range: { min: 0 },
+        test: { min: 0 },
       },
-      number_provider: 1,
+      value: 1,
     }],
     default: 0,
   };
@@ -180,9 +180,9 @@ test("materialized comparisons distinguish adjacent floats at signed power-of-tw
 test("generated JSON writer uses repository-relative paths and a trailing newline", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "math-provider-test-"));
   try {
-    const target = writeGeneratedJson(root, "Math/data/math/number_provider/test", { type: "minecraft:sum", operands: [1, 2] });
-    assert.equal(target, path.join(root, "Math", "data", "math", "number_provider", "test.json"));
-    assert.equal(fs.readFileSync(target, "utf8"), '{\n  "type": "minecraft:sum",\n  "operands": [\n    1,\n    2\n  ]\n}\n');
+    const target = writeGeneratedJson(root, "Math/data/math/context_float_provider/test", { type: "minecraft:add", inputs: [1, 2] });
+    assert.equal(target, path.join(root, "Math", "data", "math", "context_float_provider", "test.json"));
+    assert.equal(fs.readFileSync(target, "utf8"), '{\n  "type": "minecraft:add",\n  "inputs": [\n    1,\n    2\n  ]\n}\n');
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

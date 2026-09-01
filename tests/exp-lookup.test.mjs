@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { evaluateProvider } from "../tools/math-provider-lib.mjs";
 
-const providerRoot = path.resolve("Math/data/math/number_provider");
+const providerRoot = path.resolve("Math/data/math/context_float_provider");
 
 function loadProviders() {
   const registry = new Map();
@@ -28,15 +28,15 @@ function dispatcherChecks(provider, exponent) {
     let checks = 0;
     for (const entry of provider.cases) {
       checks += 1;
-      const { min, max } = entry.condition.range ?? {};
+      const { min, max } = entry.condition.test ?? {};
       if ((min === undefined || exponent >= min) && (max === undefined || exponent <= max)) {
-        return checks + dispatcherChecks(entry.number_provider, exponent);
+        return checks + dispatcherChecks(entry.value, exponent);
       }
     }
     return checks + dispatcherChecks(provider.default ?? 0, exponent);
   }
 
-  return (provider.operands ?? []).reduce(
+  return (provider.inputs ?? []).reduce(
     (total, operand) => total + dispatcherChecks(operand, exponent),
     0,
   );

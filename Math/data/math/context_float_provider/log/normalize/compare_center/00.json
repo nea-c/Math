@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:mul",
+  "inputs": [
+    {
+      "type": "minecraft:add",
+      "inputs": [
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_normalize_mantissa"
+        },
+        -1.4142135381698608
+      ]
+    },
+    8388608
+  ]
+}

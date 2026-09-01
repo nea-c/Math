@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:add",
+  "inputs": [
+    1,
+    {
+      "type": "minecraft:mul",
+      "inputs": [
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_elastic_amplitude"
+        },
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_elastic_decay"
+        },
+        {
+          "type": "minecraft:storage",
+          "storage": "math:internal",
+          "path": "w_elastic_sine"
+        }
+      ]
+    }
+  ]
+}

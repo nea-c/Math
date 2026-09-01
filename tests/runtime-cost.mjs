@@ -39,7 +39,7 @@ export function loadGeneratedGraph() {
   if (!generatedGraph) {
     generatedGraph = {
       functions: loadFunctionRegistry(path.join(dataRoot, "function")),
-      providers: loadJsonRegistry(path.join(dataRoot, "number_provider"), "math:"),
+      providers: loadJsonRegistry(path.join(dataRoot, "context_float_provider"), "math:"),
       predicates: loadJsonRegistry(path.join(dataRoot, "predicate"), "math:"),
     };
   }
@@ -56,8 +56,8 @@ export function expandedProviderNodes(id, graph, stack = []) {
   }
   assert.ok(id && typeof id === "object");
   const children = [
-    ...(id.operands ?? []),
-    ...(id.cases ?? []).map(entry => entry.number_provider),
+    ...(id.inputs ?? []),
+    ...(id.cases ?? []).map(entry => entry.value),
     ...("default" in id ? [id.default] : []),
     ...("on_true" in id ? [id.on_true, id.on_false] : []),
   ];
@@ -79,10 +79,10 @@ function predicateProviderNodes(id, graph, stack = []) {
   }
   assert.ok(id && typeof id === "object", "invalid predicate");
   switch (id.type) {
-    case "minecraft:value_check":
+    case "minecraft:float_value_check":
       return expandedProviderNodes(id.value, graph)
-        + (id.range?.min === undefined ? 0 : expandedProviderNodes(id.range.min, graph))
-        + (id.range?.max === undefined ? 0 : expandedProviderNodes(id.range.max, graph));
+        + (id.test?.min === undefined ? 0 : expandedProviderNodes(id.test.min, graph))
+        + (id.test?.max === undefined ? 0 : expandedProviderNodes(id.test.max, graph));
     case "minecraft:all_of":
     case "minecraft:any_of":
       return (id.terms ?? []).reduce((total, term) => total + predicateProviderNodes(term, graph, stack), 0);
@@ -95,7 +95,7 @@ function predicateProviderNodes(id, graph, stack = []) {
 
 function commandProviderNodes(command, graph) {
   let nodes = 0;
-  for (const match of command.matchAll(/\bcompute default (\S+)/g)) {
+  for (const match of command.matchAll(/\bcompute default float (\S+)/g)) {
     nodes += expandedProviderNodes(match[1], graph);
   }
   for (const match of command.matchAll(/\b(?:if|unless) predicate (\S+)/g)) {

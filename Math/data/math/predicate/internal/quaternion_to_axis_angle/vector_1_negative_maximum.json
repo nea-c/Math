@@ -1,12 +1,12 @@
 {
-  "type": "minecraft:value_check",
+  "type": "minecraft:float_value_check",
   "value": {
     "type": "minecraft:storage",
     "storage": "math:internal",
-    "path": "w_comparison.predicate.quaternion_to_axis_angle_vector_1_negative_maximum.value"
+    "path": "w_comparison.predicate.quaternion_to_axis_angle_vector_1_negative_maximum"
   },
-  "range": {
-    "min": 0,
-    "max": 0
+  "test": {
+    "min": 1,
+    "max": 1
   }
 }
