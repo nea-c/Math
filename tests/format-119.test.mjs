@@ -64,6 +64,24 @@ test("shared float providers use the private .common namespace", () => {
   }
 });
 
+test("validation assets and shared reciprocal kernels use distinct private namespaces", () => {
+  const predicateRoot = path.join(packRoot, "data", "math", "predicate");
+  for (const relativePath of [
+    ".validation/finite/a.json",
+    ".validation/predicate/range/min_greater_than_max/value.json",
+    ".common/reciprocal/newton.json",
+  ]) {
+    assert.equal(fs.existsSync(path.join(providerRoot, relativePath)), true, `missing provider ${relativePath}`);
+  }
+  assert.equal(
+    fs.existsSync(path.join(predicateRoot, ".validation/range/min_greater_than_max.json")),
+    true,
+    "validation predicate is not in the private .validation namespace",
+  );
+  assert.equal(fs.existsSync(path.join(providerRoot, "internal")), false, "legacy provider internal directory remains");
+  assert.equal(fs.existsSync(path.join(predicateRoot, "internal")), false, "legacy predicate internal directory remains");
+});
+
 test("public calculation providers mirror their function names", () => {
   for (const name of [
     "abs", "add", "clamp", "cube", "deg", "div", "lerp",
@@ -142,7 +160,7 @@ test("native operations back directly supported public calculations", () => {
 });
 
 test("generated predicates use float_value_check with the test field", () => {
-  const predicateRoot = path.join(packRoot, "data", "math", "predicate", "internal");
+  const predicateRoot = path.join(packRoot, "data", "math", "predicate", ".validation");
   for (const file of jsonFiles(predicateRoot)) {
     visit(JSON.parse(fs.readFileSync(file, "utf8")), value => {
       if (!value || typeof value !== "object" || Array.isArray(value)) return;

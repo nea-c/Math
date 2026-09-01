@@ -74,6 +74,8 @@ function canonicalProviderPath(relativePath) {
   const renamed = renamedSharedProviders.get(relativePath) ?? relativePath;
   return renamed
     .replace(/^common\//, ".common/")
+    .replace(/^internal\/comparison\//, ".validation/")
+    .replace(/^internal\/reciprocal\//, ".common/reciprocal/")
     .replace(/^power\//, "pow/")
     .replace(/^square_root\//, "sqrt/");
 }
@@ -99,14 +101,17 @@ function emit(relativePath, value) {
 }
 
 function emitPredicate(relativePath, value) {
-  generatedFiles.push({ kind: "json", relativePath: `Math/data/math/predicate/internal/${relativePath}.json`, value });
+  generatedFiles.push({ kind: "json", relativePath: `Math/data/math/predicate/.validation/${relativePath}.json`, value });
 }
 
 function emitFunction(path, lines) {
   const migratedLines = lines.map(line => line
     .replaceAll("compute default ", "compute default float ")
     .replaceAll(/math:(?:common\/(?:arithmetic\/(?:add|subtract|multiply|divide|reciprocal|square|cube|lerp)|comparison\/(?:absolute|minimum|maximum|clamp)|conversion\/(?:rad|deg))|common\/[^ ]+|power\/[^ ]+|square_root\/[^ ]+)/g,
-      reference => canonicalProviderReference(reference)));
+      reference => canonicalProviderReference(reference))
+    .replaceAll(/(compute default float )math:internal\/comparison\//g, "$1math:.validation/")
+    .replaceAll(/(compute default float )math:internal\/reciprocal\//g, "$1math:.common/reciprocal/")
+    .replaceAll(/(predicate )math:internal\//g, "$1math:.validation/"));
   generatedFiles.push({ kind: "function", relativePath: `Math/data/math/function/${path}.mcfunction`, text: `${migratedLines.join("\n")}\n` });
 }
 
@@ -2454,6 +2459,8 @@ function generate(targetRoot) {
   }
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "number_provider"), { recursive: true, force: true });
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "context_float_provider", "common"), { recursive: true, force: true });
+  fs.rmSync(path.join(targetRoot, "Math", "data", "math", "context_float_provider", "internal"), { recursive: true, force: true });
+  fs.rmSync(path.join(targetRoot, "Math", "data", "math", "predicate", "internal"), { recursive: true, force: true });
   for (const obsolete of [
     [".common", "arithmetic"],
     [".common", "comparison"],

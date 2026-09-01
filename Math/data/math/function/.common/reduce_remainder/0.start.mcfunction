@@ -1,10 +1,10 @@
-data modify storage math:internal w_comparison.predicate.rounding_remainder_can_subtract_y set compute default float math:internal/comparison/predicate/rounding/remainder/can_subtract_y/value
-execute unless predicate math:internal/rounding/remainder/can_subtract_y run return 1
-data modify storage math:internal w_comparison.predicate.rounding_remainder_within_double set compute default float math:internal/comparison/predicate/rounding/remainder/within_double/value
-execute if predicate math:internal/rounding/remainder/within_double run data modify storage math:internal x set compute default float math:.common/sub
-execute if predicate math:internal/rounding/remainder/within_double run return 1
-data modify storage math:internal w_comparison.predicate.rounding_remainder_near_ratio set compute default float math:internal/comparison/predicate/rounding/remainder/near_ratio/value
-execute if predicate math:internal/rounding/remainder/near_ratio run return run function math:.common/reduce_remainder/1.near
+data modify storage math:internal w_comparison.predicate.rounding_remainder_can_subtract_y set compute default float math:.validation/predicate/rounding/remainder/can_subtract_y/value
+execute unless predicate math:.validation/rounding/remainder/can_subtract_y run return 1
+data modify storage math:internal w_comparison.predicate.rounding_remainder_within_double set compute default float math:.validation/predicate/rounding/remainder/within_double/value
+execute if predicate math:.validation/rounding/remainder/within_double run data modify storage math:internal x set compute default float math:.common/sub
+execute if predicate math:.validation/rounding/remainder/within_double run return 1
+data modify storage math:internal w_comparison.predicate.rounding_remainder_near_ratio set compute default float math:.validation/predicate/rounding/remainder/near_ratio/value
+execute if predicate math:.validation/rounding/remainder/near_ratio run return run function math:.common/reduce_remainder/1.near
 data modify storage math:internal w_remainder_original set from storage math:internal z
 data modify storage math:internal w_remainder_x set from storage math:internal x
 data modify storage math:internal w_remainder_divisor set from storage math:internal y
@@ -20,9 +20,9 @@ data modify storage math:internal w_remainder_scaled_divisor set compute default
 data modify storage math:internal w_remainder_scaled_divisor set compute default float math:.common/reduce_remainder/scale_2
 data modify storage math:internal x set from storage math:internal w_remainder_x
 data modify storage math:internal w set from storage math:internal w_remainder_scaled_divisor
-data modify storage math:internal w_comparison.predicate.rounding_remainder_w_greater_than_x set compute default float math:internal/comparison/predicate/rounding/remainder/w_greater_than_x/value
-execute if predicate math:internal/rounding/remainder/w_greater_than_x run data modify storage math:internal w_remainder_scaled_divisor set compute default float math:.common/reduce_remainder/half_scaled_divisor
-execute if predicate math:internal/rounding/remainder/w_greater_than_x run data modify storage math:internal w_remainder_shift set compute default float math:.common/reduce_remainder/decrement_shift
+data modify storage math:internal w_comparison.predicate.rounding_remainder_w_greater_than_x set compute default float math:.validation/predicate/rounding/remainder/w_greater_than_x/value
+execute if predicate math:.validation/rounding/remainder/w_greater_than_x run data modify storage math:internal w_remainder_scaled_divisor set compute default float math:.common/reduce_remainder/half_scaled_divisor
+execute if predicate math:.validation/rounding/remainder/w_greater_than_x run data modify storage math:internal w_remainder_shift set compute default float math:.common/reduce_remainder/decrement_shift
 data modify storage math:internal w_remainder_remaining_shift set from storage math:internal w_remainder_shift
 data modify storage math:internal y set from storage math:internal w_remainder_scaled_divisor
 function math:.common/reduce_remainder/6.descend

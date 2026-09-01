@@ -544,7 +544,7 @@ test("generated value-check predicates use the format 119 float type discriminat
     assert.ok(Object.hasOwn(condition, "test"), file);
   }
 
-  const predicateRoot = path.join("Math/data/math/predicate/internal");
+  const predicateRoot = path.join("Math/data/math/predicate/.validation");
   for (const entry of fs.readdirSync(predicateRoot, { recursive: true, withFileTypes: true })) {
     if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
     const file = path.join(entry.parentPath, entry.name);
@@ -621,7 +621,7 @@ test("every dispatcher condition uses a float value check", () => {
 });
 
 test("every named predicate condition uses direct float-provider comparisons", () => {
-  const predicateRoot = path.join("Math/data/math/predicate/internal");
+  const predicateRoot = path.join("Math/data/math/predicate/.validation");
 
   function conditionValues(condition) {
     if (condition.type === "minecraft:all_of") return condition.terms.flatMap(conditionValues);

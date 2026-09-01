@@ -88,7 +88,7 @@ const QUATERNION_PATH_BUDGETS = {
 };
 
 test("runtime cost expands referenced providers", () => {
-  assert.ok(expandedProviderNodes("math:internal/reciprocal/newton", graph) > 1);
+  assert.ok(expandedProviderNodes("math:.common/reciprocal/newton", graph) > 1);
 });
 
 test("runtime cost reports public command work", () => {

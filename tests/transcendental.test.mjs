@@ -207,7 +207,7 @@ test("log exp and power generated graphs use responsibility subdirectories", () 
     "power/exponent_large_even.json",
     "power/classifier_overflow.json",
   ]) {
-    assert.ok(fs.existsSync(path.join("Math/data/math/predicate/internal", predicate)), `missing ${predicate}`);
+    assert.ok(fs.existsSync(path.join("Math/data/math/predicate/.validation", predicate)), `missing ${predicate}`);
   }
 });
 
@@ -599,12 +599,12 @@ test("trigonometric generated graphs use shared-kernel responsibility directorie
   ]) {
     assert.ok(fs.existsSync(path.join("Math/data/math/context_float_provider", provider)), `missing ${provider}`);
   }
-  assert.ok(fs.existsSync("Math/data/math/predicate/internal/tan/undefined_radians.json"));
-  assert.ok(fs.existsSync("Math/data/math/predicate/internal/tan/undefined_degrees.json"));
+  assert.ok(fs.existsSync("Math/data/math/predicate/.validation/tan/undefined_radians.json"));
+  assert.ok(fs.existsSync("Math/data/math/predicate/.validation/tan/undefined_degrees.json"));
 });
 
 test("log materializes three private Newton updates with small active providers", () => {
-  const providerRoot = path.join("Math/data/math/context_float_provider/internal/reciprocal");
+  const providerRoot = path.join("Math/data/math/context_float_provider/.common/reciprocal");
   for (const stage of ["00", "01", "02"]) {
     assert.equal(fs.existsSync(path.join(providerRoot, "log_newton", stage, "00.json")), false);
   }
@@ -622,11 +622,11 @@ test("log materializes three private Newton updates with small active providers"
     return 1 + (provider.inputs ?? []).reduce((total, operand) => total + expandedNodes(operand), 0);
   };
   for (const name of ["log_initial", "log_newton", "log_denominator"]) {
-    assert.ok(expandedNodes(providers.get(`math:internal/reciprocal/${name}`)) < 60, `${name} is too large`);
+    assert.ok(expandedNodes(providers.get(`math:.common/reciprocal/${name}`)) < 60, `${name} is too large`);
   }
 
   const source = fs.readFileSync("Math/data/math/function/.common/log/0.start.mcfunction", "utf8");
-  assert.equal((source.match(/w_log_reciprocal set compute default float math:internal\/reciprocal\/log_newton/g) ?? []).length, 3);
+  assert.equal((source.match(/w_log_reciprocal set compute default float math:\.common\/reciprocal\/log_newton/g) ?? []).length, 3);
 });
 
 test("tan evaluates native sine and cosine once each", () => {

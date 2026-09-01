@@ -1,5 +1,5 @@
 data modify storage math:internal w_inverse_trigonometry_square_midpoint set compute default float math:.common/inverse_trigonometry/square_midpoint
 data modify storage math:internal w_comparison.inverse_trigonometry_square_before_target set compute default float math:.common/inverse_trigonometry/square_compare
-execute if predicate math:internal/inverse_trigonometry/square_before_target run data modify storage math:internal w_inverse_trigonometry_square_low set from storage math:internal w_inverse_trigonometry_square_midpoint
-execute unless predicate math:internal/inverse_trigonometry/square_before_target run data modify storage math:internal w_inverse_trigonometry_square_high set from storage math:internal w_inverse_trigonometry_square_midpoint
+execute if predicate math:.validation/inverse_trigonometry/square_before_target run data modify storage math:internal w_inverse_trigonometry_square_low set from storage math:internal w_inverse_trigonometry_square_midpoint
+execute unless predicate math:.validation/inverse_trigonometry/square_before_target run data modify storage math:internal w_inverse_trigonometry_square_high set from storage math:internal w_inverse_trigonometry_square_midpoint
 return 1
