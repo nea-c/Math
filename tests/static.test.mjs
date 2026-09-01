@@ -5,7 +5,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { PUBLIC_FUNCTION_NAMES } from "../tools/function-layout.mjs";
+import { PUBLIC_FUNCTION_NAMES, PUBLIC_FUNCTION_PATHS } from "../tools/function-layout.mjs";
 
 function repositorySnapshot(root) {
   const snapshot = new Map();
@@ -591,10 +591,12 @@ test("generated providers are current", () => {
 
 test("public entries naturally end without exposing function results", () => {
   for (const name of PUBLIC_FUNCTION_NAMES) {
-    const source = fs.readFileSync(`Math/data/math/function/${name}/0.start.mcfunction`, "utf8");
+    const publicPath = PUBLIC_FUNCTION_PATHS[name];
+    const source = fs.readFileSync(`Math/data/math/function/${publicPath}.mcfunction`, "utf8");
     assert.doesNotMatch(source, /(?:^|\n)return(?: |\n)/, name);
     assert.doesNotMatch(source, /storage math: error set/, name);
-    assert.match(source, /^data remove storage math: ans$/m, name);
+    assert.equal(source.includes("data remove storage math: error"), false, `${publicPath} must not touch retired error state`);
+    assert.match(source, /^data remove storage math: ans$/m, `${publicPath} must clear stale ans`);
     assert.match(source, /^data remove storage math: internal$/m, name);
   }
 });

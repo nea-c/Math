@@ -118,7 +118,6 @@ function emitFunctionTag(name, value) {
 }
 
 const publicPreamble = [
-  "data remove storage math: error",
   "data remove storage math: ans",
 ];
 const publicCleanup = "data remove storage math: internal";

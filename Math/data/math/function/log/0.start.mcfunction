@@ -1,4 +1,3 @@
-data remove storage math: error
 data remove storage math: ans
 data modify storage math: internal.x set from storage math: a
 function math:.common/log/0.start

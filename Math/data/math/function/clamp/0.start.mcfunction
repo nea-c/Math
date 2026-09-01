@@ -1,4 +1,3 @@
-data remove storage math: error
 data remove storage math: ans
 data modify storage math: internal.x set from storage math: a
 data modify storage math: internal.z set from storage math: min

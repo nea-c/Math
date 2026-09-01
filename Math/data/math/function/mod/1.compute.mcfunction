@@ -16,7 +16,7 @@ data modify storage math: internal.w_comparison.predicate.rounding_public_a_nega
 data modify storage math: internal.w_comparison.predicate.rounding_public_b_negative set compute default float math:.validation/predicate/rounding/public/b_negative/value
 execute if predicate math:.validation/rounding/public/b_negative run function math:mod/2.negative_b
 execute if predicate math:.validation/rounding/public/b_negative run return 1
-execute unless predicate math:.validation/rounding/public/a_negative run data modify storage math: ans set compute default float math:.common/input/z
+execute unless predicate math:.validation/rounding/public/a_negative run data modify storage math: ans set compute default float {"type":"minecraft:storage","storage":"math:","path":"internal.z"}
 execute unless predicate math:.validation/rounding/public/a_negative run return 1
 data modify storage math: internal.x set from storage math: internal.y
 data modify storage math: internal.y set from storage math: internal.z

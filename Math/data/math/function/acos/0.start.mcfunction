@@ -1,4 +1,3 @@
-data remove storage math: error
 data remove storage math: ans
 data modify storage math: internal.x set compute default float math:.common/input/a
 function math:.common/acos/0.start

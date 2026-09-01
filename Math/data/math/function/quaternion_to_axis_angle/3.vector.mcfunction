@@ -39,5 +39,5 @@ data modify storage math: internal.w_quaternion_axis_1 set compute default float
 data modify storage math: internal.w_quaternion_axis_2 set compute default float math:quaternion_to_axis_angle/output/axis_2
 data modify storage math: internal.x set compute default float math:quaternion_to_axis_angle/normalize/clamped_w
 function math:.common/acos/0.start
-data modify storage math: internal.w_quaternion_angle set compute default float math:quaternion_to_axis_angle/output/angle
+data modify storage math: internal.w_quaternion_angle set compute default float {"type":"minecraft:mul","inputs":[2,{"type":"minecraft:storage","storage":"math:","path":"internal.x"}]}
 return run function math:quaternion_to_axis_angle/4.finish

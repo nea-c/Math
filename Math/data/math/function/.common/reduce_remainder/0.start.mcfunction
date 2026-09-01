@@ -22,7 +22,7 @@ data modify storage math: internal.x set from storage math: internal.w_remainder
 data modify storage math: internal.w set from storage math: internal.w_remainder_scaled_divisor
 data modify storage math: internal.w_comparison.predicate.rounding_remainder_w_greater_than_x set compute default float math:.validation/predicate/rounding/remainder/w_greater_than_x/value
 execute if predicate math:.validation/rounding/remainder/w_greater_than_x run data modify storage math: internal.w_remainder_scaled_divisor set compute default float math:.common/reduce_remainder/half_scaled_divisor
-execute if predicate math:.validation/rounding/remainder/w_greater_than_x run data modify storage math: internal.w_remainder_shift set compute default float math:.common/reduce_remainder/decrement_shift
+execute if predicate math:.validation/rounding/remainder/w_greater_than_x run data modify storage math: internal.w_remainder_shift set compute default float {"type":"minecraft:add","inputs":[{"type":"minecraft:storage","storage":"math:","path":"internal.w_remainder_shift"},-1]}
 data modify storage math: internal.w_remainder_remaining_shift set from storage math: internal.w_remainder_shift
 data modify storage math: internal.y set from storage math: internal.w_remainder_scaled_divisor
 function math:.common/reduce_remainder/6.descend
