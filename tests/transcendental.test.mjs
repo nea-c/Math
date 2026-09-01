@@ -190,7 +190,6 @@ test("log exp and power generated graphs use responsibility subdirectories", () 
   for (const predicate of [
     "exp/underflows_to_zero.json",
     "power/exponent_integer.json",
-    "power/classifier_overflow.json",
   ]) {
     assert.ok(fs.existsSync(path.join("Math/data/math/predicate/.validation", predicate)), `missing ${predicate}`);
   }
@@ -199,6 +198,8 @@ test("log exp and power generated graphs use responsibility subdirectories", () 
     "exp/input_in_range.json",
     "power/below_overflow_classification.json",
     "power/exponent_large_even.json",
+    "power/classifier_overflow.json",
+    "power/needs_overflow_classification.json",
   ]) {
     assert.equal(fs.existsSync(path.join("Math/data/math/predicate/.validation", predicate)), false, `obsolete ${predicate} remains`);
   }
@@ -521,7 +522,6 @@ function deterministicAngles(minimum, maximum, count, seed) {
 test("trigonometric generated graphs keep shared kernels and omit obsolete guards", () => {
   for (const provider of [
     "sin/00.json",
-    "sin/fold/00.json",
     "cos/00.json",
     "tan/00.json",
   ]) {
@@ -532,6 +532,13 @@ test("trigonometric generated graphs keep shared kernels and omit obsolete guard
     "tan/guard/radians/compare_domain.json",
     "tan/guard/degrees/00.json",
     "tan/guard/degrees/compare_domain.json",
+    "sin/fold/00.json",
+    "sin/fold/compare_lower.json",
+    "sin/fold/compare_upper.json",
+    "sin/compare/positive_lower.json",
+    "sin/compare/positive_upper.json",
+    "sin/compare/negative_lower.json",
+    "sin/compare/negative_upper.json",
   ]) {
     assert.equal(fs.existsSync(path.join("Math/data/math/context_float_provider", provider)), false, `obsolete ${provider} remains`);
   }

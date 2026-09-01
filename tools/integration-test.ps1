@@ -405,32 +405,32 @@ try {
     $assertionCommands.Add('execute store result score #quaternion_axis_y math_test run data get storage math: ans.axis[1] 1000000')
     $assertionCommands.Add('execute store result score #quaternion_axis_z math_test run data get storage math: ans.axis[2] 1000000')
     $assertionCommands.Add('execute store result score #quaternion_angle math_test run data get storage math: ans.angle 1000000')
-    Add-Guard -Condition 'if data storage math: error' -Case 'quaternion_to_axis_angle_stale_error'
-    Add-Guard -Condition 'if data storage math: internal' -Case 'quaternion_to_axis_angle_scratch'
     Add-Guard -Condition 'unless data storage math: {rotation:[0.0f,0.70710677f,0.0f,-0.70710677f]}' -Case 'quaternion_to_axis_angle_rotation'
     Add-Guard -Condition 'unless data storage math: {ans:{axis:[0.0f,1.0f,0.0f]}}' -Case 'quaternion_to_axis_angle_shape_or_float_leaves'
     Add-Guard -Condition 'unless score #quaternion_axis_x math_test matches -10..10' -Case 'quaternion_to_axis_angle_axis_x'
     Add-Guard -Condition 'unless score #quaternion_axis_y math_test matches 999990..1000010' -Case 'quaternion_to_axis_angle_axis_y'
     Add-Guard -Condition 'unless score #quaternion_axis_z math_test matches -10..10' -Case 'quaternion_to_axis_angle_axis_z'
     Add-ScoreToleranceGuard -Score '#quaternion_angle' -Center 4712579 -Tolerance 6 -Case 'quaternion_to_axis_angle_angle'
+    Add-Guard -Condition 'if data storage math: error' -Case 'quaternion_to_axis_angle_stale_error'
+    Add-Guard -Condition 'if data storage math: internal' -Case 'quaternion_to_axis_angle_scratch'
 
     $assertionCommands.Add('data modify storage math: rotation set value [0.0f,0.0f,0.0f,1.0f]')
     $assertionCommands.Add('data modify storage math: ans set value -999.0f')
     $assertionCommands.Add('data modify storage math: error set value "stale_error"')
     $assertionCommands.Add('function #math:quaternion_to_axis_angle')
-    Add-Guard -Condition 'if data storage math: error' -Case 'quaternion_to_axis_angle_scalar_stale_error'
-    Add-Guard -Condition 'if data storage math: internal' -Case 'quaternion_to_axis_angle_scalar_scratch'
     Add-Guard -Condition 'unless data storage math: {rotation:[0.0f,0.0f,0.0f,1.0f]}' -Case 'quaternion_to_axis_angle_scalar_rotation'
     Add-Guard -Condition 'unless data storage math: {ans:{angle:0.0f,axis:[0.0f,1.0f,0.0f]}}' -Case 'quaternion_to_axis_angle_scalar_angle_float'
+    Add-Guard -Condition 'if data storage math: error' -Case 'quaternion_to_axis_angle_scalar_stale_error'
+    Add-Guard -Condition 'if data storage math: internal' -Case 'quaternion_to_axis_angle_scalar_scratch'
 
     $assertionCommands.Add('data modify storage math: rotation set value [0.0d,0.0d,0.0d,1.0d]')
     $assertionCommands.Add('data modify storage math: ans set value -999.0f')
     $assertionCommands.Add('data modify storage math: error set value "stale_error"')
     $assertionCommands.Add('function #math:quaternion_to_axis_angle')
-    Add-Guard -Condition 'if data storage math: error' -Case 'quaternion_to_axis_angle_double_stale_error'
-    Add-Guard -Condition 'if data storage math: internal' -Case 'quaternion_to_axis_angle_double_scratch'
     Add-Guard -Condition 'unless data storage math: {rotation:[0.0d,0.0d,0.0d,1.0d]}' -Case 'quaternion_to_axis_angle_double_rotation'
     Add-Guard -Condition 'unless data storage math: {ans:{angle:0.0f,axis:[0.0f,1.0f,0.0f]}}' -Case 'quaternion_to_axis_angle_double_result'
+    Add-Guard -Condition 'if data storage math: error' -Case 'quaternion_to_axis_angle_double_stale_error'
+    Add-Guard -Condition 'if data storage math: internal' -Case 'quaternion_to_axis_angle_double_scratch'
 
     $assertionCommands.Add("say $passMarker")
     Set-Content -LiteralPath (Join-Path $assertionFunctionRoot 'run.mcfunction') -Encoding utf8 -Value $assertionCommands

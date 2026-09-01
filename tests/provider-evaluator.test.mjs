@@ -191,6 +191,33 @@ test("float comparison classifies ordinary finite values without producing infin
   }
 });
 
+test("float comparison classifies signed-zero and finite-range threshold neighbors", () => {
+  const x = storage("math:internal", "x");
+  const minimumSubnormal = Math.fround(2 ** -149);
+  const nextSubnormal = Math.fround(2 ** -148);
+  const maximumFinite = Math.fround((2 - 2 ** -23) * 2 ** 127);
+  const previousMaximumFinite = Math.fround((2 - 2 ** -22) * 2 ** 127);
+  const cases = [
+    [0, [[-minimumSubnormal, -1], [-0, 0], [0, 0], [minimumSubnormal, 1]]],
+    [-0, [[-minimumSubnormal, -1], [-0, 0], [0, 0], [minimumSubnormal, 1]]],
+    [minimumSubnormal, [[0, -1], [minimumSubnormal, 0], [nextSubnormal, 1]]],
+    [-minimumSubnormal, [[-nextSubnormal, -1], [-minimumSubnormal, 0], [-0, 1]]],
+    [maximumFinite, [[previousMaximumFinite, -1], [maximumFinite, 0]]],
+    [-maximumFinite, [[-maximumFinite, 0], [-previousMaximumFinite, 1]]],
+  ];
+
+  for (const [threshold, inputs] of cases) {
+    for (const [input, expected] of inputs) {
+      const values = new Map([["math:internal", { x: input }]]);
+      assert.equal(
+        evaluateProvider(floatComparison(x, threshold), new Map(), values),
+        expected,
+        `${Object.is(input, -0) ? "-0" : input} compared with ${Object.is(threshold, -0) ? "-0" : threshold}`,
+      );
+    }
+  }
+});
+
 test("generated JSON writer uses repository-relative paths and a trailing newline", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "math-provider-test-"));
   try {

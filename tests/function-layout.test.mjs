@@ -31,7 +31,7 @@ test("function layout defines the complete public API", () => {
 });
 
 test("function layout assigns representative owned and common helpers", () => {
-  assert.equal(Object.keys(FUNCTION_PATHS).length, 71);
+  assert.equal(Object.keys(FUNCTION_PATHS).length, 62);
   assert.equal(FUNCTION_PATHS.bezierCompute, "bezier/1.compute");
   assert.equal(FUNCTION_PATHS.bezierSolve, "bezier/2.solve");
   assert.equal(FUNCTION_PATHS.bezierFinish, "bezier/3.finish");
@@ -52,8 +52,6 @@ test("function layout assigns representative owned and common helpers", () => {
   assert.equal(FUNCTION_PATHS.elasticDecayFinish, "elastic_decay/2.finish");
   assert.equal(FUNCTION_PATHS.bounceFinish, "bounce/2.finish");
   assert.equal(FUNCTION_PATHS.bounceDecayFinish, "bounce_decay/2.finish");
-  assert.equal(FUNCTION_PATHS.divideUnderflow, "div/5.underflow");
-  assert.equal(FUNCTION_PATHS.powerClassifyOverflow, "pow/10.classify_overflow");
   assert.equal(FUNCTION_PATHS.reciprocal, ".common/reciprocal/0.start");
   assert.equal(FUNCTION_PATHS.normalizeBinary32, ".common/normalize_binary32/0.start");
   for (const retired of [
@@ -66,10 +64,18 @@ test("function layout assigns representative owned and common helpers", () => {
     "divideNormalizeScaleUp",
     "divideNormalizeScaleDown",
     "divideNormalize",
+    "divideUnderflow",
+    "normalizePeriod",
+    "normalizePeriodNegative",
+    "sinEvaluate",
+    "powerNonfinitePositive",
+    "powerNonfiniteNegative",
+    "powerBoundaryPositive",
+    "powerBoundaryNegative",
+    "powerClassifyOverflow",
   ]) {
     assert.equal(Object.hasOwn(FUNCTION_PATHS, retired), false, `${retired} must stay retired`);
   }
-  assert.equal(functionId(FUNCTION_PATHS.sinEvaluate), "math:.common/sin/1.evaluate");
 });
 
 test("public tags reject inherited names", () => {

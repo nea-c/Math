@@ -39,15 +39,10 @@ const smallestNegativeFloat = -1.401298464324817e-45;
 const smallestPositiveFloat = Math.fround(2 ** -149);
 const smallestFiniteReciprocalInput = Math.fround(2 ** -128 + 2 ** -149);
 const largestSubnormalFloat = Math.fround(2 ** -126 - 2 ** -149);
-const maximumFiniteExpInput = Math.fround(88.72283172607422);
 const maximumZeroExpInput = Math.fround(-103.97208404541016);
 const pi = Math.fround(Math.PI);
 const halfPi = Math.fround(Math.PI / 2);
 const tau = Math.fround(Math.PI * 2);
-const powerOverflowLogThreshold = Math.log((2 - 2 ** -24) * 2 ** 127);
-const powerOverflowThresholdHigh = Math.fround(powerOverflowLogThreshold);
-const powerOverflowThresholdLow = Math.fround(powerOverflowLogThreshold - powerOverflowThresholdHigh);
-const powerClassifierDegree = 18;
 const generatedFiles = [];
 
 const renamedSharedProviders = new Map([
@@ -458,76 +453,7 @@ for (let stage = 0; stage < 3; stage += 1) {
 emit("common/reduce_remainder/half_scaled_divisor", product(0.5, storedRemainderScaledDivisor));
 emit("common/reduce_remainder/decrement_shift", sum(storedRemainderShift, -1));
 emit("common/reduce_remainder/decrement_remaining_shift", sum(storedRemainderRemainingShift, -1));
-const periodHalfDifference = sum(x, product(-0.5, y));
-emit("common/normalize/period/positive/00", numberDispatcher([
-  {
-    condition: inlineValueCheck(internalStorage("w_comparison.period_half"), 0, undefined),
-    number_provider: subtractExpression(x, y),
-  },
-], x));
-emit("common/normalize/period/negative/00", numberDispatcher([
-  {
-    condition: inlineValueCheck(internalStorage("w_comparison.period_half"), 1, undefined),
-    number_provider: subtractExpression(y, x),
-  },
-], product(-1, x)));
-emit("common/normalize/period/compare_half", floatComparison(periodHalfDifference, 0));
-emit("common/normalize/period/compare_original", floatComparison(z, 0));
-
-const sineC3 = Math.fround(-1 / 6);
-const sineC5 = Math.fround(1 / 120);
-const sineC7 = Math.fround(-1 / 5040);
-const sineC9 = Math.fround(1 / 362880);
-const sineC11 = Math.fround(-1 / 39916800);
-const sineC13 = Math.fround(1 / 6227020800);
-const sineC15 = Math.fround(-1 / 1307674368000);
-const sineC13Tail = sum(sineC13, product(x, x, sineC15));
-const sineC11Tail = sum(sineC11, product(x, x, sineC13Tail));
-const sineC9Tail = sum(sineC9, product(x, x, sineC11Tail));
-const halfPiPrevious = previousPositiveFloat(halfPi);
-const halfPiNext = nextPositiveFloat(halfPi);
-emit("sin/fold/00", numberDispatcher([
-  {
-    condition: inlineValueCheck(internalStorage("w_comparison.sin_fold_lower"), undefined, 0),
-    number_provider: sum(-pi, product(-1, z)),
-  },
-  {
-    condition: inlineValueCheck(internalStorage("w_comparison.sin_fold_upper"), 0, undefined),
-    number_provider: sum(pi, product(-1, z)),
-  },
-], z));
-emit("sin/fold/compare_lower", floatComparison(z, -halfPi));
-emit("sin/fold/compare_upper", floatComparison(z, halfPi));
-emit("sin/polynomial/00", product(
-  x,
-  sum(
-    1,
-    product(
-      x,
-      x,
-      sum(
-        sineC3,
-        product(
-          x,
-          x,
-          sum(
-            sineC5,
-            product(
-              x,
-              x,
-              sum(sineC7, product(x, x, sineC9Tail)),
-            ),
-          ),
-        ),
-      ),
-    ),
-  ),
-));
 emit("sin/00", sine(x));
-emit("sin/compare/positive_lower", floatComparison(x, halfPiPrevious));
-emit("sin/compare/positive_upper", floatComparison(x, halfPiNext));
-emit("sin/compare/negative_lower", floatComparison(x, -halfPiNext));
-emit("sin/compare/negative_upper", floatComparison(x, -halfPiPrevious));
 emit("cos/00", cosine(x));
 emit("tan/00", divide(
   internalStorage("w_tan_sin"),
@@ -850,66 +776,6 @@ for (let index = 0; index < 3; index += 1) {
   emit(`quaternion_to_axis_angle/output/stored_axis_${index}`, quaternionAxis[index]);
 }
 
-// Power needs more than a rounded b*log(a) at the overflow boundary: the
-// true binary32 overflow threshold lies inside one float bin. The classifier
-// evaluates log1p(m - 1), log(a), and b*log(a) as float expansions (hi + lo)
-// using error-free TwoSum/TwoProduct transforms, then compares the residual
-// against a split threshold.
-emit("power/classify/normalize/difference/00", sum(z, -1));
-emit("power/classify/polynomial/initial/00", Math.fround(
-  (powerClassifierDegree % 2 === 0 ? -1 : 1) / powerClassifierDegree,
-));
-for (let degree = powerClassifierDegree - 1; degree >= 1; degree -= 1) {
-  const exactCoefficient = (degree % 2 === 0 ? -1 : 1) / degree;
-  const coefficient = Math.fround(exactCoefficient);
-  const coefficientLow = Math.fround(exactCoefficient - coefficient);
-  const stage = degree.toString().padStart(2, "0");
-  const productHigh = product(x, z);
-  emit(`power/classify/polynomial/${stage}/low/00`, sum(
-    twoSumLow(productHigh, coefficient),
-    twoProductLow(x, z),
-    product(y, z),
-    coefficientLow,
-  ));
-  emit(`power/classify/polynomial/${stage}/high/00`, sum(productHigh, coefficient));
-}
-emit("power/classify/polynomial/result/low/00", sum(
-  twoProductLow(x, z),
-  product(y, z),
-));
-emit("power/classify/polynomial/result/high/00", product(x, z));
-
-const powerLn2High = Math.fround(Math.LN2);
-const powerLn2Low = Math.fround(Math.LN2 - powerLn2High);
-const powerExponentLn2High = product(w, powerLn2High);
-const powerLogHigh = internalStorage("w_power_log_high");
-const powerLogLow = internalStorage("w_power_log_low");
-const powerProductHigh = internalStorage("w_power_product_high");
-const powerProductLow = internalStorage("w_power_product_low");
-const powerDelta = internalStorage("w_power_delta");
-emit("power/classify/log/low/00", sum(
-  twoSumLow(powerExponentLn2High, x),
-  twoProductLow(w, powerLn2High),
-  product(w, powerLn2Low),
-  y,
-));
-emit("power/classify/log/high/00", sum(powerExponentLn2High, x));
-emit("power/classify/log/renormalize/high/00", sum(x, z));
-emit("power/classify/log/renormalize/low/00", twoSumLow(x, z, powerLogHigh));
-emit("power/classify/product/high/00", product(publicB, powerLogHigh));
-emit("power/classify/product/low/00", sum(
-  twoProductLow(publicB, powerLogHigh, powerProductHigh),
-  product(publicB, powerLogLow),
-));
-emit("power/classify/delta/00", sum(
-  subtractExpression(powerProductHigh, powerOverflowThresholdHigh),
-  subtractExpression(powerProductLow, powerOverflowThresholdLow),
-));
-emit("power/classify/evaluation_exponent/00", minimum(
-  sum(powerProductHigh, powerProductLow),
-  maximumFiniteExpInput,
-));
-
 emitStagedPredicate("atan/x_negative", x, undefined, smallestNegativeFloat);
 emitStagedPredicate("atan/use_reciprocal", x, nextPositiveFloat(1), undefined);
 emitStagedPredicate("atan/use_pi_four", x, atanOctantBoundary, undefined);
@@ -932,11 +798,6 @@ emitStagedPredicate("bounce_decay/time_at_or_after_end", subtractExpression(publ
 emit("internal/comparison/x_zero", floatComparison(x, 0));
 emitPredicate("range/negative", inlineValueCheck(internalStorage("w_comparison.x_sign"), undefined, -1));
 emitPredicate("range/positive", inlineValueCheck(internalStorage("w_comparison.x_sign"), 1, undefined));
-emitPredicate("normalize_period/original_negative", inlineValueCheck(
-  internalStorage("w_comparison.period_original"),
-  undefined,
-  -1,
-));
 emitPredicate("asin_positive/before_target", inlineValueCheck(
   internalStorage("w_comparison.asin_positive_before_target"),
   undefined,
@@ -993,8 +854,6 @@ emitPredicate("inverse_trigonometry/square_before_target", inlineValueCheck(
 emitStagedPredicate("exp/underflows_to_zero", x, undefined, maximumZeroExpInput);
 emitStagedPredicate("power/exponent_negative", y, undefined, smallestNegativeFloat);
 emitStagedPredicate("power/exponent_integer", sum(publicB, product(-1, z)), 0, 0);
-emitStagedPredicate("power/needs_overflow_classification", x, 88.7, 88.75);
-emitStagedPredicate("power/classifier_overflow", powerDelta, smallestPositiveFloat, undefined);
 emitStagedPredicate("rounding/remainder/can_subtract_y", sum(x, product(-1, y)), 0, undefined);
 // With x >= y, x - y is exact while x < 2y (Sterbenz's lemma), and cannot
 // round back down to y once x > 2y. This avoids the lossy 0.5*x subnormal
@@ -1570,12 +1429,6 @@ emitFunction(FUNCTION_PATHS.reciprocalNormalizeShared, [
   "return 1",
 ]);
 
-emitFunction(FUNCTION_PATHS.divideUnderflow, [
-  "data modify storage math: ans set value 0.0f",
-  "execute if data storage math:internal {w_divide_sign:-1.0f} run data modify storage math: ans set value -0.0f",
-  "return 1",
-]);
-
 function exactRemainderLines() {
   return [
     "data modify storage math:internal x set from storage math: a",
@@ -1774,67 +1627,6 @@ emitFunction(FUNCTION_PATHS.exp, [
   "return 1",
 ]);
 
-{
-  const lines = [
-    "data modify storage math:internal x set from storage math: a",
-    "data modify storage math:internal x set compute default math:common/comparison/absolute",
-    `function ${functionId(FUNCTION_PATHS.logPrepare)}`,
-    "data modify storage math:internal z set compute default math:power/classify/normalize/difference/00",
-    "data modify storage math:internal x set compute default math:power/classify/polynomial/initial/00",
-    "data modify storage math:internal y set value 0.0f",
-  ];
-  for (let degree = powerClassifierDegree - 1; degree >= 1; degree -= 1) {
-    const stage = degree.toString().padStart(2, "0");
-    lines.push(`data modify storage math:internal y set compute default math:power/classify/polynomial/${stage}/low/00`);
-    lines.push(`data modify storage math:internal x set compute default math:power/classify/polynomial/${stage}/high/00`);
-  }
-  lines.push("data modify storage math:internal y set compute default math:power/classify/polynomial/result/low/00");
-  lines.push("data modify storage math:internal x set compute default math:power/classify/polynomial/result/high/00");
-  lines.push("data modify storage math:internal z set compute default math:power/classify/log/low/00");
-  lines.push("data modify storage math:internal x set compute default math:power/classify/log/high/00");
-  lines.push("data modify storage math:internal w_power_log_high set compute default math:power/classify/log/renormalize/high/00");
-  lines.push("data modify storage math:internal w_power_log_low set compute default math:power/classify/log/renormalize/low/00");
-  lines.push("data modify storage math:internal w_power_product_high set compute default math:power/classify/product/high/00");
-  lines.push("data modify storage math:internal w_power_product_low set compute default math:power/classify/product/low/00");
-  lines.push("data modify storage math:internal w_power_delta set compute default math:power/classify/delta/00");
-  lines.push("return 1");
-  emitFunction(FUNCTION_PATHS.powerClassifyOverflow, lines);
-}
-
-function finalPowerResultLines(negativeResult) {
-  const lines = [`function ${functionId(FUNCTION_PATHS.exp)}`];
-  lines.push(negativeResult
-    ? "data modify storage math: ans set compute default math:common/rounding/negate"
-    : "data modify storage math: ans set compute default math:common/input/x");
-  lines.push("return 1");
-  return lines;
-}
-
-function powerNonfiniteLines(negativeResult) {
-  return [
-    "data modify storage math:internal w_comparison.x_sign set compute default math:internal/comparison/x_zero",
-    `execute if predicate math:internal/range/negative run data modify storage math: ans set value ${negativeResult ? "-0.0f" : "0.0f"}`,
-    "execute if predicate math:internal/range/negative run return 1",
-    "return 1",
-  ];
-}
-
-function powerBoundaryLines(negativeResult) {
-  return [
-    ...stagePredicate("power/needs_overflow_classification"),
-    "execute unless predicate math:internal/power/needs_overflow_classification run return 1",
-    `function ${functionId(FUNCTION_PATHS.powerClassifyOverflow)}`,
-    ...stagePredicate("power/classifier_overflow"),
-    "execute if predicate math:internal/power/classifier_overflow run return 1",
-    "data modify storage math:internal x set compute default math:power/classify/evaluation_exponent/00",
-    ...finalPowerResultLines(negativeResult),
-  ];
-}
-
-emitFunction(FUNCTION_PATHS.powerNonfinitePositive, powerNonfiniteLines(false));
-emitFunction(FUNCTION_PATHS.powerNonfiniteNegative, powerNonfiniteLines(true));
-emitFunction(FUNCTION_PATHS.powerBoundaryPositive, powerBoundaryLines(false));
-emitFunction(FUNCTION_PATHS.powerBoundaryNegative, powerBoundaryLines(true));
 const nativePowerResultLines = [
   "data modify storage math: ans set compute default math:power/positive/00",
   "return 1",
@@ -2000,7 +1792,6 @@ emitFunction(FUNCTION_PATHS.reduceRemainder, [
 
 {
   const lines = [];
-  lines.push("data modify storage math:internal x set from storage math: b");
   lines.push("data modify storage math:internal x set from storage math: a");
   lines.push("data modify storage math:internal y set from storage math: b");
   lines.push("data modify storage math: ans set compute default math:remainder/00");
@@ -2035,35 +1826,6 @@ emitFunction(FUNCTION_PATHS.moduloNegativeB, [
   lines.push("data modify storage math: ans set compute default math:common/arithmetic/subtract");
   emitControlledPublicFunction("mod", FUNCTION_PATHS.moduloCompute, lines);
 }
-
-emitFunction(FUNCTION_PATHS.normalizePeriod, [
-  "data modify storage math:internal z set from storage math:internal x",
-  "data modify storage math:internal x set compute default math:common/comparison/absolute",
-  `function ${functionId(FUNCTION_PATHS.reduceRemainder)}`,
-  "data modify storage math:internal w_comparison.period_half set compute default math:common/normalize/period/compare_half",
-  "data modify storage math:internal w_comparison.period_original set compute default math:common/normalize/period/compare_original",
-  "data modify storage math:internal w set from storage math:internal z",
-  `execute if predicate math:internal/normalize_period/original_negative run return run function ${functionId(FUNCTION_PATHS.normalizePeriodNegative)}`,
-  "data modify storage math:internal z set compute default math:common/normalize/period/positive/00",
-  "return 1",
-]);
-
-emitFunction(FUNCTION_PATHS.normalizePeriodNegative, [
-  "data modify storage math:internal z set compute default math:common/normalize/period/negative/00",
-  "return 1",
-]);
-
-emitFunction(FUNCTION_PATHS.sinEvaluate, [
-  "data modify storage math:internal w_comparison.sin_fold_lower set compute default math:sin/fold/compare_lower",
-  "data modify storage math:internal w_comparison.sin_fold_upper set compute default math:sin/fold/compare_upper",
-  "data modify storage math:internal x set compute default math:sin/fold/00",
-  "data modify storage math:internal w_comparison.sin_positive_lower set compute default math:sin/compare/positive_lower",
-  "data modify storage math:internal w_comparison.sin_positive_upper set compute default math:sin/compare/positive_upper",
-  "data modify storage math:internal w_comparison.sin_negative_lower set compute default math:sin/compare/negative_lower",
-  "data modify storage math:internal w_comparison.sin_negative_upper set compute default math:sin/compare/negative_upper",
-  "data modify storage math:internal x set compute default math:sin/00",
-  "return 1",
-]);
 
 emitFunction(FUNCTION_PATHS.sin, [
   "data modify storage math:internal x set compute default math:sin/00",
@@ -2143,6 +1905,17 @@ function generate(targetRoot) {
           throw new Error(`Refusing to remove generated path outside repository: ${relativePath}`);
         }
         fs.rmSync(target, { force: true });
+        const generatedDataRoot = path.join(root, "Math", "data", "math");
+        let parent = path.dirname(target);
+        while (parent.startsWith(`${generatedDataRoot}${path.sep}`)) {
+          try {
+            fs.rmdirSync(parent);
+          } catch (error) {
+            if (["ENOENT", "ENOTEMPTY"].includes(error.code)) break;
+            throw error;
+          }
+          parent = path.dirname(parent);
+        }
       }
     }
   }

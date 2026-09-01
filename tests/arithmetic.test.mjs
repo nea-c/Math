@@ -97,19 +97,6 @@ function assertExactPublicReduction(name, a, b) {
   }
 }
 
-function exactCenteredRemainderReference(value, period) {
-  const magnitude = exactRemainderMagnitude(value, period);
-  const halfPeriod = Math.fround(period * 0.5);
-  if (value < 0) {
-    return magnitude > halfPeriod
-      ? Math.fround(period - magnitude)
-      : Math.fround(-magnitude);
-  }
-  return magnitude >= halfPeriod
-    ? Math.fround(magnitude - period)
-    : magnitude;
-}
-
 const providers = providerRegistry();
 
 test("common exact providers evaluate hand-checked arithmetic and conversions", () => {
@@ -125,7 +112,6 @@ test("common exact providers evaluate hand-checked arithmetic and conversions", 
     assert.equal(run(id, internal), Math.fround(expected));
   }
 });
-
 test("staged reciprocal normalization covers the binary32 exponent range", () => {
   const cases = [
     smallestFiniteReciprocalInput,
@@ -539,42 +525,5 @@ test("remainder and modulo match exact binary32 reduction across 50,000 determin
       assert.equal(bitsFromFloat(actual), bitsFromFloat(expected), `${a} % ${b}`);
     }
     count += 1;
-  }
-});
-
-test("period normalization reduces with a round-to-nearest quotient", () => {
-  const cases = [
-    [{ x: 7, y: 4 }, -1],
-    [{ x: -7, y: 4 }, 1],
-    [{ x: 2, y: 4 }, -2],
-    [{ x: -2, y: 4 }, -2],
-  ];
-  for (const [internal, expected] of cases) {
-    const { storage, numericTags, returned } = runImplementation(".common/normalize_period/0.start", {}, internal);
-    assert.equal(returned, 1);
-    assert.equal(storage["math:"].internal.z, Math.fround(expected), `normalize ${internal.x} by ${internal.y}`);
-    assert.equal(numericTags.get(storageFieldKey("math:", "internal.z")), "float");
-    assert.ok(Object.keys(storage["math:"].internal).every((field) => /^[xyzw](?:_|$)/.test(field)));
-  }
-});
-
-test("period normalization stays exact and finite across the binary32 range", () => {
-  const tau = Math.fround(Math.PI * 2);
-  for (const input of [
-    Math.fround(1e20),
-    Math.fround(-1e20),
-    Math.fround(1e30),
-    Math.fround(-1e30),
-    finiteLimit,
-    -finiteLimit,
-  ]) {
-    const expected = exactCenteredRemainderReference(input, tau);
-    const result = runImplementation(".common/normalize_period/0.start", {}, { x: input, y: tau });
-    assert.equal(result.returned, 1, `normalize_period(${input}) success`);
-    assert.equal(result.storage["math:"].internal.z, expected, `normalize_period(${input}) exact centered remainder`);
-    assert.ok(Number.isFinite(result.storage["math:"].internal.z), `normalize_period(${input}) finite result`);
-    assert.equal(result.storage["math:"].internal.w, input, `normalize_period(${input}) preserves original x in w`);
-    assert.equal(result.numericTags.get(storageFieldKey("math:", "internal.z")), "float");
-    assert.ok(Object.keys(result.storage["math:"].internal).every((field) => /^[xyzw](?:_|$)/.test(field)));
   }
 });

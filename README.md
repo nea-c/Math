@@ -33,7 +33,7 @@ data get storage math: ans
 - 下表の有効入力条件を満たさない入力の動作は未定義です。
 - 無効な入力に対する `ans` の存在・型・値は保証しません。
 - `internal` は非公開scratchであり、通常終了後に削除されます。
-- 公開APIは `#math:<関数名>` です。`math:internal` や `Math/data/math/function` 内のfunctionは直接実行しないでください。
+- 公開APIは `#math:<関数名>` です。`storage math: internal` と `Math/data/math/function` 内のprivate implementation functionは実装詳細であり、直接参照・実行しないでください。
 
 ### 入出力
 

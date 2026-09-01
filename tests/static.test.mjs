@@ -26,7 +26,7 @@ function repositorySnapshot(root) {
   return [...snapshot].sort(([left], [right]) => left.localeCompare(right));
 }
 
-function validatePackGraph(packRoot) {
+function validatePackGraph(packRoot, { onReference } = {}) {
   const issues = [];
   const dataRoot = path.join(packRoot, "data");
   const resourceLocation = /^(#?)([a-z0-9_.-]+):([a-z0-9_./-]+)$/;
@@ -55,6 +55,8 @@ function validatePackGraph(packRoot) {
       issues.push(`${prefix} invalid ${registry} reference ${id}`);
     } else if (target !== null && !fs.existsSync(target)) {
       issues.push(`${prefix} dangling ${registry} ${id}`);
+    } else if (target !== null) {
+      onReference?.({ source: path.resolve(source), target: path.resolve(target) });
     }
   };
 
@@ -305,6 +307,42 @@ function validatePackGraph(packRoot) {
   return issues.sort();
 }
 
+function unreachablePublicRegistryAssets(packRoot) {
+  const edges = new Map();
+  const addEdge = ({ source, target }) => {
+    if (!edges.has(source)) edges.set(source, new Set());
+    edges.get(source).add(target);
+  };
+  assert.deepEqual(validatePackGraph(packRoot, { onReference: addEdge }), []);
+
+  const filesUnder = (root, extension) => fs.existsSync(root)
+    ? fs.readdirSync(root, { recursive: true, withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith(extension))
+      .map((entry) => path.resolve(entry.parentPath, entry.name))
+    : [];
+  const mathRoot = path.join(packRoot, "data", "math");
+  const roots = filesUnder(path.join(mathRoot, "tags", "function"), ".json");
+  const assets = [
+    ...filesUnder(path.join(mathRoot, "function"), ".mcfunction"),
+    ...filesUnder(path.join(mathRoot, "predicate"), ".json"),
+    ...filesUnder(path.join(mathRoot, "context_float_provider"), ".json"),
+  ];
+  const reachable = new Set(roots);
+  const pending = [...roots];
+  while (pending.length > 0) {
+    const source = pending.pop();
+    for (const target of edges.get(source) ?? []) {
+      if (reachable.has(target)) continue;
+      reachable.add(target);
+      pending.push(target);
+    }
+  }
+  return assets
+    .filter((file) => !reachable.has(file))
+    .map((file) => path.relative(packRoot, file).replaceAll("\\", "/"))
+    .sort();
+}
+
 test("pack graph validator detects controlled dangling registry references", () => {
   const packRoot = fs.mkdtempSync(path.join(os.tmpdir(), "math-pack-graph-"));
   try {
@@ -407,6 +445,52 @@ test("pack graph validator detects controlled dangling registry references", () 
 
 test("all pack registry references resolve", () => {
   assert.deepEqual(validatePackGraph("Math"), []);
+});
+
+test("public function tags reach every generated function, predicate, and provider", () => {
+  assert.deepEqual(unreachablePublicRegistryAssets("Math"), []);
+});
+
+test("public registry reachability rejects a self-referential dead graph", () => {
+  const packRoot = fs.mkdtempSync(path.join(os.tmpdir(), "math-pack-reachability-"));
+  try {
+    const write = (relative, value) => {
+      const file = path.join(packRoot, relative);
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, typeof value === "string" ? value : `${JSON.stringify(value, null, 2)}\n`);
+    };
+    write("data/math/tags/function/live.json", { values: ["math:live/root"] });
+    write("data/math/function/live/root.mcfunction", "data modify storage math: ans set compute default float math:live/root\n");
+    write("data/math/context_float_provider/live/root.json", {
+      type: "minecraft:conditional",
+      conditions: {
+        type: "minecraft:float_value_check",
+        value: "math:live/value",
+        test: { min: 0 },
+      },
+      on_true: "math:live/value",
+      on_false: 0,
+    });
+    write("data/math/context_float_provider/live/value.json", 1);
+    write("data/math/function/dead/cycle.mcfunction", "function math:dead/cycle\ndata modify storage math: ans set compute default float math:dead/cycle\n");
+    write("data/math/context_float_provider/dead/cycle.json", {
+      type: "minecraft:number_dispatcher",
+      cases: [{ condition: "math:dead/cycle", value: "math:dead/cycle" }],
+      default: 0,
+    });
+    write("data/math/predicate/dead/cycle.json", {
+      type: "minecraft:inverted",
+      term: "math:dead/cycle",
+    });
+
+    assert.deepEqual(unreachablePublicRegistryAssets(packRoot), [
+      "data/math/context_float_provider/dead/cycle.json",
+      "data/math/function/dead/cycle.mcfunction",
+      "data/math/predicate/dead/cycle.json",
+    ]);
+  } finally {
+    fs.rmSync(packRoot, { recursive: true, force: true });
+  }
 });
 
 test("pack targets data pack format 119", () => {
@@ -795,11 +879,42 @@ public final class FakeServer {
     if (lines.stream().anyMatch(line -> line.matches(".*(invalid_number|division_by_zero|result_out_of_range|invalid_duration|invalid_curve|invalid_bounce|non_real_result|invalid_quaternion|undefined_tangent).*"))) {
       throw new AssertionError("invalid-input error-ID assertion remains");
     }
-    long calls = lines.stream().filter(line -> line.startsWith("function #math:")).count();
-    long staleErrorGuards = lines.stream().filter(line -> line.contains("if data storage math: error run return run function math_test:fail/")).count();
-    long scratchGuards = lines.stream().filter(line -> line.contains("if data storage math: internal run return run function math_test:fail/")).count();
-    if (calls == 0 || staleErrorGuards != calls || scratchGuards != calls) {
-      throw new AssertionError("each valid call must guard stale error and scratch: " + calls + "/" + staleErrorGuards + "/" + scratchGuards);
+    int calls = 0;
+    for (int call = 0; call < lines.size(); call++) {
+      if (!lines.get(call).startsWith("function #math:")) continue;
+      calls++;
+      int end = call + 1;
+      while (end < lines.size() && !lines.get(end).startsWith("function #math:") && !lines.get(end).startsWith("say MATH_TEST_PASS:")) end++;
+      int resultGuard = -1;
+      int staleErrorGuard = -1;
+      int scratchGuard = -1;
+      int staleErrorGuardCount = 0;
+      int scratchGuardCount = 0;
+      for (int cursor = call + 1; cursor < end; cursor++) {
+        String line = lines.get(cursor);
+        if (line.contains("unless data storage math: {ans:") || line.contains("unless score #")) resultGuard = cursor;
+        if (line.contains("if data storage math: error run return run function math_test:fail/")) {
+          staleErrorGuard = cursor;
+          staleErrorGuardCount++;
+        }
+        if (line.contains("if data storage math: internal run return run function math_test:fail/")) {
+          scratchGuard = cursor;
+          scratchGuardCount++;
+        }
+      }
+      if (!(call < resultGuard && resultGuard < staleErrorGuard && staleErrorGuard < scratchGuard && scratchGuard < end)
+          || staleErrorGuardCount != 1 || scratchGuardCount != 1) {
+        throw new AssertionError("valid call guards are missing, misordered, or attached to the next call: " + lines.get(call));
+      }
+      String staleErrorLine = lines.get(staleErrorGuard);
+      String caseName = staleErrorLine.substring(staleErrorLine.indexOf("math_test:fail/") + 15, staleErrorLine.lastIndexOf("_stale_error"));
+      if (!lines.get(scratchGuard).contains("math_test:fail/" + caseName + "_scratch")
+          || !lines.get(resultGuard).contains("math_test:fail/" + caseName + "_")) {
+        throw new AssertionError("valid call guards refer to different cases: " + lines.get(call));
+      }
+    }
+    if (calls == 0) {
+      throw new AssertionError("integration assertions contain no public calls");
     }
 
     int seed = indexOf(lines, "data modify storage math: internal set value {x:999.0f,w_stale:1}");

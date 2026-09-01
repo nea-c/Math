@@ -58,7 +58,7 @@ const COMMAND_BUDGETS = {
   bezier: { baseline: 141, boundary: 13 },
   bounce: { baseline: 57, boundary: 7 },
   bounce_decay: { baseline: 71, boundary: 7 },
-  remainder: { baseline: 7, boundary: 7 },
+  remainder: { baseline: 6, boundary: 6 },
   mod: { baseline: 137, boundary: 135 },
   pow: { baseline: 16, boundary: 19 },
   asin: { baseline: 253, boundary: 15 },
@@ -252,7 +252,7 @@ test("quaternion conversion keeps deterministic path budgets and shares inverse 
 });
 
 test("native remainder removes the custom reduction work while mod keeps floor semantics", () => {
-  assert.equal(runFunction("remainder", BASELINE_INPUTS.remainder).commandsExecuted, 7);
+  assert.equal(runFunction("remainder", BASELINE_INPUTS.remainder).commandsExecuted, 6);
   assert.ok(runFunction("mod", BASELINE_INPUTS.mod).commandsExecuted <= 140);
 });
 
