@@ -71,33 +71,40 @@ export const modulo = (left, right) => binary("mod", left, right);
 export const power = (base, exponent) => ({ type: "minecraft:pow", base, exponent });
 export const length = (...inputs) => aggregate("length", inputs);
 
-function minimumFloatSpacing(value) {
-  const threshold = f32(Math.abs(value));
+function adjacentFloat32(value, direction) {
+  const threshold = f32(value);
   if (!Number.isFinite(threshold)) throw new RangeError("Float comparison threshold must be finite");
-  if (threshold === 0) return f32(2 ** -149);
-
+  if (threshold === 0) return direction < 0 ? -f32(2 ** -149) : f32(2 ** -149);
   const bytes = new ArrayBuffer(4);
   const view = new DataView(bytes);
   view.setFloat32(0, threshold);
   const bits = view.getUint32(0);
-  view.setUint32(0, bits - 1);
-  const previous = view.getFloat32(0);
-  view.setUint32(0, bits + 1);
-  const next = view.getFloat32(0);
-  return Math.min(f32(threshold - previous), f32(next - threshold));
+  const incrementBits = (threshold > 0) === (direction > 0);
+  view.setUint32(0, incrementBits ? bits + 1 : bits - 1);
+  return view.getFloat32(0);
 }
 
 // This provider must be evaluated by `data modify ... set compute` before a
-// value-check reads it. Materialization preserves the float calculation; the
-// scaled result then has magnitude >= 1 for every adjacent binary32 value.
+// value-check reads it. Adjacent binary32 bounds preserve strict comparison
+// without scaling finite differences into Infinity.
 export function floatComparison(value, threshold) {
   const roundedThreshold = f32(threshold);
-  const difference = sum(value, product(-1, roundedThreshold));
-  const spacing = minimumFloatSpacing(roundedThreshold);
-  if (spacing < f32(2 ** -127)) {
-    return product(difference, f32(2 ** 127), f32(1 / (spacing * 2 ** 127)));
+  const lower = adjacentFloat32(roundedThreshold, -1);
+  const upper = adjacentFloat32(roundedThreshold, 1);
+  const cases = [];
+  if (Number.isFinite(lower)) {
+    cases.push({
+      condition: { type: "minecraft:float_value_check", value, test: { max: lower } },
+      value: -1,
+    });
   }
-  return product(difference, f32(1 / spacing));
+  if (Number.isFinite(upper)) {
+    cases.push({
+      condition: { type: "minecraft:float_value_check", value, test: { min: upper } },
+      value: 1,
+    });
+  }
+  return { type: "minecraft:number_dispatcher", cases, default: 0 };
 }
 
 export const storageProvider = storage;

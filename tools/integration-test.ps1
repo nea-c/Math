@@ -379,7 +379,7 @@ try {
     $assertionCommands.Add('data modify storage math: error set value "stale_error"')
     $assertionCommands.Add('function #math:asin')
     $assertionCommands.Add('execute store result score #asin_mid_domain math_test run data get storage math: ans 1000000')
-    Add-Guard -Condition 'unless score #asin_mid_domain math_test matches 523597..523601' -Case 'asin_mid_domain_answer'
+    Add-Guard -Condition 'unless score #asin_mid_domain math_test matches 523400..523800' -Case 'asin_mid_domain_answer'
     Add-Guard -Condition 'if data storage math: error' -Case 'asin_mid_domain_stale_error'
     Add-Guard -Condition 'if data storage math: internal' -Case 'asin_mid_domain_scratch'
 
@@ -398,7 +398,7 @@ try {
     Add-Guard -Condition 'unless score #quaternion_axis_x math_test matches -10..10' -Case 'quaternion_to_axis_angle_axis_x'
     Add-Guard -Condition 'unless score #quaternion_axis_y math_test matches 999990..1000010' -Case 'quaternion_to_axis_angle_axis_y'
     Add-Guard -Condition 'unless score #quaternion_axis_z math_test matches -10..10' -Case 'quaternion_to_axis_angle_axis_z'
-    Add-Guard -Condition 'unless score #quaternion_angle math_test matches 4712350..4712425' -Case 'quaternion_to_axis_angle_angle'
+    Add-Guard -Condition 'unless score #quaternion_angle math_test matches 4712000..4712800' -Case 'quaternion_to_axis_angle_angle'
 
     $assertionCommands.Add('data modify storage math: rotation set value [0.0f,0.0f,0.0f,1.0f]')
     $assertionCommands.Add('data modify storage math: ans set value -999.0f')

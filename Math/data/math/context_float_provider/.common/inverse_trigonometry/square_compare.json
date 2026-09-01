@@ -1,10 +1,10 @@
 {
-  "type": "minecraft:mul",
-  "inputs": [
+  "type": "minecraft:number_dispatcher",
+  "cases": [
     {
-      "type": "minecraft:add",
-      "inputs": [
-        {
+      "condition": {
+        "type": "minecraft:float_value_check",
+        "value": {
           "type": "minecraft:add",
           "inputs": [
             {
@@ -35,16 +35,52 @@
             }
           ]
         },
-        {
-          "type": "minecraft:mul",
-          "inputs": [
-            -1,
-            0
-          ]
+        "test": {
+          "max": -1.401298464324817e-45
         }
-      ]
+      },
+      "value": -1
     },
-    1.7014118346046923e+38,
-    4194304
-  ]
+    {
+      "condition": {
+        "type": "minecraft:float_value_check",
+        "value": {
+          "type": "minecraft:add",
+          "inputs": [
+            {
+              "type": "minecraft:mul",
+              "inputs": [
+                {
+                  "type": "minecraft:storage",
+                  "storage": "math:",
+                  "path": "internal.w_inverse_trigonometry_square_midpoint"
+                },
+                {
+                  "type": "minecraft:storage",
+                  "storage": "math:",
+                  "path": "internal.w_inverse_trigonometry_square_midpoint"
+                }
+              ]
+            },
+            {
+              "type": "minecraft:mul",
+              "inputs": [
+                -1,
+                {
+                  "type": "minecraft:storage",
+                  "storage": "math:",
+                  "path": "internal.w_inverse_trigonometry_square_target"
+                }
+              ]
+            }
+          ]
+        },
+        "test": {
+          "min": 1.401298464324817e-45
+        }
+      },
+      "value": 1
+    }
+  ],
+  "default": 0
 }

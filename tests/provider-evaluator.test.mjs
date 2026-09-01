@@ -177,6 +177,20 @@ test("materialized comparisons distinguish adjacent floats at signed power-of-tw
   }
 });
 
+test("float comparison classifies ordinary finite values without producing infinity", () => {
+  const x = storage("math:internal", "x");
+  for (const [input, expected] of [
+    [-0.5, -1],
+    [0, 0],
+    [0.5, 1],
+    [-3.4028234663852886e38, -1],
+    [3.4028234663852886e38, 1],
+  ]) {
+    const values = new Map([["math:internal", { x: input }]]);
+    assert.equal(evaluateProvider(floatComparison(x, 0), new Map(), values), expected, `${input} compared with 0`);
+  }
+});
+
 test("generated JSON writer uses repository-relative paths and a trailing newline", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "math-provider-test-"));
   try {
