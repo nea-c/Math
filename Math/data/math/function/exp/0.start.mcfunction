@@ -12,7 +12,7 @@ execute if predicate math:internal/exp/underflows_to_zero run return 1
 execute if data storage math:internal {x:-103.97207641601562f} run data modify storage math: ans set compute default float math:exp/minimum/00
 execute if data storage math:internal {x:-103.97207641601562f} run return 1
 function math:.common/exp/0.start
-data modify storage math: ans set compute default float math:common/input/x
+data modify storage math: ans set compute default float math:.common/input/x
 data modify storage math:internal w_comparison.predicate.exp_result_finite set compute default float math:internal/comparison/predicate/exp/result_finite/value
 execute unless predicate math:internal/exp/result_finite run data remove storage math: ans
 execute unless predicate math:internal/exp/result_finite run data modify storage math: error set value "result_out_of_range"

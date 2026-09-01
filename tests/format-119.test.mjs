@@ -52,6 +52,18 @@ test("public arithmetic tags use the native provider names", () => {
   }
 });
 
+test("shared float providers use the private .common namespace", () => {
+  assert.equal(fs.existsSync(path.join(providerRoot, "common")), false, "public-looking common provider directory remains");
+  assert.equal(fs.existsSync(path.join(providerRoot, ".common")), true, "private .common provider directory is missing");
+
+  const functionRoot = path.join(packRoot, "data", "math", "function");
+  for (const entry of fs.readdirSync(functionRoot, { recursive: true, withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith(".mcfunction")) continue;
+    const file = path.join(entry.parentPath, entry.name);
+    assert.doesNotMatch(fs.readFileSync(file, "utf8"), /\bmath:common\//, file);
+  }
+});
+
 test("generated commands select float provider evaluation explicitly", () => {
   const functionRoot = path.join(packRoot, "data", "math", "function");
   for (const entry of fs.readdirSync(functionRoot, { recursive: true, withFileTypes: true })) {
@@ -67,17 +79,17 @@ test("generated commands select float provider evaluation explicitly", () => {
 
 test("native operations back directly supported public calculations", () => {
   const expectedTypes = new Map([
-    ["common/comparison/absolute.json", "minecraft:abs"],
-    ["common/arithmetic/subtract.json", "minecraft:sub"],
-    ["common/arithmetic/multiply.json", "minecraft:mul"],
-    ["common/arithmetic/divide.json", "minecraft:div"],
-    ["common/arithmetic/reciprocal.json", "minecraft:div"],
-    ["common/comparison/minimum.json", "minecraft:min"],
-    ["common/comparison/maximum.json", "minecraft:max"],
-    ["common/rounding/floor.json", "minecraft:floor"],
-    ["common/rounding/ceil.json", "minecraft:ceil"],
-    ["common/rounding/round.json", "minecraft:round"],
-    ["common/rounding/truncate.json", "minecraft:truncate"],
+    [".common/comparison/absolute.json", "minecraft:abs"],
+    [".common/arithmetic/subtract.json", "minecraft:sub"],
+    [".common/arithmetic/multiply.json", "minecraft:mul"],
+    [".common/arithmetic/divide.json", "minecraft:div"],
+    [".common/arithmetic/reciprocal.json", "minecraft:div"],
+    [".common/comparison/minimum.json", "minecraft:min"],
+    [".common/comparison/maximum.json", "minecraft:max"],
+    [".common/rounding/floor.json", "minecraft:floor"],
+    [".common/rounding/ceil.json", "minecraft:ceil"],
+    [".common/rounding/round.json", "minecraft:round"],
+    [".common/rounding/truncate.json", "minecraft:truncate"],
     ["remainder/00.json", "minecraft:mod"],
     ["sin/00.json", "minecraft:sin"],
     ["cos/00.json", "minecraft:cos"],

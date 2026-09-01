@@ -9,7 +9,7 @@ const finiteLimit = Math.fround(3.4028234663852886e38);
 const smallestFloat = Math.fround(2 ** -149);
 const task1WideGapBaseline = 4_166;
 const minimumRemovedAscentWork = 276 * 8;
-const providerDirectory = path.resolve("Math/data/math/context_float_provider/common/reduce_remainder");
+const providerDirectory = path.resolve("Math/data/math/context_float_provider/.common/reduce_remainder");
 const graph = loadGeneratedGraph();
 
 function dispatcherDepth(provider) {
@@ -89,7 +89,7 @@ test("remainder shift lookups are balanced, finite, and stay within their pack b
     .filter(entry => entry.isFile() && entry.name.endsWith(".json"))
     .reduce((total, entry) => total + fs.statSync(path.join(entry.parentPath, entry.name)).size, 0);
   const expandedNodes = [0, 1, 2].reduce(
-    (total, stage) => total + expandedProviderNodes(`math:common/reduce_remainder/factor_${stage}`, graph),
+    (total, stage) => total + expandedProviderNodes(`math:.common/reduce_remainder/factor_${stage}`, graph),
     0,
   );
   assert.ok(serializedBytes <= 245_000, `remainder lookup files use ${serializedBytes} bytes; budget is 245000`);

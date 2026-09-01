@@ -24,7 +24,7 @@ execute if predicate math:internal/elastic/time_at_or_below_start run return 1
 data modify storage math:internal w_comparison.predicate.elastic_time_at_or_after_end set compute default float math:internal/comparison/predicate/elastic/time_at_or_after_end/value
 execute if predicate math:internal/elastic/time_at_or_after_end run data modify storage math: ans set from storage math: b
 execute if predicate math:internal/elastic/time_at_or_after_end run return 1
-execute if data storage math:internal {w_elastic_amplitude:1.0f} run data modify storage math:internal x set compute default float math:common/asin_positive/half_pi
+execute if data storage math:internal {w_elastic_amplitude:1.0f} run data modify storage math:internal x set compute default float math:.common/asin_positive/half_pi
 execute if data storage math:internal {w_elastic_amplitude:1.0f} run return run function math:elastic/1.phase
 data modify storage math:internal x set from storage math:internal w_elastic_amplitude
 data modify storage math:internal y set value 1.0f

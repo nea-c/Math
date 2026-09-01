@@ -510,7 +510,7 @@ test("easing, inverse-sine, and quaternion assets are generator-owned", () => {
     "Math/data/math/function/.common/asin_positive/0.start.mcfunction",
     "Math/data/math/function/elastic/0.start.mcfunction",
     "Math/data/math/function/elastic_decay/0.start.mcfunction",
-    "Math/data/math/context_float_provider/common/asin_positive/midpoint.json",
+    "Math/data/math/context_float_provider/.common/asin_positive/midpoint.json",
     "Math/data/math/tags/function/elastic.json",
     "Math/data/math/function/bounce/0.start.mcfunction",
     "Math/data/math/function/bounce_decay/0.start.mcfunction",
@@ -569,7 +569,7 @@ test("every context-float-provider document has a Snapshot-valid object or numer
 test("every dispatcher condition uses a float value check", () => {
   assert.equal(fs.existsSync("Math/data/math/context_float_provider/reciprocal"), false);
   assert.equal(fs.existsSync("Math/data/math/context_float_provider/divide.json"), false);
-  const legacyNormalizer = "Math/data/math/context_float_provider/common/normalize/power_of_two";
+  const legacyNormalizer = "Math/data/math/context_float_provider/.common/normalize/power_of_two";
   const legacyFiles = fs.existsSync(legacyNormalizer)
     ? fs.readdirSync(legacyNormalizer, { recursive: true }).filter((name) => name.endsWith(".json"))
     : [];

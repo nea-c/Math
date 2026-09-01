@@ -23,7 +23,7 @@ data modify storage math:internal x set compute default float math:atan2/ratio
 function math:.common/atan/0.start
 execute if predicate math:internal/atan2/a_dominant run data modify storage math:internal x set compute default float math:atan2/from_y_axis
 execute if predicate math:internal/atan2/b_negative run data modify storage math:internal x set compute default float math:atan2/from_negative_x
-execute if predicate math:internal/atan2/a_negative run data modify storage math:internal x set compute default float math:common/rounding/negate
-data modify storage math:internal x set compute default float math:common/conversion/deg
+execute if predicate math:internal/atan2/a_negative run data modify storage math:internal x set compute default float math:.common/rounding/negate
+data modify storage math:internal x set compute default float math:.common/conversion/deg
 data modify storage math: ans set from storage math:internal x
 return 1

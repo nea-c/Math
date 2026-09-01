@@ -52,8 +52,23 @@ const powerClassifierDegree = 18;
 const squareRootResidualThreshold = Math.fround(0.00004839897155761719);
 const generatedFiles = [];
 
+function privateProviderPath(relativePath) {
+  return relativePath.replace(/^common\//, ".common/");
+}
+
+function privateProviderReferences(value) {
+  if (typeof value === "string") return value.replace(/^math:common\//, "math:.common/");
+  if (Array.isArray(value)) return value.map(privateProviderReferences);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, privateProviderReferences(child)]));
+}
+
 function emit(relativePath, value) {
-  generatedFiles.push({ kind: "json", relativePath: `Math/data/math/context_float_provider/${relativePath}.json`, value });
+  generatedFiles.push({
+    kind: "json",
+    relativePath: `Math/data/math/context_float_provider/${privateProviderPath(relativePath)}.json`,
+    value: privateProviderReferences(value),
+  });
 }
 
 function emitPredicate(relativePath, value) {
@@ -61,7 +76,9 @@ function emitPredicate(relativePath, value) {
 }
 
 function emitFunction(path, lines) {
-  const migratedLines = lines.map(line => line.replaceAll("compute default ", "compute default float "));
+  const migratedLines = lines.map(line => line
+    .replaceAll("compute default ", "compute default float ")
+    .replaceAll("math:common/", "math:.common/"));
   generatedFiles.push({ kind: "function", relativePath: `Math/data/math/function/${path}.mcfunction`, text: `${migratedLines.join("\n")}\n` });
 }
 
@@ -2409,6 +2426,7 @@ function generate(targetRoot) {
     }
   }
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "number_provider"), { recursive: true, force: true });
+  fs.rmSync(path.join(targetRoot, "Math", "data", "math", "context_float_provider", "common"), { recursive: true, force: true });
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "function", "internal"), { recursive: true, force: true });
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "function", "common"), { recursive: true, force: true });
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "function", ".common", "invalid_number"), { recursive: true, force: true });

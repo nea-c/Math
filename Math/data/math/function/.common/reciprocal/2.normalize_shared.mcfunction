@@ -1,7 +1,7 @@
 data modify storage math:internal w_reciprocal_sign set value 1.0f
 data modify storage math:internal w_comparison.x_sign set compute default float math:internal/comparison/x_zero
 execute if predicate math:internal/range/negative run data modify storage math:internal w_reciprocal_sign set value -1.0f
-data modify storage math:internal x set compute default float math:common/comparison/absolute
+data modify storage math:internal x set compute default float math:.common/comparison/absolute
 function math:.common/normalize_binary32/0.start
 data modify storage math:internal x set from storage math:internal w_normalize_mantissa
 data modify storage math:internal y set compute default float math:internal/reciprocal/scale_a

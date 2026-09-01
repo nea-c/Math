@@ -10,5 +10,5 @@ execute if data storage math:internal {x:0.0f} run data remove storage math: ans
 execute if data storage math:internal {x:0.0f} run data modify storage math: error set value "non_real_result"
 execute if data storage math:internal {x:0.0f} run return fail
 function math:.common/log/0.start
-data modify storage math: ans set compute default float math:common/input/x
+data modify storage math: ans set compute default float math:.common/input/x
 return 1

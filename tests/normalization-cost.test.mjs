@@ -90,10 +90,10 @@ test("common binary32 normalization classifies every exponent and its adjacent m
 
 test("common binary32 normalization uses balanced bounded lookups", () => {
   for (const [name, file, maximumDepth] of [
-    ["exponent", path.join(providerRoot, "common", "normalize", "binary32", "exponent.json"), 9],
+    ["exponent", path.join(providerRoot, ".common", "normalize", "binary32", "exponent.json"), 9],
     ["scale", path.join(providerRoot, "exp", "scale", "00.json"), 13],
-    ["multiplier_a", path.join(providerRoot, "common", "normalize", "binary32", "multiplier_a.json"), 9],
-    ["multiplier_b", path.join(providerRoot, "common", "normalize", "binary32", "multiplier_b.json"), 9],
+    ["multiplier_a", path.join(providerRoot, ".common", "normalize", "binary32", "multiplier_a.json"), 9],
+    ["multiplier_b", path.join(providerRoot, ".common", "normalize", "binary32", "multiplier_b.json"), 9],
   ]) {
     const provider = JSON.parse(fs.readFileSync(file, "utf8"));
     const assertFiniteConstants = (value) => {
@@ -109,10 +109,10 @@ test("common binary32 normalization uses balanced bounded lookups", () => {
 test("normalization and divide lookup pack growth stays within an explicit load budget", () => {
   const files = [
     ...["exponent", "multiplier_a", "multiplier_b"].map(name =>
-      path.join(providerRoot, "common", "normalize", "binary32", `${name}.json`)),
+      path.join(providerRoot, ".common", "normalize", "binary32", `${name}.json`)),
   ];
   for (const alias of [
-    path.join(providerRoot, "common", "normalize", "binary32", "scale.json"),
+    path.join(providerRoot, ".common", "normalize", "binary32", "scale.json"),
     path.join(providerRoot, "internal", "div", "scale.json"),
     path.join(providerRoot, "internal", "div", "factor.json"),
   ]) assert.equal(fs.existsSync(alias), false, `${alias} must not duplicate a shared exp provider`);

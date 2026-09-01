@@ -6,6 +6,6 @@
       "storage": "math:internal",
       "path": "w_remainder_scaled_divisor"
     },
-    "math:common/reduce_remainder/factor_0"
+    "math:.common/reduce_remainder/factor_0"
   ]
 }

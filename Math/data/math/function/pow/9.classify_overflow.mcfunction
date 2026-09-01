@@ -1,5 +1,5 @@
 data modify storage math:internal x set from storage math: a
-data modify storage math:internal x set compute default float math:common/comparison/absolute
+data modify storage math:internal x set compute default float math:.common/comparison/absolute
 function math:.common/log/1.prepare
 data modify storage math:internal z set compute default float math:power/classify/normalize/difference/00
 data modify storage math:internal x set compute default float math:power/classify/polynomial/initial/00
