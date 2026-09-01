@@ -504,6 +504,14 @@ test("generated providers are current", () => {
   });
 });
 
+test("generated assets omit context-float-provider documents with no consumers", () => {
+  assert.equal(
+    fs.existsSync("Math/data/math/context_float_provider/.common/atan/half_pi.json"),
+    false,
+    "unreferenced provider resources add reload work without serving a command or JSON consumer",
+  );
+});
+
 test("easing, inverse-sine, and quaternion assets are generator-owned", () => {
   const manifest = JSON.parse(fs.readFileSync("tools/generated-math-files.json", "utf8"));
   for (const file of [

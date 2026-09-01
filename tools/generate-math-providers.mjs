@@ -30,6 +30,7 @@ import {
   functionId,
   publicTag,
 } from "./function-layout.mjs";
+import { optimizeProviderResources } from "./provider-resource-optimizer.mjs";
 
 const command = "node tools/generate-math-providers.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -2512,6 +2513,10 @@ function check() {
     fs.rmSync(tempRoot, { recursive: true, force: true });
   }
 }
+
+generatedFiles.splice(0, generatedFiles.length, ...optimizeProviderResources(generatedFiles, {
+  maxInlineBytes: 128,
+}));
 
 try {
   if (process.argv.includes("--check")) {

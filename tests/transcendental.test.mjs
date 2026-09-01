@@ -592,7 +592,6 @@ test("trigonometric generated graphs use shared-kernel responsibility directorie
   for (const provider of [
     "sin/00.json",
     "sin/fold/00.json",
-    "sin/polynomial/00.json",
     "cos/00.json",
     "tan/00.json",
     "tan/guard/radians/compare_domain.json",
