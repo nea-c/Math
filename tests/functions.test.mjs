@@ -35,8 +35,6 @@ const wrappers = [
   ["pow", { a: 0, b: 0 }, 1],
 ];
 
-const finiteLimit = Math.fround(3.4028234663852886e38);
-
 test("public functions expose ans only and clean scratch", () => {
   for (const [name, inputs, expected] of wrappers) {
     const publicInput = {
@@ -137,7 +135,7 @@ test("divide coordinates subnormal operands across adjacent exponent bands", () 
   }
 });
 
-test("divide distinguishes finite underflow from overflow", () => {
+test("divide preserves signed zero on finite underflow", () => {
   const minSubnormal = Math.fround(2 ** -149);
   const finiteLimit = Math.fround(3.4028234663852886e38);
 

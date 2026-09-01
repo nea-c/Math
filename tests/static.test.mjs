@@ -422,7 +422,7 @@ test("public documentation uses function tags", () => {
   assert.doesNotMatch(prose, /function math:(?!internal)/);
   assert.doesNotMatch(integrationHarness, /run function math:(?!internal)/);
   assert.match(readme, /function #math:div/);
-  assert.match(integrationHarness, /run function #math:add/);
+  assert.match(integrationHarness, /function #math:add/);
 });
 
 test("README documents a valid-input contract for every public function", () => {
@@ -752,6 +752,90 @@ test("integration harness cleans its unique temporary child and preserves the re
     );
     assert.deepEqual(harnessChildren(), tempBefore, "temporary child must be removed");
     assert.deepEqual(repositorySnapshot(repositoryRoot), repositoryBefore, "repository content must not change");
+  } finally {
+    fs.rmSync(controlledTemp, { recursive: true, force: true });
+  }
+});
+
+test("integration harness generates storage-only valid-call assertions", (t) => {
+  const javacProbe = childProcess.spawnSync("javac", ["-J-XshowSettings:properties", "-version"], { encoding: "utf8" });
+  const javaHome = `${javacProbe.stdout ?? ""}\n${javacProbe.stderr ?? ""}`.match(/^\s*java\.home\s*=\s*(.+)$/m)?.[1].trim();
+  const executableSuffix = process.platform === "win32" ? ".exe" : "";
+  const javac = javaHome && path.join(javaHome, "bin", `javac${executableSuffix}`);
+  const jar = javaHome && path.join(javaHome, "bin", `jar${executableSuffix}`);
+  const java = javaHome && path.join(javaHome, "bin", `java${executableSuffix}`);
+  if (!javac || !fs.existsSync(javac) || !fs.existsSync(jar) || !fs.existsSync(java)) {
+    t.skip("a JDK is required to inspect generated integration assertions");
+    return;
+  }
+
+  const controlledTemp = fs.mkdtempSync(path.join(os.tmpdir(), "math-harness-storage-contract-"));
+  const fixtureRoot = path.join(controlledTemp, "fixture");
+  fs.mkdirSync(fixtureRoot);
+  const source = path.join(fixtureRoot, "FakeServer.java");
+  const fakeJar = path.join(fixtureRoot, "fake-server.jar");
+  fs.writeFileSync(source, `
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
+
+public final class FakeServer {
+  private static int indexOf(List<String> lines, String command) {
+    int index = lines.indexOf(command);
+    if (index < 0) throw new AssertionError("missing command: " + command);
+    return index;
+  }
+
+  public static void main(String[] args) throws Exception {
+    Path assertions = Path.of("world", "datapacks", "MathAssertions", "data", "math_test", "function", "run.mcfunction");
+    List<String> lines = Files.readAllLines(assertions);
+    if (lines.stream().anyMatch(line -> line.contains("#return"))) {
+      throw new AssertionError("public return assertion remains");
+    }
+    if (lines.stream().anyMatch(line -> line.matches(".*(invalid_number|division_by_zero|result_out_of_range|invalid_duration|invalid_curve|invalid_bounce|non_real_result|invalid_quaternion|undefined_tangent).*"))) {
+      throw new AssertionError("invalid-input error-ID assertion remains");
+    }
+    long calls = lines.stream().filter(line -> line.startsWith("function #math:")).count();
+    long staleErrorGuards = lines.stream().filter(line -> line.contains("if data storage math: error run return run function math_test:fail/")).count();
+    long scratchGuards = lines.stream().filter(line -> line.contains("if data storage math: internal run return run function math_test:fail/")).count();
+    if (calls == 0 || staleErrorGuards != calls || scratchGuards != calls) {
+      throw new AssertionError("each valid call must guard stale error and scratch: " + calls + "/" + staleErrorGuards + "/" + scratchGuards);
+    }
+
+    int seed = indexOf(lines, "data modify storage math: internal set value {x:999.0f,w_stale:1}");
+    int firstCall = indexOf(lines, "function #math:add");
+    int firstAnswer = indexOf(lines, "execute unless data storage math: {ans:5.0f} run return run function math_test:fail/sequential_add_answer");
+    int secondCall = indexOf(lines, "function #math:div");
+    int secondAnswer = indexOf(lines, "execute unless data storage math: {ans:-3.5f} run return run function math_test:fail/sequential_div_answer");
+    if (!(seed < firstCall && firstCall < firstAnswer && firstAnswer < secondCall && secondCall < secondAnswer)) {
+      throw new AssertionError("sequential stale-scratch regression is not ordered");
+    }
+
+    String marker = lines.stream().filter(line -> line.startsWith("say MATH_TEST_PASS:"))
+      .findFirst().orElseThrow().substring(4);
+    System.out.println(marker);
+    new BufferedReader(new InputStreamReader(System.in)).readLine();
+  }
+}
+`);
+  childProcess.execFileSync(javac, [source], { cwd: fixtureRoot });
+  childProcess.execFileSync(jar, ["--create", "--file", fakeJar, "--main-class", "FakeServer", "-C", fixtureRoot, "FakeServer.class"]);
+
+  try {
+    const invocation = childProcess.spawnSync("pwsh", [
+      "-NoProfile",
+      "-File", path.resolve("tools/integration-test.ps1"),
+      "-MinecraftServerJar", fakeJar,
+      "-JavaExecutable", java,
+    ], {
+      encoding: "utf8",
+      env: { ...process.env, TEMP: controlledTemp, TMP: controlledTemp },
+      timeout: 30_000,
+    });
+
+    assert.equal(invocation.error, undefined, invocation.error?.message);
+    assert.equal(invocation.status, 0, `${invocation.stdout}\n${invocation.stderr}`);
+    assert.match(invocation.stdout, /MATH_TEST_PASS:/);
   } finally {
     fs.rmSync(controlledTemp, { recursive: true, force: true });
   }

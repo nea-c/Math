@@ -136,16 +136,13 @@ try {
         }
         $assertionCommands.Add('data modify storage math: ans set value -999.0f')
         $assertionCommands.Add('data modify storage math: error set value "stale_error"')
-        $assertionCommands.Add("execute store result score #return math_test run function #math:$Function")
+        $assertionCommands.Add("function #math:$Function")
         if ($Case -eq 'square_root') {
             $assertionCommands.Add('execute store result score #approx math_test run data get storage math: ans 1000000')
         }
         elseif ($Case -eq 'bezier') {
             $assertionCommands.Add('execute store result score #approx math_test run data get storage math: ans 1000')
         }
-        Add-Guard -Condition 'if data storage math: {error:"invalid_number"}' -Case "${Case}_invalid_number"
-        Add-Guard -Condition 'if data storage math: {error:"division_by_zero"}' -Case "${Case}_division_by_zero"
-        Add-Guard -Condition 'if data storage math: {error:"result_out_of_range"}' -Case "${Case}_result_out_of_range"
         if ($Case -eq 'square_root') {
             Add-Guard -Condition 'unless score #approx math_test matches 1999990..2000010' -Case "${Case}_answer"
         }
@@ -156,40 +153,29 @@ try {
             Add-Guard -Condition "unless data storage math: {ans:${ExpectedAnswer}}" -Case "${Case}_answer"
         }
         Add-Guard -Condition 'if data storage math: error' -Case "${Case}_stale_error"
-        Add-Guard -Condition 'unless score #return math_test matches 1' -Case "${Case}_return"
+        Add-Guard -Condition 'if data storage math: internal' -Case "${Case}_scratch"
     }
 
-    function Add-ErrorCase {
-        param(
-            [Parameter(Mandatory = $true)][string] $Case,
-            [Parameter(Mandatory = $true)][string[]] $Setup,
-            [Parameter(Mandatory = $true)][string] $Function,
-            [Parameter(Mandatory = $true)][string] $ExpectedError
-        )
-
-        foreach ($command in $Setup) {
-            $assertionCommands.Add($command)
-        }
-        $assertionCommands.Add('data modify storage math: ans set value -999.0f')
-        $assertionCommands.Add('data modify storage math: error set value "stale_error"')
-        $assertionCommands.Add("execute store result score #return math_test run function #math:$Function")
-        Add-Guard -Condition 'unless score #return math_test matches 0' -Case "${Case}_return"
-        Add-Guard -Condition 'if data storage math: ans' -Case "${Case}_stale_answer"
-        Add-Guard -Condition ('unless data storage math: {{error:"{0}"}}' -f $ExpectedError) -Case "${Case}_error"
-    }
+    $assertionCommands.Add('data modify storage math: internal set value {x:999.0f,w_stale:1}')
+    $assertionCommands.Add('data modify storage math: ans set value -999.0f')
+    $assertionCommands.Add('data modify storage math: error set value "stale_error"')
+    $assertionCommands.Add('data modify storage math: a set value 2.0f')
+    $assertionCommands.Add('data modify storage math: b set value 3.0f')
+    $assertionCommands.Add('function #math:add')
+    Add-Guard -Condition 'unless data storage math: {ans:5.0f}' -Case 'sequential_add_answer'
+    Add-Guard -Condition 'if data storage math: error' -Case 'sequential_add_stale_error'
+    Add-Guard -Condition 'if data storage math: internal' -Case 'sequential_add_scratch'
+    $assertionCommands.Add('data modify storage math: a set value 7.0f')
+    $assertionCommands.Add('data modify storage math: b set value -2.0f')
+    $assertionCommands.Add('function #math:div')
+    Add-Guard -Condition 'unless data storage math: {ans:-3.5f}' -Case 'sequential_div_answer'
+    Add-Guard -Condition 'if data storage math: error' -Case 'sequential_div_stale_error'
+    Add-Guard -Condition 'if data storage math: internal' -Case 'sequential_div_scratch'
 
     Add-SuccessCase -Case 'add' -Function 'add' -ExpectedAnswer '3.75f' -Setup @(
         'data modify storage math: a set value 1.25f'
         'data modify storage math: b set value 2.5f'
     )
-    $assertionCommands.Add('data modify storage math: a set value 3.4028234663852886E38f')
-    $assertionCommands.Add('data modify storage math: b set value 3.4028234663852886E38f')
-    $assertionCommands.Add('data modify storage math: ans set value 99.0f')
-    $assertionCommands.Add('data modify storage math: error set value "stale_error"')
-    $assertionCommands.Add('execute store result score #return math_test run function #math:add')
-    Add-Guard -Condition 'unless score #return math_test matches 0' -Case 'add_overflow_return'
-    Add-Guard -Condition 'if data storage math: ans' -Case 'add_overflow_stale_answer'
-    Add-Guard -Condition 'unless data storage math: {error:"result_out_of_range"}' -Case 'add_overflow_error'
     Add-SuccessCase -Case 'signed_divide' -Function 'div' -ExpectedAnswer '-3.5f' -Setup @(
         'data modify storage math: a set value 7.0f'
         'data modify storage math: b set value -2.0f'
@@ -254,27 +240,6 @@ try {
         'data modify storage math: b set value 100.0f'
         'data modify storage math: curve set value [0.17f,0.67f,0.83f,0.67f]'
     )
-    Add-ErrorCase -Case 'bezier_invalid_duration' -Function 'bezier' -ExpectedError 'invalid_duration' -Setup @(
-        'data modify storage math: t set value 0.0f'
-        'data modify storage math: max set value 0.0f'
-        'data modify storage math: a set value 0.0f'
-        'data modify storage math: b set value 1.0f'
-        'data modify storage math: curve set value [0.0f,0.0f,1.0f,1.0f]'
-    )
-    Add-ErrorCase -Case 'bezier_invalid_curve' -Function 'bezier' -ExpectedError 'invalid_curve' -Setup @(
-        'data modify storage math: t set value 5.0f'
-        'data modify storage math: max set value 10.0f'
-        'data modify storage math: a set value 0.0f'
-        'data modify storage math: b set value 1.0f'
-        'data modify storage math: curve set value [0.0f,0.0f,1.0f]'
-    )
-    Add-ErrorCase -Case 'bezier_nonnumeric_curve' -Function 'bezier' -ExpectedError 'invalid_curve' -Setup @(
-        'data modify storage math: t set value 5.0f'
-        'data modify storage math: max set value 10.0f'
-        'data modify storage math: a set value 0.0f'
-        'data modify storage math: b set value 1.0f'
-        'data modify storage math: curve set value ["bad","bad","bad","bad"]'
-    )
     Add-SuccessCase -Case 'bezier_integer_curve' -Function 'bezier' -ExpectedAnswer '7.0f' -Setup @(
         'data modify storage math: t set value 0.0f'
         'data modify storage math: max set value 10.0f'
@@ -301,13 +266,6 @@ try {
         'data modify storage math: a set value 7.0d'
         'data modify storage math: b set value 11.0d'
     )
-    Add-ErrorCase -Case 'bounce_invalid_duration' -Function 'bounce' -ExpectedError 'invalid_duration' -Setup @(
-        'data modify storage math: t set value 0.0f'
-        'data modify storage math: max set value 0.0f'
-        'data modify storage math: a set value 0.0f'
-        'data modify storage math: b set value 1.0f'
-    )
-
     $assertionCommands.Add('data modify storage math: t set value 5.0f')
     $assertionCommands.Add('data modify storage math: max set value 20.0f')
     $assertionCommands.Add('data modify storage math: a set value 0.0f')
@@ -316,11 +274,11 @@ try {
     $assertionCommands.Add('data modify storage math: decay set value 3.0f')
     $assertionCommands.Add('data modify storage math: ans set value -999.0f')
     $assertionCommands.Add('data modify storage math: error set value "stale_error"')
-    $assertionCommands.Add('execute store result score #return math_test run function #math:bounce_decay')
+    $assertionCommands.Add('function #math:bounce_decay')
     $assertionCommands.Add('execute store result score #bounce_decay math_test run data get storage math: ans 1000')
-    Add-Guard -Condition 'unless score #return math_test matches 1' -Case 'bounce_decay_return'
     Add-Guard -Condition 'unless score #bounce_decay math_test matches 64571..64574' -Case 'bounce_decay_answer'
     Add-Guard -Condition 'if data storage math: error' -Case 'bounce_decay_stale_error'
+    Add-Guard -Condition 'if data storage math: internal' -Case 'bounce_decay_scratch'
 
     Add-SuccessCase -Case 'bounce_decay_double_endpoint' -Function 'bounce_decay' -ExpectedAnswer '11.0f' -Setup @(
         'data modify storage math: t set value 10.0d'
@@ -331,14 +289,6 @@ try {
         'data modify storage math: decay set value 3.0d'
     )
 
-    Add-ErrorCase -Case 'bounce_decay_invalid_bounces' -Function 'bounce_decay' -ExpectedError 'invalid_bounce' -Setup @(
-        'data modify storage math: t set value 5.0f'
-        'data modify storage math: max set value 10.0f'
-        'data modify storage math: a set value 0.0f'
-        'data modify storage math: b set value 1.0f'
-        'data modify storage math: bounces set value 0.0f'
-        'data modify storage math: decay set value 3.0f'
-    )
     Add-SuccessCase -Case 'sin' -Function 'sin' -ExpectedAnswer '0.0f' -Setup @(
         'data modify storage math: a set value 0.0f'
     )
@@ -374,10 +324,6 @@ try {
     Add-SuccessCase -Case 'atan2_negative_subnormal_quadrant' -Function 'atan2' -ExpectedAnswer '-2.6779451f' -Setup @(
         'data modify storage math: a set value -1.401298464324817E-45f'
         'data modify storage math: b set value -2.802596928649634E-45f'
-    )
-    Add-ErrorCase -Case 'atan2_invalid_number' -Function 'atan2' -ExpectedError 'invalid_number' -Setup @(
-        'data modify storage math: a set value 1.0f'
-        'data modify storage math: b set value 3.5E38d'
     )
     Add-SuccessCase -Case 'asin_minus_one' -Function 'asin' -ExpectedAnswer '-1.5707964f' -Setup @(
         'data modify storage math: a set value -1.0f'
@@ -431,35 +377,22 @@ try {
     $assertionCommands.Add('data modify storage math: a set value 0.5f')
     $assertionCommands.Add('data modify storage math: ans set value -999.0f')
     $assertionCommands.Add('data modify storage math: error set value "stale_error"')
-    $assertionCommands.Add('execute store result score #return math_test run function #math:asin')
+    $assertionCommands.Add('function #math:asin')
     $assertionCommands.Add('execute store result score #asin_mid_domain math_test run data get storage math: ans 1000000')
-    Add-Guard -Condition 'unless score #return math_test matches 1' -Case 'asin_mid_domain_return'
     Add-Guard -Condition 'unless score #asin_mid_domain math_test matches 523597..523601' -Case 'asin_mid_domain_answer'
     Add-Guard -Condition 'if data storage math: error' -Case 'asin_mid_domain_stale_error'
-
-    Add-ErrorCase -Case 'asin_non_real_result' -Function 'asin' -ExpectedError 'non_real_result' -Setup @(
-        'data modify storage math: a set value 1.0000001192092896f'
-    )
-    Add-ErrorCase -Case 'acos_invalid_number' -Function 'acos' -ExpectedError 'invalid_number' -Setup @(
-        'data modify storage math: a set value 3.5E38d'
-    )
-    Add-ErrorCase -Case 'asin_degrees_non_real_result' -Function 'asin_degrees' -ExpectedError 'non_real_result' -Setup @(
-        'data modify storage math: a set value 1.0000001192092896f'
-    )
-    Add-ErrorCase -Case 'acos_degrees_invalid_number' -Function 'acos_degrees' -ExpectedError 'invalid_number' -Setup @(
-        'data modify storage math: a set value 3.5E38d'
-    )
+    Add-Guard -Condition 'if data storage math: internal' -Case 'asin_mid_domain_scratch'
 
     $assertionCommands.Add('data modify storage math: rotation set value [0.0f,0.70710677f,0.0f,-0.70710677f]')
     $assertionCommands.Add('data modify storage math: ans set value -999.0f')
     $assertionCommands.Add('data modify storage math: error set value "stale_error"')
-    $assertionCommands.Add('execute store result score #return math_test run function #math:quaternion_to_axis_angle')
+    $assertionCommands.Add('function #math:quaternion_to_axis_angle')
     $assertionCommands.Add('execute store result score #quaternion_axis_x math_test run data get storage math: ans.axis[0] 1000000')
     $assertionCommands.Add('execute store result score #quaternion_axis_y math_test run data get storage math: ans.axis[1] 1000000')
     $assertionCommands.Add('execute store result score #quaternion_axis_z math_test run data get storage math: ans.axis[2] 1000000')
     $assertionCommands.Add('execute store result score #quaternion_angle math_test run data get storage math: ans.angle 1000000')
-    Add-Guard -Condition 'unless score #return math_test matches 1' -Case 'quaternion_to_axis_angle_return'
     Add-Guard -Condition 'if data storage math: error' -Case 'quaternion_to_axis_angle_stale_error'
+    Add-Guard -Condition 'if data storage math: internal' -Case 'quaternion_to_axis_angle_scratch'
     Add-Guard -Condition 'unless data storage math: {rotation:[0.0f,0.70710677f,0.0f,-0.70710677f]}' -Case 'quaternion_to_axis_angle_rotation'
     Add-Guard -Condition 'unless data storage math: {ans:{axis:[0.0f,1.0f,0.0f]}}' -Case 'quaternion_to_axis_angle_shape_or_float_leaves'
     Add-Guard -Condition 'unless score #quaternion_axis_x math_test matches -10..10' -Case 'quaternion_to_axis_angle_axis_x'
@@ -470,52 +403,21 @@ try {
     $assertionCommands.Add('data modify storage math: rotation set value [0.0f,0.0f,0.0f,1.0f]')
     $assertionCommands.Add('data modify storage math: ans set value -999.0f')
     $assertionCommands.Add('data modify storage math: error set value "stale_error"')
-    $assertionCommands.Add('execute store result score #return math_test run function #math:quaternion_to_axis_angle')
-    Add-Guard -Condition 'unless score #return math_test matches 1' -Case 'quaternion_to_axis_angle_scalar_return'
+    $assertionCommands.Add('function #math:quaternion_to_axis_angle')
     Add-Guard -Condition 'if data storage math: error' -Case 'quaternion_to_axis_angle_scalar_stale_error'
+    Add-Guard -Condition 'if data storage math: internal' -Case 'quaternion_to_axis_angle_scalar_scratch'
     Add-Guard -Condition 'unless data storage math: {rotation:[0.0f,0.0f,0.0f,1.0f]}' -Case 'quaternion_to_axis_angle_scalar_rotation'
     Add-Guard -Condition 'unless data storage math: {ans:{angle:0.0f,axis:[0.0f,1.0f,0.0f]}}' -Case 'quaternion_to_axis_angle_scalar_angle_float'
 
     $assertionCommands.Add('data modify storage math: rotation set value [0.0d,0.0d,0.0d,1.0d]')
     $assertionCommands.Add('data modify storage math: ans set value -999.0f')
     $assertionCommands.Add('data modify storage math: error set value "stale_error"')
-    $assertionCommands.Add('execute store result score #return math_test run function #math:quaternion_to_axis_angle')
-    Add-Guard -Condition 'unless score #return math_test matches 1' -Case 'quaternion_to_axis_angle_double_return'
+    $assertionCommands.Add('function #math:quaternion_to_axis_angle')
     Add-Guard -Condition 'if data storage math: error' -Case 'quaternion_to_axis_angle_double_stale_error'
+    Add-Guard -Condition 'if data storage math: internal' -Case 'quaternion_to_axis_angle_double_scratch'
     Add-Guard -Condition 'unless data storage math: {rotation:[0.0d,0.0d,0.0d,1.0d]}' -Case 'quaternion_to_axis_angle_double_rotation'
     Add-Guard -Condition 'unless data storage math: {ans:{angle:0.0f,axis:[0.0f,1.0f,0.0f]}}' -Case 'quaternion_to_axis_angle_double_result'
 
-    Add-ErrorCase -Case 'quaternion_to_axis_angle_zero' -Function 'quaternion_to_axis_angle' -ExpectedError 'invalid_quaternion' -Setup @(
-        'data modify storage math: rotation set value [0.0f,0.0f,0.0f,0.0f]'
-    )
-    Add-ErrorCase -Case 'quaternion_to_axis_angle_malformed' -Function 'quaternion_to_axis_angle' -ExpectedError 'invalid_quaternion' -Setup @(
-        'data modify storage math: rotation set value [0.0f,0.0f,0.0f]'
-    )
-
-    $assertionCommands.Add('data modify storage math: a set value 1.5707964f')
-    $assertionCommands.Add('data modify storage math: ans set value 99.0f')
-    $assertionCommands.Add('data modify storage math: error set value "stale_error"')
-    $assertionCommands.Add('execute store result score #return math_test run function #math:tan')
-    Add-Guard -Condition 'unless score #return math_test matches 0' -Case 'tan_undefined_return'
-    Add-Guard -Condition 'if data storage math: ans' -Case 'tan_undefined_stale_answer'
-    Add-Guard -Condition 'unless data storage math: {error:"undefined_tangent"}' -Case 'tan_undefined_error'
-
-    $assertionCommands.Add('data modify storage math: a set value 2.938735877055719E-39f')
-    $assertionCommands.Add('data modify storage math: ans set value 99.0f')
-    $assertionCommands.Add('data modify storage math: error set value "stale_error"')
-    $assertionCommands.Add('execute store result score #return math_test run function #math:reciprocal')
-    Add-Guard -Condition 'unless score #return math_test matches 0' -Case 'reciprocal_overflow_return'
-    Add-Guard -Condition 'if data storage math: ans' -Case 'reciprocal_overflow_stale_answer'
-    Add-Guard -Condition 'unless data storage math: {error:"result_out_of_range"}' -Case 'reciprocal_overflow_error'
-
-    $assertionCommands.Add('data modify storage math: a set value 3.4028234663852886E38f')
-    $assertionCommands.Add('data modify storage math: b set value 0.99999994039535522f')
-    $assertionCommands.Add('data modify storage math: ans set value 99.0f')
-    $assertionCommands.Add('data modify storage math: error set value "stale_error"')
-    $assertionCommands.Add('execute store result score #return math_test run function #math:div')
-    Add-Guard -Condition 'unless score #return math_test matches 0' -Case 'divide_top_overflow_return'
-    Add-Guard -Condition 'if data storage math: ans' -Case 'divide_top_overflow_stale_answer'
-    Add-Guard -Condition 'unless data storage math: {error:"result_out_of_range"}' -Case 'divide_top_overflow_error'
     $assertionCommands.Add("say $passMarker")
     Set-Content -LiteralPath (Join-Path $assertionFunctionRoot 'run.mcfunction') -Encoding utf8 -Value $assertionCommands
 
