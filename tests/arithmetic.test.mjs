@@ -22,13 +22,13 @@ function providerRegistry() {
 }
 
 function run(id, internal) {
-  return evaluateProvider(id, providers, new Map([["math:internal", internal]]));
+  return evaluateProvider(id, providers, new Map([["math:", { internal }]]));
 }
 
 function runStagedReciprocal(input) {
   const result = runImplementation(".common/reciprocal/0.start", {}, { x: input, y: 1 });
   assert.equal(result.returned, 1, `reciprocal_x(${input}) must return success`);
-  return result.storage["math:internal"].x;
+  return result.storage["math:"].internal.x;
 }
 
 function floatFromBits(bits) {
@@ -375,7 +375,7 @@ test("rounding wrappers honor signed half boundaries and the float integer limit
       assert.equal(storage["math:"].error, undefined, `${name}(${input}) must clear stale errors`);
       assert.equal(storage["math:"].a, input, `${name}(${input}) must preserve a`);
       assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float", `${name}(${input}) must write a float`);
-      assert.ok(Object.keys(storage["math:internal"]).every((field) => /^[xyzw](?:_|$)/.test(field)), `${name}(${input}) scratch keys`);
+      assert.ok(Object.keys(storage["math:"].internal).every((field) => /^[xyzw](?:_|$)/.test(field)), `${name}(${input}) scratch keys`);
     }
   }
 });
@@ -410,7 +410,7 @@ test("remainder and modulo use truncating and flooring quotients", () => {
       assert.equal(storage["math:"].a, a, `${name} must preserve a`);
       assert.equal(storage["math:"].b, b, `${name} must preserve b`);
       assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float", `${name} must write a float`);
-      assert.ok(Object.keys(storage["math:internal"]).every((field) => /^[xyzw](?:_|$)/.test(field)), `${name} scratch keys`);
+      assert.ok(Object.keys(storage["math:"].internal).every((field) => /^[xyzw](?:_|$)/.test(field)), `${name} scratch keys`);
     }
   }
 });
@@ -583,9 +583,9 @@ test("period normalization reduces with a round-to-nearest quotient", () => {
   for (const [internal, expected] of cases) {
     const { storage, numericTags, returned } = runImplementation(".common/normalize_period/0.start", {}, internal);
     assert.equal(returned, 1);
-    assert.equal(storage["math:internal"].z, Math.fround(expected), `normalize ${internal.x} by ${internal.y}`);
-    assert.equal(numericTags.get(storageFieldKey("math:internal", "z")), "float");
-    assert.ok(Object.keys(storage["math:internal"]).every((field) => /^[xyzw](?:_|$)/.test(field)));
+    assert.equal(storage["math:"].internal.z, Math.fround(expected), `normalize ${internal.x} by ${internal.y}`);
+    assert.equal(numericTags.get(storageFieldKey("math:", "internal.z")), "float");
+    assert.ok(Object.keys(storage["math:"].internal).every((field) => /^[xyzw](?:_|$)/.test(field)));
   }
 });
 
@@ -602,10 +602,10 @@ test("period normalization stays exact and finite across the binary32 range", ()
     const expected = exactCenteredRemainderReference(input, tau);
     const result = runImplementation(".common/normalize_period/0.start", {}, { x: input, y: tau });
     assert.equal(result.returned, 1, `normalize_period(${input}) success`);
-    assert.equal(result.storage["math:internal"].z, expected, `normalize_period(${input}) exact centered remainder`);
-    assert.ok(Number.isFinite(result.storage["math:internal"].z), `normalize_period(${input}) finite result`);
-    assert.equal(result.storage["math:internal"].w, input, `normalize_period(${input}) preserves original x in w`);
-    assert.equal(result.numericTags.get(storageFieldKey("math:internal", "z")), "float");
-    assert.ok(Object.keys(result.storage["math:internal"]).every((field) => /^[xyzw](?:_|$)/.test(field)));
+    assert.equal(result.storage["math:"].internal.z, expected, `normalize_period(${input}) exact centered remainder`);
+    assert.ok(Number.isFinite(result.storage["math:"].internal.z), `normalize_period(${input}) finite result`);
+    assert.equal(result.storage["math:"].internal.w, input, `normalize_period(${input}) preserves original x in w`);
+    assert.equal(result.numericTags.get(storageFieldKey("math:", "internal.z")), "float");
+    assert.ok(Object.keys(result.storage["math:"].internal).every((field) => /^[xyzw](?:_|$)/.test(field)));
   }
 });

@@ -63,10 +63,11 @@ test("common binary32 normalization classifies every exponent and its adjacent m
     for (const input of inputs) {
       const publicStorage = { a: 17, ans: 91, error: "stale_error" };
       const result = runImplementation(".common/normalize_binary32/0.start", publicStorage, { x: input });
-      const internal = result.storage["math:internal"];
+      const internal = result.storage["math:"].internal;
       commandCounts.add(result.commandsExecuted);
       assert.equal(result.returned, 1, `normalize(${input}) must return success`);
-      assert.deepEqual(result.storage["math:"], publicStorage, `normalize(${input}) preserves public storage`);
+      const { internal: _internal, ...resultPublicStorage } = result.storage["math:"];
+      assert.deepEqual(resultPublicStorage, publicStorage, `normalize(${input}) preserves public storage`);
       assert.ok(
         internal.w_normalize_mantissa >= 1 && internal.w_normalize_mantissa < 2,
         `normalize(${input}) mantissa ${internal.w_normalize_mantissa}`,

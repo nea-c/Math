@@ -165,7 +165,7 @@ function assertCertifiedBracket(curve, result) {
 test("bezier keeps its certified final bracket private and observable", () => {
   for (const { name, t, max, curve } of CURVE_CASES) {
     const result = runFunction("bezier", { t, max, a: 0, b: 1, curve });
-    const internal = result.storage["math:internal"];
+    const internal = result.storage["math:"].internal;
     const u = internal.w_bezier_u;
     assert.equal(result.storage["math:"].w_bezier_low, undefined, name);
     assert.equal(result.storage["math:"].w_bezier_high, undefined, name);

@@ -116,7 +116,7 @@ test("bezier copies curve inputs directly from storage", () => {
   assert.equal(fs.existsSync(path.join(providerRoot, "bezier", "input")), false, "obsolete Bezier input providers remain");
   const source = fs.readFileSync(path.join(packRoot, "data", "math", "function", "bezier", "0.start.mcfunction"), "utf8");
   for (const [target, index] of [["x1", 0], ["y1", 1], ["x2", 2], ["y2", 3]]) {
-    assert.match(source, new RegExp(`data modify storage math:internal w_bezier_${target} set from storage math: curve\\[${index}\\]`));
+    assert.match(source, new RegExp(`data modify storage math: internal\\.w_bezier_${target} set from storage math: curve\\[${index}\\]`));
   }
   assert.doesNotMatch(source, /math:bezier\/input\//);
 });

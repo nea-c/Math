@@ -99,7 +99,7 @@ test("four-dimensional and vector normalization stay safe across the binary32 ra
     [[smallestFloat, 0, 0, finiteLimit], false, [1, 0, 0]],
   ]) {
     const result = assertQuaternion(rotation, JSON.stringify(rotation), { reconstructResult });
-    const squareSum = result.storage["math:internal"].w_quaternion_scaled_square_sum;
+    const squareSum = result.storage["math:"].internal.w_quaternion_scaled_square_sum;
     assert.ok(squareSum >= 1 && squareSum <= 4, `scaled square sum ${squareSum} must stay in [1, 4]`);
     if (expectedAxis) assert.deepEqual(result.storage["math:"].ans.axis, expectedAxis);
   }

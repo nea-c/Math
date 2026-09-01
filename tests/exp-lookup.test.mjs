@@ -43,7 +43,7 @@ function dispatcherChecks(provider, exponent) {
 }
 
 function storageForExponent(exponent) {
-  return new Map([["math:internal", new Map([["z", exponent]])]]);
+  return new Map([["math:", { internal: { z: exponent } }]]);
 }
 
 test("exp scale and factor lookups cover every supported exponent exactly", () => {

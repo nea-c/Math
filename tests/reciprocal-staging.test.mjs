@@ -63,7 +63,7 @@ test("reciprocal staged finishes preserve the legacy float result exactly", () =
   ]) {
     for (const y of [Math.fround(2 ** -50), 1, Math.fround(2 ** 50)]) {
       const result = runImplementation(".common/reciprocal/4.finish", {}, { x, y });
-      assert.equal(result.storage["math:internal"].x, legacyFinish(x, y, 3), `${x}, ${y}`);
+      assert.equal(result.storage["math:"].internal.x, legacyFinish(x, y, 3), `${x}, ${y}`);
     }
   }
 });
