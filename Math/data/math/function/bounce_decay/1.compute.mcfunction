@@ -1,9 +1,3 @@
-data modify storage math: internal.w_comparison.predicate.bounce_decay_duration_positive set compute default float math:.validation/predicate/bounce_decay/duration_positive/value
-execute unless predicate math:.validation/bounce_decay/duration_positive run return 1
-data modify storage math: internal.w_comparison.predicate.bounce_decay_bounces_positive set compute default float math:.validation/predicate/bounce_decay/bounces_positive/value
-execute unless predicate math:.validation/bounce_decay/bounces_positive run return 1
-data modify storage math: internal.w_comparison.predicate.bounce_decay_decay_nonnegative set compute default float math:.validation/predicate/bounce_decay/decay_nonnegative/value
-execute unless predicate math:.validation/bounce_decay/decay_nonnegative run return 1
 data modify storage math: internal.w_comparison.predicate.bounce_decay_time_at_or_below_start set compute default float math:.validation/predicate/bounce_decay/time_at_or_below_start/value
 execute if predicate math:.validation/bounce_decay/time_at_or_below_start run data modify storage math: ans set compute default float math:.common/input/a
 execute if predicate math:.validation/bounce_decay/time_at_or_below_start run return 1

@@ -536,36 +536,6 @@ emit("tan/00", divide(
   internalStorage("w_tan_sin"),
   internalStorage("w_tan_cos"),
 ));
-const tangentGuardBase = 0.00002;
-const tangentGuardBaseUp = nextPositiveFloat(tangentGuardBase);
-const tangentGuardInflation = 1 + 2 ** -20;
-const tauAbsoluteError = Math.abs(tau - Math.PI * 2);
-const tauErrorRatio = tauAbsoluteError / (Math.PI * 2);
-const tangentPeriodStepError = nextPositiveFloat(tauAbsoluteError * tangentGuardInflation);
-const radianGuardCoefficient = nextPositiveFloat(tauErrorRatio * tangentGuardInflation);
-const radianConversion = Math.fround(Math.PI / 180);
-const unitRoundoff = 2 ** -24;
-const degreeGuardCoefficientExact = Math.abs(radianConversion - Math.PI / 180)
-  + radianConversion * unitRoundoff
-  + radianConversion * (1 + unitRoundoff) * tauErrorRatio;
-const degreeGuardCoefficient = nextPositiveFloat(degreeGuardCoefficientExact * tangentGuardInflation);
-
-function tangentGuard(domain, coefficient) {
-  const absoluteInput = maximum(publicA, product(-1, publicA));
-  const excess = maximum(0, sum(absoluteInput, -domain));
-  return numberDispatcher([
-    {
-      condition: inlineValueCheck(internalStorage("w_comparison.tan_domain"), undefined, 0),
-      number_provider: tangentGuardBase,
-    },
-  ], minimum(2, sum(tangentGuardBaseUp, tangentPeriodStepError, product(excess, coefficient))));
-}
-
-emit("tan/guard/radians/00", tangentGuard(100, radianGuardCoefficient));
-emit("tan/guard/degrees/00", tangentGuard(5000, degreeGuardCoefficient));
-emit("tan/guard/radians/compare_domain", floatComparison(maximum(publicA, product(-1, publicA)), 100));
-emit("tan/guard/degrees/compare_domain", floatComparison(maximum(publicA, product(-1, publicA)), 5000));
-
 // Commands evaluate providers in float context before predicates coerce their
 // inputs to integers. Normalize a reciprocal operand with staged float writes,
 // keeping every branch decision at least one integer apart.
@@ -815,29 +785,6 @@ emit("atan2/ratio", product(atan2Minimum, x));
 emit("atan2/from_y_axis", sum(atanHalfPi, product(-1, x)));
 emit("atan2/from_negative_x", sum(atanPi, product(-1, x)));
 
-for (const [name, value] of [
-  ["a", publicA],
-  ["b", publicB],
-  ["min", storage("math:", "min")],
-  ["max", publicMax],
-  ["t", publicT],
-  ["curve_0", publicCurveX1],
-  ["curve_1", publicCurveY1],
-  ["curve_2", publicCurveX2],
-  ["curve_3", publicCurveY2],
-  ["ans", publicAnswer],
-  ["amplitude", publicAmplitude],
-  ["period", publicPeriod],
-  ["oscillations", publicOscillations],
-  ["damping", publicDamping],
-  ["bounces", publicBounces],
-  ["decay", publicDecay],
-  ["x", x],
-  ...publicRotation.map((value, index) => [`rotation_${index}`, value]),
-]) {
-  emit(`internal/comparison/finite/${name}`, sum(value, product(-1, value)));
-}
-
 for (const [index, component] of publicRotation.entries()) {
   emit(`quaternion_to_axis_angle/input/rotation_${index}`, component);
 }
@@ -968,16 +915,6 @@ emit("power/classify/evaluation_exponent/00", minimum(
   maximumFiniteExpInput,
 ));
 
-emitStagedPredicate("range/min_greater_than_max", sum(w, product(-1, z)), undefined, smallestNegativeFloat);
-emitStagedPredicate(
-  "reciprocal/input_in_range",
-  maximum(publicA, product(-1, publicA)),
-  smallestFiniteReciprocalInput,
-  undefined,
-);
-emitStagedPredicate("divide/exact_equal", sum(publicA, product(-1, publicB)), 0, 0);
-emitStagedPredicate("divide/a_negative", publicA, undefined, smallestNegativeFloat);
-emitStagedPredicate("divide/b_negative", publicB, undefined, smallestNegativeFloat);
 emitStagedPredicate("atan/x_negative", x, undefined, smallestNegativeFloat);
 emitStagedPredicate("atan/use_reciprocal", x, nextPositiveFloat(1), undefined);
 emitStagedPredicate("atan/use_pi_four", x, atanOctantBoundary, undefined);
@@ -986,54 +923,20 @@ emitStagedPredicate("atan2/b_negative", publicB, undefined, smallestNegativeFloa
 emitStagedPredicate("atan2/a_dominant", subtractExpression(atan2AbsoluteA, atan2AbsoluteB), smallestPositiveFloat, undefined);
 emitStagedPredicate("atan2/maximum_zero", atan2Maximum, 0, 0);
 emitStagedPredicate("atan2/maximum_subnormal", atan2Maximum, undefined, largestSubnormalFloat);
-emitStagedPredicate("bezier/duration_positive", publicMax, smallestPositiveFloat, undefined);
 emitStagedPredicate("bezier/time_at_or_below_start", publicT, undefined, 0);
 emitStagedPredicate("bezier/time_at_or_after_end", subtractExpression(publicT, publicMax), 0, undefined);
-emitStagedPredicate("bezier/x1_in_range", publicCurveX1, 0, 1);
-emitStagedPredicate("bezier/x2_in_range", publicCurveX2, 0, 1);
-emitStagedPredicate("elastic/duration_positive", publicMax, smallestPositiveFloat, undefined);
-emitStagedPredicate("elastic/amplitude_valid", publicAmplitude, 1, undefined);
-emitStagedPredicate("elastic/period_positive", publicPeriod, smallestPositiveFloat, undefined);
 emitStagedPredicate("elastic/time_at_or_below_start", publicT, undefined, 0);
 emitStagedPredicate("elastic/time_at_or_after_end", subtractExpression(publicT, publicMax), 0, undefined);
-emitStagedPredicate("elastic_decay/duration_positive", publicMax, smallestPositiveFloat, undefined);
-emitStagedPredicate("elastic_decay/oscillations_positive", publicOscillations, smallestPositiveFloat, undefined);
-emitStagedPredicate("elastic_decay/damping_positive", publicDamping, smallestPositiveFloat, undefined);
 emitStagedPredicate("elastic_decay/time_at_or_below_start", publicT, undefined, 0);
 emitStagedPredicate("elastic_decay/time_at_or_after_end", subtractExpression(publicT, publicMax), 0, undefined);
-emitStagedPredicate("bounce/duration_positive", publicMax, smallestPositiveFloat, undefined);
 emitStagedPredicate("bounce/time_at_or_below_start", publicT, undefined, 0);
 emitStagedPredicate("bounce/time_at_or_after_end", subtractExpression(publicT, publicMax), 0, undefined);
 emitStagedPredicate("bounce/duration_subnormal", publicMax, undefined, largestSubnormalFloat);
-emitStagedPredicate("bounce_decay/duration_positive", publicMax, smallestPositiveFloat, undefined);
-emitStagedPredicate("bounce_decay/bounces_positive", publicBounces, smallestPositiveFloat, undefined);
-emitStagedPredicate("bounce_decay/decay_nonnegative", publicDecay, 0, undefined);
 emitStagedPredicate("bounce_decay/time_at_or_below_start", publicT, undefined, 0);
 emitStagedPredicate("bounce_decay/time_at_or_after_end", subtractExpression(publicT, publicMax), 0, undefined);
-emitStagedPredicate("divide/exponent_definitely_overflows", divideExponent, 129, undefined);
-emitStagedPredicate("divide/exponent_at_overflow_boundary", divideExponent, 128, 128);
-emitStagedPredicate("divide/significand_at_or_above_overflow_boundary", sum(divideAMantissa, product(-1, divideBMantissa)), 0, undefined);
-emitPredicate("divide/overflow_boundary", {
-  type: "minecraft:all_of",
-  terms: [
-    inlineValueCheck(internalStorage("w_comparison.predicate.divide_exponent_at_overflow_boundary.value"), 0, 0),
-    inlineValueCheck(internalStorage("w_comparison.predicate.divide_significand_at_or_above_overflow_boundary.minimum"), 0, undefined),
-  ],
-});
-emitStagedPredicate("divide/exponent_underflows", divideExponent, undefined, -151);
 emit("internal/comparison/x_zero", floatComparison(x, 0));
 emitPredicate("range/negative", inlineValueCheck(internalStorage("w_comparison.x_sign"), undefined, -1));
 emitPredicate("range/positive", inlineValueCheck(internalStorage("w_comparison.x_sign"), 1, undefined));
-for (const [variant, guard] of [
-  ["radians", "math:tan/guard/radians/00"],
-  ["degrees", "math:tan/guard/degrees/00"],
-]) {
-  emitStagedPredicate(`tan/undefined_${variant}`,
-    subtractExpression(maximum(x, product(-1, x)), guard),
-    undefined,
-    0,
-  );
-}
 emitPredicate("normalize_period/original_negative", inlineValueCheck(
   internalStorage("w_comparison.period_original"),
   undefined,
@@ -1044,7 +947,6 @@ emitPredicate("asin_positive/before_target", inlineValueCheck(
   undefined,
   -1,
 ));
-emitStagedPredicate("inverse_trigonometry/input_in_range", x, -1, 1);
 emitStagedPredicate("inverse_trigonometry/x_negative", x, undefined, smallestNegativeFloat);
 emitStagedPredicate("inverse_trigonometry/use_complement", x, 0.995, undefined);
 emitStagedPredicate(
@@ -1088,15 +990,6 @@ emitStagedPredicate(
   undefined,
   smallestNegativeFloat,
 );
-emitStagedPredicate("quaternion_to_axis_angle/result_angle_finite", quaternionAngle, -finiteLimit, finiteLimit);
-for (let index = 0; index < 3; index += 1) {
-  emitStagedPredicate(
-    `quaternion_to_axis_angle/result_axis_${index}_finite`,
-    quaternionAxis[index],
-    -finiteLimit,
-    finiteLimit,
-  );
-}
 emitPredicate("inverse_trigonometry/square_before_target", inlineValueCheck(
   internalStorage("w_comparison.inverse_trigonometry_square_before_target"),
   undefined,
@@ -1108,19 +1001,12 @@ emitStagedPredicate(
   squareRootResidualThreshold,
   undefined,
 );
-emitStagedPredicate("square_root/result_finite", publicAnswer, -finiteLimit, finiteLimit);
-emitStagedPredicate("exp/input_finite", x, -finiteLimit, finiteLimit);
-emitStagedPredicate("exp/input_in_range", x, undefined, maximumFiniteExpInput);
 emitStagedPredicate("exp/underflows_to_zero", x, undefined, maximumZeroExpInput);
-emitStagedPredicate("exp/result_finite", publicAnswer, -finiteLimit, finiteLimit);
 emitStagedPredicate("power/exponent_negative", y, undefined, smallestNegativeFloat);
 emitStagedPredicate("power/exponent_integer", sum(publicB, product(-1, z)), 0, 0);
-emitStagedPredicate("power/exponent_large_even", maximum(publicB, product(-1, publicB)), 2 ** 24, undefined);
 emitStagedPredicate("power/below_overflow_classification", x, undefined, previousPositiveFloat(Math.fround(88.7)));
 emitStagedPredicate("power/needs_overflow_classification", x, 88.7, 88.75);
 emitStagedPredicate("power/classifier_overflow", powerDelta, smallestPositiveFloat, undefined);
-emitStagedPredicate("rounding/safe_command_result", maximum(x, product(-1, x)), undefined, previousPositiveFloat(2 ** 24));
-emitStagedPredicate("rounding/integer_input", maximum(x, product(-1, x)), 2 ** 23, undefined);
 emitStagedPredicate("rounding/remainder/can_subtract_y", sum(x, product(-1, y)), 0, undefined);
 // With x >= y, x - y is exact while x < 2y (Sterbenz's lemma), and cannot
 // round back down to y once x > 2y. This avoids the lossy 0.5*x subnormal
@@ -1252,10 +1138,9 @@ emitFunction(FUNCTION_PATHS.acos, [
 function inverseTrigonometryPublicLines(sharedFunction, degrees = false) {
   const lines = [];
   lines.push("data modify storage math:internal x set compute default math:common/input/a");
-  lines.push(...stagePredicate("inverse_trigonometry/input_in_range"));
-  lines.push(`execute if predicate math:internal/inverse_trigonometry/input_in_range run function ${functionId(sharedFunction)}`);
-  if (degrees) lines.push("execute if predicate math:internal/inverse_trigonometry/input_in_range run data modify storage math:internal x set compute default math:common/conversion/deg");
-  lines.push("execute if predicate math:internal/inverse_trigonometry/input_in_range run data modify storage math: ans set from storage math:internal x");
+  lines.push(`function ${functionId(sharedFunction)}`);
+  if (degrees) lines.push("data modify storage math:internal x set compute default math:common/conversion/deg");
+  lines.push("data modify storage math: ans set from storage math:internal x");
   return lines;
 }
 
@@ -1386,12 +1271,6 @@ emitFunction(FUNCTION_PATHS.elasticPhase, [
 {
   const lines = [];
   lines.push("data modify storage math:internal w_elastic_amplitude set compute default math:elastic/input/amplitude");
-  lines.push(...stagePredicate("elastic/duration_positive"));
-  lines.push("execute unless predicate math:internal/elastic/duration_positive run return 1");
-  lines.push(...stagePredicate("elastic/amplitude_valid"));
-  lines.push("execute unless predicate math:internal/elastic/amplitude_valid run return 1");
-  lines.push(...stagePredicate("elastic/period_positive"));
-  lines.push("execute unless predicate math:internal/elastic/period_positive run return 1");
   lines.push(...stagePredicate("elastic/time_at_or_below_start"));
   lines.push("execute if predicate math:internal/elastic/time_at_or_below_start run data modify storage math: ans set from storage math: a");
   lines.push("execute if predicate math:internal/elastic/time_at_or_below_start run return 1");
@@ -1416,12 +1295,6 @@ emitFunction(FUNCTION_PATHS.elasticDecayFinish, [
 
 {
   const lines = [];
-  lines.push(...stagePredicate("elastic_decay/duration_positive"));
-  lines.push("execute unless predicate math:internal/elastic_decay/duration_positive run return 1");
-  lines.push(...stagePredicate("elastic_decay/oscillations_positive"));
-  lines.push("execute unless predicate math:internal/elastic_decay/oscillations_positive run return 1");
-  lines.push(...stagePredicate("elastic_decay/damping_positive"));
-  lines.push("execute unless predicate math:internal/elastic_decay/damping_positive run return 1");
   lines.push(...stagePredicate("elastic_decay/time_at_or_below_start"));
   lines.push("execute if predicate math:internal/elastic_decay/time_at_or_below_start run data modify storage math: ans set from storage math: a");
   lines.push("execute if predicate math:internal/elastic_decay/time_at_or_below_start run return 1");
@@ -1498,8 +1371,6 @@ emitFunction(FUNCTION_PATHS.bounceFinish, [
 
 {
   const lines = [];
-  lines.push(...stagePredicate("bounce/duration_positive"));
-  lines.push("execute unless predicate math:internal/bounce/duration_positive run return 1");
   lines.push(...stagePredicate("bounce/time_at_or_below_start"));
   lines.push("execute if predicate math:internal/bounce/time_at_or_below_start run data modify storage math: ans set compute default math:common/input/a");
   lines.push("execute if predicate math:internal/bounce/time_at_or_below_start run return 1");
@@ -1528,12 +1399,6 @@ emitFunction(FUNCTION_PATHS.bounceDecayFinish, [
 
 {
   const lines = [];
-  lines.push(...stagePredicate("bounce_decay/duration_positive"));
-  lines.push("execute unless predicate math:internal/bounce_decay/duration_positive run return 1");
-  lines.push(...stagePredicate("bounce_decay/bounces_positive"));
-  lines.push("execute unless predicate math:internal/bounce_decay/bounces_positive run return 1");
-  lines.push(...stagePredicate("bounce_decay/decay_nonnegative"));
-  lines.push("execute unless predicate math:internal/bounce_decay/decay_nonnegative run return 1");
   lines.push(...stagePredicate("bounce_decay/time_at_or_below_start"));
   lines.push("execute if predicate math:internal/bounce_decay/time_at_or_below_start run data modify storage math: ans set compute default math:common/input/a");
   lines.push("execute if predicate math:internal/bounce_decay/time_at_or_below_start run return 1");
@@ -1583,12 +1448,6 @@ emitFunction(FUNCTION_PATHS.bezierFinish, [
   for (const [field, index] of [["x1", 0], ["y1", 1], ["x2", 2], ["y2", 3]]) {
     lines.push(`data modify storage math:internal w_bezier_${field} set from storage math: curve[${index}]`);
   }
-  lines.push(...stagePredicate("bezier/duration_positive"));
-  lines.push("execute unless predicate math:internal/bezier/duration_positive run return 1");
-  lines.push(...stagePredicate("bezier/x1_in_range"));
-  lines.push("execute unless predicate math:internal/bezier/x1_in_range run return 1");
-  lines.push(...stagePredicate("bezier/x2_in_range"));
-  lines.push("execute unless predicate math:internal/bezier/x2_in_range run return 1");
   lines.push(...stagePredicate("bezier/time_at_or_below_start"));
   lines.push("execute if predicate math:internal/bezier/time_at_or_below_start run data modify storage math: ans set from storage math: a");
   lines.push("execute if predicate math:internal/bezier/time_at_or_below_start run return 1");
@@ -2043,8 +1902,6 @@ emitFunction(FUNCTION_PATHS.powerNegative, [
 {
   const lines = [];
   lines.push("data modify storage math:internal x set from storage math: a");
-  lines.push(...stagePredicate("exp/input_in_range"));
-  lines.push("execute unless predicate math:internal/exp/input_in_range run return 1");
   lines.push(...stagePredicate("exp/underflows_to_zero"));
   lines.push("execute if predicate math:internal/exp/underflows_to_zero run data modify storage math: ans set value 0.0f");
   lines.push("execute if predicate math:internal/exp/underflows_to_zero run return 1");
@@ -2256,12 +2113,9 @@ emitFunction(FUNCTION_PATHS.tan, [
   "return 1",
 ]);
 
-function tangentResultLines(predicate, variant) {
+function tangentResultLines() {
   return [
     "data modify storage math:internal x set from storage math:internal w_tan_cos",
-    `data modify storage math:internal w_comparison.tan_domain set compute default math:tan/guard/${variant}/compare_domain`,
-    ...stagePredicate(`tan/undefined_${variant}`),
-    `execute if predicate ${predicate} run return 1`,
     "data modify storage math: ans set compute default math:tan/00",
   ];
 }
@@ -2274,8 +2128,7 @@ function trigWrapper(name, computePath, kernelPath, isTangent, degrees, zeroResu
   lines.push("execute if data storage math:internal {x:0.0f} run return 1");
   if (isTangent) {
     lines.push(`function ${functionId(kernelPath)}`);
-    const variant = degrees ? "degrees" : "radians";
-    lines.push(...tangentResultLines(`math:internal/tan/undefined_${variant}`, variant));
+    lines.push(...tangentResultLines());
   } else {
     lines.push(`function ${functionId(kernelPath)}`);
     lines.push("data modify storage math: ans set compute default math:common/input/x");
@@ -2342,6 +2195,7 @@ function generate(targetRoot) {
   }
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "function", "internal"), { recursive: true, force: true });
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "function", "common"), { recursive: true, force: true });
+  fs.rmSync(path.join(targetRoot, "Math", "data", "math", "function", ".common", "_error"), { recursive: true, force: true });
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "function", ".common", "invalid_number"), { recursive: true, force: true });
   fs.rmSync(path.join(targetRoot, "Math", "data", "math", "function", ".common", "result_out_of_range"), { recursive: true, force: true });
   for (const file of generatedFiles) {

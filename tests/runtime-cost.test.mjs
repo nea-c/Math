@@ -50,25 +50,25 @@ const BOUNDARY_INPUTS = {
 };
 
 const COMMAND_BUDGETS = {
-  tan: { baseline: 93, boundary: 68 },
-  tan_degrees: { baseline: 94, boundary: 69 },
-  log: { baseline: 40, boundary: 31 },
-  div: { baseline: 91, boundary: 9 },
-  sqrt: { baseline: 76, boundary: 10 },
-  bezier: { baseline: 189, boundary: 58 },
-  bounce: { baseline: 67, boundary: 14 },
-  bounce_decay: { baseline: 95, boundary: 22 },
-  remainder: { baseline: 134, boundary: 9 },
-  mod: { baseline: 140, boundary: 137 },
-  pow: { baseline: 62, boundary: 25 },
-  asin: { baseline: 705, boundary: 22 },
-  asin_degrees: { baseline: 706, boundary: 23 },
-  acos: { baseline: 716, boundary: 17 },
-  acos_degrees: { baseline: 717, boundary: 18 },
-  atan: { baseline: 44, boundary: 9 },
-  atan_degrees: { baseline: 45, boundary: 10 },
-  atan2: { baseline: 78, boundary: 12 },
-  atan2_degrees: { baseline: 79, boundary: 12 },
+  tan: { baseline: 13, boundary: 13 },
+  tan_degrees: { baseline: 14, boundary: 14 },
+  log: { baseline: 31, boundary: 31 },
+  div: { baseline: 9, boundary: 6 },
+  sqrt: { baseline: 10, boundary: 9 },
+  bezier: { baseline: 141, boundary: 13 },
+  bounce: { baseline: 57, boundary: 7 },
+  bounce_decay: { baseline: 71, boundary: 7 },
+  remainder: { baseline: 7, boundary: 7 },
+  mod: { baseline: 137, boundary: 135 },
+  pow: { baseline: 16, boundary: 19 },
+  asin: { baseline: 253, boundary: 15 },
+  asin_degrees: { baseline: 254, boundary: 16 },
+  acos: { baseline: 264, boundary: 9 },
+  acos_degrees: { baseline: 265, boundary: 10 },
+  atan: { baseline: 43, boundary: 8 },
+  atan_degrees: { baseline: 44, boundary: 9 },
+  atan2: { baseline: 76, boundary: 11 },
+  atan2_degrees: { baseline: 77, boundary: 11 },
 };
 
 const POWER_PATH_BUDGETS = {
@@ -204,7 +204,7 @@ test("runtime command budgets are deterministic for normal and boundary inputs",
       const first = runFunction(name, input).commandsExecuted;
       const second = runFunction(name, input).commandsExecuted;
       assert.equal(second, first, `${name} ${kind} count changed between runs`);
-      assert.ok(first <= COMMAND_BUDGETS[name][kind], `${name} ${kind} exceeded its command budget`);
+      assert.equal(first, COMMAND_BUDGETS[name][kind], `${name} ${kind} command count changed`);
     }
   }
 });

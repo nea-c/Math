@@ -467,15 +467,11 @@ test("function tags expose every public function in the generated function layou
     [],
   );
 
-  const errorDirectory = path.join(functionRoot, ".common", "_error");
-  assert.deepEqual(
-    fs.existsSync(errorDirectory)
-      ? fs.readdirSync(errorDirectory, { withFileTypes: true })
-        .map((entry) => entry.name)
-        .sort()
-      : [],
-    [],
-  );
+  assert.equal(fs.existsSync(path.join(functionRoot, ".common", "_error")), false);
+
+  const manifest = JSON.parse(fs.readFileSync("tools/generated-math-files.json", "utf8"));
+  assert.equal(manifest.files.some((file) => file.includes("/.common/_error/")), false);
+  assert.equal(manifest.files.some((file) => file.includes("/.validation/finite/")), false);
   assert.equal(fs.existsSync(path.join(functionRoot, ".common", "invalid_number")), false);
   assert.equal(fs.existsSync(path.join(functionRoot, ".common", "result_out_of_range")), false);
 
@@ -516,6 +512,17 @@ test("public entries naturally end without exposing function results", () => {
     assert.doesNotMatch(source, /storage math: error set/, name);
     assert.match(source, /^data remove storage math: ans$/m, name);
     assert.match(source, /^data remove storage math: internal$/m, name);
+  }
+});
+
+test("generated functions omit obsolete validation control flow", () => {
+  const manifest = JSON.parse(fs.readFileSync("tools/generated-math-files.json", "utf8"));
+  for (const relativePath of manifest.files) {
+    if (!relativePath.endsWith(".mcfunction")) continue;
+    const source = fs.readFileSync(relativePath, "utf8");
+    assert.doesNotMatch(source, /w_validation_/, relativePath);
+    assert.doesNotMatch(source, /return fail/, relativePath);
+    assert.doesNotMatch(source, /storage math: error set/, relativePath);
   }
 });
 
@@ -670,6 +677,11 @@ test("generated functions and conditions use only declared storage with x/y/z/w-
   const assertStorage = (storageId, storagePath, file) => {
     assert.ok(allowedStorage.has(storageId), `${file} uses undeclared storage ${storageId}`);
     const normalizedPath = storagePath.startsWith("{") ? storagePath.slice(1) : storagePath;
+    for (const compound of normalizedPath.matchAll(/internal:\{([^{}]*)\}/g)) {
+      for (const field of compound[1].matchAll(/(?:^|,)([A-Za-z0-9_]+):/g)) {
+        assert.match(field[1], /^[xyzw](?:_|$)/, `${file} scratch compound ${storagePath} must use x/y/z/w-prefixed fields`);
+      }
+    }
     if (normalizedPath.startsWith("internal.")) {
       assert.match(normalizedPath.slice("internal.".length), /^[xyzw](?:_|$|\.|:)/, `${file} scratch path ${storagePath} must be x/y/z/w-prefixed`);
     }

@@ -64,23 +64,28 @@ test("shared float providers use the private .common namespace", () => {
   }
 });
 
-test("remaining validation assets and shared reciprocal kernels use distinct private namespaces", () => {
+test("algorithmic predicates and shared reciprocal kernels use distinct private namespaces", () => {
   const predicateRoot = path.join(packRoot, "data", "math", "predicate");
   for (const relativePath of [
-    ".validation/predicate/bezier/x1_in_range/value.json",
+    ".validation/predicate/bezier/time_at_or_after_end/value.json",
     ".common/reciprocal/newton.json",
   ]) {
     assert.equal(fs.existsSync(path.join(providerRoot, relativePath)), true, `missing provider ${relativePath}`);
   }
   assert.equal(
-    fs.existsSync(path.join(predicateRoot, ".validation/range/min_greater_than_max.json")),
+    fs.existsSync(path.join(predicateRoot, ".validation/bezier/time_at_or_after_end.json")),
     true,
-    "validation predicate is not in the private .validation namespace",
+    "algorithmic endpoint predicate is not in the private .validation namespace",
   );
   assert.equal(
     fs.existsSync(path.join(providerRoot, ".validation", "finite", "a.json")),
     false,
     "unused public finite-input validation provider remains",
+  );
+  assert.equal(
+    fs.existsSync(path.join(predicateRoot, ".validation", "bezier", "x1_in_range.json")),
+    false,
+    "obsolete public-domain validation predicate remains",
   );
   assert.equal(fs.existsSync(path.join(providerRoot, "internal")), false, "legacy provider internal directory remains");
   assert.equal(fs.existsSync(path.join(predicateRoot, "internal")), false, "legacy predicate internal directory remains");

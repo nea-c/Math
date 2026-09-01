@@ -4,12 +4,6 @@ data modify storage math: internal.w_bezier_x1 set from storage math: curve[0]
 data modify storage math: internal.w_bezier_y1 set from storage math: curve[1]
 data modify storage math: internal.w_bezier_x2 set from storage math: curve[2]
 data modify storage math: internal.w_bezier_y2 set from storage math: curve[3]
-data modify storage math: internal.w_comparison.predicate.bezier_duration_positive set compute default float math:.validation/predicate/bezier/duration_positive/value
-execute unless predicate math:.validation/bezier/duration_positive run return 1
-data modify storage math: internal.w_comparison.predicate.bezier_x1_in_range set compute default float math:.validation/predicate/bezier/x1_in_range/value
-execute unless predicate math:.validation/bezier/x1_in_range run return 1
-data modify storage math: internal.w_comparison.predicate.bezier_x2_in_range set compute default float math:.validation/predicate/bezier/x2_in_range/value
-execute unless predicate math:.validation/bezier/x2_in_range run return 1
 data modify storage math: internal.w_comparison.predicate.bezier_time_at_or_below_start set compute default float math:.validation/predicate/bezier/time_at_or_below_start/value
 execute if predicate math:.validation/bezier/time_at_or_below_start run data modify storage math: ans set from storage math: a
 execute if predicate math:.validation/bezier/time_at_or_below_start run return 1
