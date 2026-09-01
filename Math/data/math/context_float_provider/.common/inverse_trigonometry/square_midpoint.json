@@ -7,13 +7,13 @@
       "inputs": [
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_inverse_trigonometry_square_low"
+          "storage": "math:",
+          "path": "internal.w_inverse_trigonometry_square_low"
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_inverse_trigonometry_square_high"
+          "storage": "math:",
+          "path": "internal.w_inverse_trigonometry_square_high"
         }
       ]
     }

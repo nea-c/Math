@@ -4,8 +4,8 @@
     -6.931471824645996,
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "w_elastic_u"
+      "storage": "math:",
+      "path": "internal.w_elastic_u"
     }
   ]
 }

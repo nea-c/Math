@@ -3,13 +3,13 @@
   "inputs": [
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "w_quaternion_scaled_0"
+      "storage": "math:",
+      "path": "internal.w_quaternion_scaled_0"
     },
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "w_quaternion_inverse_length"
+      "storage": "math:",
+      "path": "internal.w_quaternion_inverse_length"
     }
   ]
 }

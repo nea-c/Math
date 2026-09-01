@@ -7,18 +7,18 @@
       "inputs": [
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_elastic_amplitude"
+          "storage": "math:",
+          "path": "internal.w_elastic_amplitude"
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_elastic_decay"
+          "storage": "math:",
+          "path": "internal.w_elastic_decay"
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_elastic_sine"
+          "storage": "math:",
+          "path": "internal.w_elastic_sine"
         }
       ]
     }

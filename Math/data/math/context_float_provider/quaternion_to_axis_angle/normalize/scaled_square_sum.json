@@ -6,13 +6,13 @@
       "inputs": [
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_quaternion_scaled_0"
+          "storage": "math:",
+          "path": "internal.w_quaternion_scaled_0"
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_quaternion_scaled_0"
+          "storage": "math:",
+          "path": "internal.w_quaternion_scaled_0"
         }
       ]
     },
@@ -21,13 +21,13 @@
       "inputs": [
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_quaternion_scaled_1"
+          "storage": "math:",
+          "path": "internal.w_quaternion_scaled_1"
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_quaternion_scaled_1"
+          "storage": "math:",
+          "path": "internal.w_quaternion_scaled_1"
         }
       ]
     },
@@ -36,13 +36,13 @@
       "inputs": [
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_quaternion_scaled_2"
+          "storage": "math:",
+          "path": "internal.w_quaternion_scaled_2"
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_quaternion_scaled_2"
+          "storage": "math:",
+          "path": "internal.w_quaternion_scaled_2"
         }
       ]
     },
@@ -51,13 +51,13 @@
       "inputs": [
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_quaternion_scaled_3"
+          "storage": "math:",
+          "path": "internal.w_quaternion_scaled_3"
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_quaternion_scaled_3"
+          "storage": "math:",
+          "path": "internal.w_quaternion_scaled_3"
         }
       ]
     }

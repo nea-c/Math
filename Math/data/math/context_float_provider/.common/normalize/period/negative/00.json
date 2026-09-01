@@ -6,8 +6,8 @@
         "type": "minecraft:float_value_check",
         "value": {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_comparison.period_half"
+          "storage": "math:",
+          "path": "internal.w_comparison.period_half"
         },
         "test": {
           "min": 1
@@ -17,13 +17,13 @@
         "type": "minecraft:sub",
         "left": {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "y"
+          "storage": "math:",
+          "path": "internal.y"
         },
         "right": {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "x"
+          "storage": "math:",
+          "path": "internal.x"
         }
       }
     }
@@ -34,8 +34,8 @@
       -1,
       {
         "type": "minecraft:storage",
-        "storage": "math:internal",
-        "path": "x"
+        "storage": "math:",
+        "path": "internal.x"
       }
     ]
   }

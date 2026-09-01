@@ -6,8 +6,8 @@
         "type": "minecraft:float_value_check",
         "value": {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_normalize_exponent"
+          "storage": "math:",
+          "path": "internal.w_normalize_exponent"
         },
         "test": {
           "max": -128
@@ -21,8 +21,8 @@
               "type": "minecraft:float_value_check",
               "value": {
                 "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "w_normalize_exponent"
+                "storage": "math:",
+                "path": "internal.w_normalize_exponent"
               },
               "test": {
                 "max": -139
@@ -36,8 +36,8 @@
                     "type": "minecraft:float_value_check",
                     "value": {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "w_normalize_exponent"
+                      "storage": "math:",
+                      "path": "internal.w_normalize_exponent"
                     },
                     "test": {
                       "max": -145
@@ -51,8 +51,8 @@
                           "type": "minecraft:float_value_check",
                           "value": {
                             "type": "minecraft:storage",
-                            "storage": "math:internal",
-                            "path": "w_normalize_exponent"
+                            "storage": "math:",
+                            "path": "internal.w_normalize_exponent"
                           },
                           "test": {
                             "max": -148
@@ -66,8 +66,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_normalize_exponent"
+                                  "storage": "math:",
+                                  "path": "internal.w_normalize_exponent"
                                 },
                                 "test": {
                                   "max": -149
@@ -88,8 +88,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_normalize_exponent"
+                              "storage": "math:",
+                              "path": "internal.w_normalize_exponent"
                             },
                             "test": {
                               "max": -147
@@ -106,8 +106,8 @@
                               "type": "minecraft:float_value_check",
                               "value": {
                                 "type": "minecraft:storage",
-                                "storage": "math:internal",
-                                "path": "w_normalize_exponent"
+                                "storage": "math:",
+                                "path": "internal.w_normalize_exponent"
                               },
                               "test": {
                                 "max": -146
@@ -130,8 +130,8 @@
                       "type": "minecraft:float_value_check",
                       "value": {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "w_normalize_exponent"
+                        "storage": "math:",
+                        "path": "internal.w_normalize_exponent"
                       },
                       "test": {
                         "max": -142
@@ -145,8 +145,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_normalize_exponent"
+                              "storage": "math:",
+                              "path": "internal.w_normalize_exponent"
                             },
                             "test": {
                               "max": -144
@@ -163,8 +163,8 @@
                               "type": "minecraft:float_value_check",
                               "value": {
                                 "type": "minecraft:storage",
-                                "storage": "math:internal",
-                                "path": "w_normalize_exponent"
+                                "storage": "math:",
+                                "path": "internal.w_normalize_exponent"
                               },
                               "test": {
                                 "max": -143
@@ -186,8 +186,8 @@
                         "type": "minecraft:float_value_check",
                         "value": {
                           "type": "minecraft:storage",
-                          "storage": "math:internal",
-                          "path": "w_normalize_exponent"
+                          "storage": "math:",
+                          "path": "internal.w_normalize_exponent"
                         },
                         "test": {
                           "max": -141
@@ -204,8 +204,8 @@
                           "type": "minecraft:float_value_check",
                           "value": {
                             "type": "minecraft:storage",
-                            "storage": "math:internal",
-                            "path": "w_normalize_exponent"
+                            "storage": "math:",
+                            "path": "internal.w_normalize_exponent"
                           },
                           "test": {
                             "max": -140
@@ -229,8 +229,8 @@
                 "type": "minecraft:float_value_check",
                 "value": {
                   "type": "minecraft:storage",
-                  "storage": "math:internal",
-                  "path": "w_normalize_exponent"
+                  "storage": "math:",
+                  "path": "internal.w_normalize_exponent"
                 },
                 "test": {
                   "max": -134
@@ -244,8 +244,8 @@
                       "type": "minecraft:float_value_check",
                       "value": {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "w_normalize_exponent"
+                        "storage": "math:",
+                        "path": "internal.w_normalize_exponent"
                       },
                       "test": {
                         "max": -137
@@ -259,8 +259,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_normalize_exponent"
+                              "storage": "math:",
+                              "path": "internal.w_normalize_exponent"
                             },
                             "test": {
                               "max": -138
@@ -281,8 +281,8 @@
                         "type": "minecraft:float_value_check",
                         "value": {
                           "type": "minecraft:storage",
-                          "storage": "math:internal",
-                          "path": "w_normalize_exponent"
+                          "storage": "math:",
+                          "path": "internal.w_normalize_exponent"
                         },
                         "test": {
                           "max": -136
@@ -299,8 +299,8 @@
                           "type": "minecraft:float_value_check",
                           "value": {
                             "type": "minecraft:storage",
-                            "storage": "math:internal",
-                            "path": "w_normalize_exponent"
+                            "storage": "math:",
+                            "path": "internal.w_normalize_exponent"
                           },
                           "test": {
                             "max": -135
@@ -323,8 +323,8 @@
                   "type": "minecraft:float_value_check",
                   "value": {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "w_normalize_exponent"
+                    "storage": "math:",
+                    "path": "internal.w_normalize_exponent"
                   },
                   "test": {
                     "max": -131
@@ -338,8 +338,8 @@
                         "type": "minecraft:float_value_check",
                         "value": {
                           "type": "minecraft:storage",
-                          "storage": "math:internal",
-                          "path": "w_normalize_exponent"
+                          "storage": "math:",
+                          "path": "internal.w_normalize_exponent"
                         },
                         "test": {
                           "max": -133
@@ -356,8 +356,8 @@
                           "type": "minecraft:float_value_check",
                           "value": {
                             "type": "minecraft:storage",
-                            "storage": "math:internal",
-                            "path": "w_normalize_exponent"
+                            "storage": "math:",
+                            "path": "internal.w_normalize_exponent"
                           },
                           "test": {
                             "max": -132
@@ -379,8 +379,8 @@
                     "type": "minecraft:float_value_check",
                     "value": {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "w_normalize_exponent"
+                      "storage": "math:",
+                      "path": "internal.w_normalize_exponent"
                     },
                     "test": {
                       "max": -130
@@ -397,8 +397,8 @@
                       "type": "minecraft:float_value_check",
                       "value": {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "w_normalize_exponent"
+                        "storage": "math:",
+                        "path": "internal.w_normalize_exponent"
                       },
                       "test": {
                         "max": -129

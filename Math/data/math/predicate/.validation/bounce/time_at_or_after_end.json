@@ -2,8 +2,8 @@
   "type": "minecraft:float_value_check",
   "value": {
     "type": "minecraft:storage",
-    "storage": "math:internal",
-    "path": "w_comparison.predicate.bounce_time_at_or_after_end"
+    "storage": "math:",
+    "path": "internal.w_comparison.predicate.bounce_time_at_or_after_end"
   },
   "test": {
     "min": 1,

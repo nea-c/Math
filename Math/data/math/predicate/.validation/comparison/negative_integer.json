@@ -2,8 +2,8 @@
   "type": "minecraft:float_value_check",
   "value": {
     "type": "minecraft:storage",
-    "storage": "math:internal",
-    "path": "w"
+    "storage": "math:",
+    "path": "internal.w"
   },
   "test": {
     "max": -1

@@ -6,8 +6,8 @@
         "type": "minecraft:float_value_check",
         "value": {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_quaternion_axis_0"
+          "storage": "math:",
+          "path": "internal.w_quaternion_axis_0"
         },
         "test": {
           "min": -3.4028234663852886e+38,

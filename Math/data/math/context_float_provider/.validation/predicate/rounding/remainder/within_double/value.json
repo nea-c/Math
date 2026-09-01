@@ -8,20 +8,20 @@
           "type": "minecraft:sub",
           "left": {
             "type": "minecraft:storage",
-            "storage": "math:internal",
-            "path": "y"
+            "storage": "math:",
+            "path": "internal.y"
           },
           "right": {
             "type": "minecraft:sub",
             "left": {
               "type": "minecraft:storage",
-              "storage": "math:internal",
-              "path": "x"
+              "storage": "math:",
+              "path": "internal.x"
             },
             "right": {
               "type": "minecraft:storage",
-              "storage": "math:internal",
-              "path": "y"
+              "storage": "math:",
+              "path": "internal.y"
             }
           }
         },

@@ -8,8 +8,8 @@
         1,
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_quaternion_normalized_3"
+          "storage": "math:",
+          "path": "internal.w_quaternion_normalized_3"
         }
       ]
     }

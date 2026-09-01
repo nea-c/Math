@@ -2,8 +2,8 @@
   "type": "minecraft:float_value_check",
   "value": {
     "type": "minecraft:storage",
-    "storage": "math:internal",
-    "path": "w_comparison.predicate.exp_underflows_to_zero"
+    "storage": "math:",
+    "path": "internal.w_comparison.predicate.exp_underflows_to_zero"
   },
   "test": {
     "min": 1,

@@ -3,13 +3,13 @@
   "inputs": [
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "w_normalize_mantissa"
+      "storage": "math:",
+      "path": "internal.w_normalize_mantissa"
     },
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "w_normalize_multiplier_b"
+      "storage": "math:",
+      "path": "internal.w_normalize_multiplier_b"
     }
   ]
 }

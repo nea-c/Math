@@ -4,8 +4,8 @@
     0.7853981852531433,
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "x"
+      "storage": "math:",
+      "path": "internal.x"
     }
   ]
 }

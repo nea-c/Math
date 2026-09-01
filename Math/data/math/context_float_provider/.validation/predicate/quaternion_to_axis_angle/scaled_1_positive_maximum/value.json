@@ -8,13 +8,13 @@
           "type": "minecraft:sub",
           "left": {
             "type": "minecraft:storage",
-            "storage": "math:internal",
-            "path": "w_quaternion_scaled_raw_1"
+            "storage": "math:",
+            "path": "internal.w_quaternion_scaled_raw_1"
           },
           "right": {
             "type": "minecraft:storage",
-            "storage": "math:internal",
-            "path": "w_quaternion_maximum_mantissa"
+            "storage": "math:",
+            "path": "internal.w_quaternion_maximum_mantissa"
           }
         },
         "test": {

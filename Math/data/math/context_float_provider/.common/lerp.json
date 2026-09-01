@@ -3,28 +3,28 @@
   "inputs": [
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "x"
+      "storage": "math:",
+      "path": "internal.x"
     },
     {
       "type": "minecraft:mul",
       "inputs": [
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "z"
+          "storage": "math:",
+          "path": "internal.z"
         },
         {
           "type": "minecraft:sub",
           "left": {
             "type": "minecraft:storage",
-            "storage": "math:internal",
-            "path": "y"
+            "storage": "math:",
+            "path": "internal.y"
           },
           "right": {
             "type": "minecraft:storage",
-            "storage": "math:internal",
-            "path": "x"
+            "storage": "math:",
+            "path": "internal.x"
           }
         }
       ]

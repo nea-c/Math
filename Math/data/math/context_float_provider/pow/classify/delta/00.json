@@ -5,8 +5,8 @@
       "type": "minecraft:sub",
       "left": {
         "type": "minecraft:storage",
-        "storage": "math:internal",
-        "path": "w_power_product_high"
+        "storage": "math:",
+        "path": "internal.w_power_product_high"
       },
       "right": 88.72283935546875
     },
@@ -14,8 +14,8 @@
       "type": "minecraft:sub",
       "left": {
         "type": "minecraft:storage",
-        "storage": "math:internal",
-        "path": "w_power_product_low"
+        "storage": "math:",
+        "path": "internal.w_power_product_low"
       },
       "right": -2.735980615398148e-7
     }

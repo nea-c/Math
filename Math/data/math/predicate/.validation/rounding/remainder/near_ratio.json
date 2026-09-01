@@ -2,8 +2,8 @@
   "type": "minecraft:float_value_check",
   "value": {
     "type": "minecraft:storage",
-    "storage": "math:internal",
-    "path": "w_comparison.predicate.rounding_remainder_near_ratio"
+    "storage": "math:",
+    "path": "internal.w_comparison.predicate.rounding_remainder_near_ratio"
   },
   "test": {
     "min": 1,

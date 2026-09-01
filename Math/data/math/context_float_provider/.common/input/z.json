@@ -1,5 +1,5 @@
 {
   "type": "minecraft:storage",
-  "storage": "math:internal",
-  "path": "z"
+  "storage": "math:",
+  "path": "internal.z"
 }

@@ -5,8 +5,8 @@
       "type": "minecraft:float_value_check",
       "value": {
         "type": "minecraft:storage",
-        "storage": "math:internal",
-        "path": "w_comparison.predicate.divide_exponent_at_overflow_boundary.value"
+        "storage": "math:",
+        "path": "internal.w_comparison.predicate.divide_exponent_at_overflow_boundary.value"
       },
       "test": {
         "min": 0,
@@ -17,8 +17,8 @@
       "type": "minecraft:float_value_check",
       "value": {
         "type": "minecraft:storage",
-        "storage": "math:internal",
-        "path": "w_comparison.predicate.divide_significand_at_or_above_overflow_boundary.minimum"
+        "storage": "math:",
+        "path": "internal.w_comparison.predicate.divide_significand_at_or_above_overflow_boundary.minimum"
       },
       "test": {
         "min": 0

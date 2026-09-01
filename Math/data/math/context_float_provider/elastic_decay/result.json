@@ -11,8 +11,8 @@
       "inputs": [
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_elastic_decay_eased"
+          "storage": "math:",
+          "path": "internal.w_elastic_decay_eased"
         },
         {
           "type": "minecraft:add",

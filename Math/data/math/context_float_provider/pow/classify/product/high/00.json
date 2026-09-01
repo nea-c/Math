@@ -8,8 +8,8 @@
     },
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "w_power_log_high"
+      "storage": "math:",
+      "path": "internal.w_power_log_high"
     }
   ]
 }

@@ -6,13 +6,13 @@
       "inputs": [
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_power_product_high"
+          "storage": "math:",
+          "path": "internal.w_power_product_high"
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_power_product_low"
+          "storage": "math:",
+          "path": "internal.w_power_product_low"
         }
       ]
     },

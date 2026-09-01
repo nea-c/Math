@@ -515,6 +515,19 @@ test("generated providers are current", () => {
   });
 });
 
+test("generated resources use one math storage with nested internal scratch", () => {
+  const manifest = JSON.parse(fs.readFileSync("tools/generated-math-files.json", "utf8"));
+  for (const relativePath of manifest.files) {
+    if (!/\.(?:json|mcfunction)$/.test(relativePath)) continue;
+    const source = fs.readFileSync(relativePath, "utf8");
+    assert.doesNotMatch(source, /math:internal/, relativePath);
+  }
+  assert.match(
+    fs.readFileSync("Math/data/math/function/add/0.start.mcfunction", "utf8"),
+    /storage math: internal\.x/,
+  );
+});
+
 test("generated assets omit context-float-provider documents with no consumers", () => {
   assert.equal(
     fs.existsSync("Math/data/math/context_float_provider/.common/atan/half_pi.json"),
@@ -651,12 +664,12 @@ test("every named predicate condition uses direct float-provider comparisons", (
 });
 
 test("generated functions and conditions use only declared storage with x/y/z/w-prefixed scratch", () => {
-  const allowedStorage = new Set(["math:", "math:internal"]);
+  const allowedStorage = new Set(["math:"]);
   const assertStorage = (storageId, storagePath, file) => {
     assert.ok(allowedStorage.has(storageId), `${file} uses undeclared storage ${storageId}`);
-    if (storageId === "math:internal") {
-      const normalizedPath = storagePath.startsWith("{") ? storagePath.slice(1) : storagePath;
-      assert.match(normalizedPath, /^[xyzw](?:_|$|\.|:)/, `${file} scratch path ${storagePath} must be x/y/z/w-prefixed`);
+    const normalizedPath = storagePath.startsWith("{") ? storagePath.slice(1) : storagePath;
+    if (normalizedPath.startsWith("internal.")) {
+      assert.match(normalizedPath.slice("internal.".length), /^[xyzw](?:_|$|\.|:)/, `${file} scratch path ${storagePath} must be x/y/z/w-prefixed`);
     }
   };
   const visit = (value, file) => {

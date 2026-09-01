@@ -50,8 +50,8 @@
                     4097,
                     {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "w_power_log_high"
+                      "storage": "math:",
+                      "path": "internal.w_power_log_high"
                     }
                   ]
                 },
@@ -63,15 +63,15 @@
                       4097,
                       {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "w_power_log_high"
+                        "storage": "math:",
+                        "path": "internal.w_power_log_high"
                       }
                     ]
                   },
                   "right": {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "w_power_log_high"
+                    "storage": "math:",
+                    "path": "internal.w_power_log_high"
                   }
                 }
               }
@@ -79,8 +79,8 @@
           },
           "right": {
             "type": "minecraft:storage",
-            "storage": "math:internal",
-            "path": "w_power_product_high"
+            "storage": "math:",
+            "path": "internal.w_power_product_high"
           }
         },
         {
@@ -123,8 +123,8 @@
               "type": "minecraft:sub",
               "left": {
                 "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "w_power_log_high"
+                "storage": "math:",
+                "path": "internal.w_power_log_high"
               },
               "right": {
                 "type": "minecraft:sub",
@@ -134,8 +134,8 @@
                     4097,
                     {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "w_power_log_high"
+                      "storage": "math:",
+                      "path": "internal.w_power_log_high"
                     }
                   ]
                 },
@@ -147,15 +147,15 @@
                       4097,
                       {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "w_power_log_high"
+                        "storage": "math:",
+                        "path": "internal.w_power_log_high"
                       }
                     ]
                   },
                   "right": {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "w_power_log_high"
+                    "storage": "math:",
+                    "path": "internal.w_power_log_high"
                   }
                 }
               }
@@ -214,8 +214,8 @@
                   4097,
                   {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "w_power_log_high"
+                    "storage": "math:",
+                    "path": "internal.w_power_log_high"
                   }
                 ]
               },
@@ -227,15 +227,15 @@
                     4097,
                     {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "w_power_log_high"
+                      "storage": "math:",
+                      "path": "internal.w_power_log_high"
                     }
                   ]
                 },
                 "right": {
                   "type": "minecraft:storage",
-                  "storage": "math:internal",
-                  "path": "w_power_log_high"
+                  "storage": "math:",
+                  "path": "internal.w_power_log_high"
                 }
               }
             }
@@ -289,8 +289,8 @@
               "type": "minecraft:sub",
               "left": {
                 "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "w_power_log_high"
+                "storage": "math:",
+                "path": "internal.w_power_log_high"
               },
               "right": {
                 "type": "minecraft:sub",
@@ -300,8 +300,8 @@
                     4097,
                     {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "w_power_log_high"
+                      "storage": "math:",
+                      "path": "internal.w_power_log_high"
                     }
                   ]
                 },
@@ -313,15 +313,15 @@
                       4097,
                       {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "w_power_log_high"
+                        "storage": "math:",
+                        "path": "internal.w_power_log_high"
                       }
                     ]
                   },
                   "right": {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "w_power_log_high"
+                    "storage": "math:",
+                    "path": "internal.w_power_log_high"
                   }
                 }
               }
@@ -340,8 +340,8 @@
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_power_log_low"
+          "storage": "math:",
+          "path": "internal.w_power_log_low"
         }
       ]
     }

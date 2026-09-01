@@ -1,5 +1,5 @@
 {
   "type": "minecraft:storage",
-  "storage": "math:internal",
-  "path": "w_quaternion_angle"
+  "storage": "math:",
+  "path": "internal.w_quaternion_angle"
 }

@@ -6,8 +6,8 @@
         "type": "minecraft:float_value_check",
         "value": {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "z"
+          "storage": "math:",
+          "path": "internal.z"
         },
         "test": {
           "min": -150,
@@ -22,8 +22,8 @@
               "type": "minecraft:float_value_check",
               "value": {
                 "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "z"
+                "storage": "math:",
+                "path": "internal.z"
               },
               "test": {
                 "min": -150,
@@ -37,8 +37,8 @@
               "type": "minecraft:float_value_check",
               "value": {
                 "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "z"
+                "storage": "math:",
+                "path": "internal.z"
               },
               "test": {
                 "min": 128,

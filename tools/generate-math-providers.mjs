@@ -18,7 +18,7 @@ import {
   round,
   sine,
   squareRoot,
-  storage,
+  storage as rawStorage,
   subtract,
   sum,
   truncate,
@@ -107,6 +107,8 @@ function emitPredicate(relativePath, value) {
 function emitFunction(path, lines) {
   const migratedLines = lines.map(line => line
     .replaceAll("compute default ", "compute default float ")
+    .replaceAll(/storage math:internal ([A-Za-z0-9_.\[\]-]+)/g, "storage math: internal.$1")
+    .replaceAll(/storage math:internal \{([^{}]+)\}/g, "storage math: {internal:{$1}}")
     .replaceAll(/math:(?:common\/(?:arithmetic\/(?:add|subtract|multiply|divide|reciprocal|square|cube|lerp)|comparison\/(?:absolute|minimum|maximum|clamp)|conversion\/(?:rad|deg))|common\/[^ ]+|power\/[^ ]+|square_root\/[^ ]+)/g,
       reference => canonicalProviderReference(reference))
     .replaceAll(/(compute default float )math:internal\/comparison\//g, "$1math:.validation/")
@@ -128,10 +130,14 @@ function emitPublicFunction(name, lines) {
   emitFunctionTag(name, publicTag(name));
 }
 
-const x = storage("math:internal", "x");
-const y = storage("math:internal", "y");
-const z = storage("math:internal", "z");
-const w = storage("math:internal", "w");
+const internalPath = (pathText) => `internal.${pathText}`;
+const internalStorage = (pathText) => rawStorage("math:", internalPath(pathText));
+const storage = rawStorage;
+
+const x = internalStorage("x");
+const y = internalStorage("y");
+const z = internalStorage("z");
+const w = internalStorage("w");
 const publicA = storage("math:", "a");
 const publicB = storage("math:", "b");
 const publicT = storage("math:", "t");
@@ -148,18 +154,18 @@ const publicDamping = storage("math:", "damping");
 const publicBounces = storage("math:", "bounces");
 const publicDecay = storage("math:", "decay");
 const publicRotation = Array.from({ length: 4 }, (_, index) => storage("math:", `rotation[${index}]`));
-const quaternionComponents = Array.from({ length: 4 }, (_, index) => storage("math:internal", `w_quaternion_component_${index}`));
-const quaternionScaledRaw = Array.from({ length: 4 }, (_, index) => storage("math:internal", `w_quaternion_scaled_raw_${index}`));
-const quaternionScaled = Array.from({ length: 4 }, (_, index) => storage("math:internal", `w_quaternion_scaled_${index}`));
-const quaternionNormalized = Array.from({ length: 4 }, (_, index) => storage("math:internal", `w_quaternion_normalized_${index}`));
-const atanInput = storage("math:internal", "w_atan_input");
-const atanNumerator = storage("math:internal", "w_atan_numerator");
-const atanSquare = storage("math:internal", "w_atan_square");
-const atan2AbsoluteA = storage("math:internal", "w_atan2_absolute_a");
-const atan2AbsoluteB = storage("math:internal", "w_atan2_absolute_b");
-const atan2Minimum = storage("math:internal", "w_atan2_minimum");
-const atan2Maximum = storage("math:internal", "w_atan2_maximum");
-const quaternionAxis = Array.from({ length: 3 }, (_, index) => storage("math:internal", `w_quaternion_axis_${index}`));
+const quaternionComponents = Array.from({ length: 4 }, (_, index) => internalStorage(`w_quaternion_component_${index}`));
+const quaternionScaledRaw = Array.from({ length: 4 }, (_, index) => internalStorage(`w_quaternion_scaled_raw_${index}`));
+const quaternionScaled = Array.from({ length: 4 }, (_, index) => internalStorage(`w_quaternion_scaled_${index}`));
+const quaternionNormalized = Array.from({ length: 4 }, (_, index) => internalStorage(`w_quaternion_normalized_${index}`));
+const atanInput = internalStorage("w_atan_input");
+const atanNumerator = internalStorage("w_atan_numerator");
+const atanSquare = internalStorage("w_atan_square");
+const atan2AbsoluteA = internalStorage("w_atan2_absolute_a");
+const atan2AbsoluteB = internalStorage("w_atan2_absolute_b");
+const atan2Minimum = internalStorage("w_atan2_minimum");
+const atan2Maximum = internalStorage("w_atan2_maximum");
+const quaternionAxis = Array.from({ length: 3 }, (_, index) => internalStorage(`w_quaternion_axis_${index}`));
 
 function inlineValueCheck(value, min, max) {
   return floatRange(value, min, max);
@@ -185,7 +191,7 @@ function emitStagedPredicate(relativePath, value, min, max) {
     condition: floatRange(value, min, max),
     number_provider: 1,
   }], 0));
-  emitPredicate(relativePath, floatRange(storage("math:internal", materializedPath), 1, 1));
+  emitPredicate(relativePath, floatRange(internalStorage(materializedPath), 1, 1));
   stagedPredicateCommands.set(relativePath, [
     `data modify storage math:internal ${materializedPath} set compute default math:${providerPath}`,
   ]);
@@ -317,10 +323,10 @@ for (let exponent = -148; exponent <= 127; exponent += 1) {
     maximum(0, adjacentStep),
   ));
 }
-const storedNormalizeExponent = storage("math:internal", "w_normalize_exponent");
-const storedNormalizeMultiplierA = storage("math:internal", "w_normalize_multiplier_a");
-const storedNormalizeMultiplierB = storage("math:internal", "w_normalize_multiplier_b");
-const storedNormalizeMantissa = storage("math:internal", "w_normalize_mantissa");
+const storedNormalizeExponent = internalStorage("w_normalize_exponent");
+const storedNormalizeMultiplierA = internalStorage("w_normalize_multiplier_a");
+const storedNormalizeMultiplierB = internalStorage("w_normalize_multiplier_b");
+const storedNormalizeMantissa = internalStorage("w_normalize_mantissa");
 emit("common/normalize/binary32/exponent", boundedSum([-149, ...normalizeExponentSteps]));
 emit("common/normalize/binary32/multiplier_a", balancedRangeLookup(
   normalizeExponentEntries,
@@ -356,14 +362,14 @@ emit("common/comparison/clamp", maximum(minimum(x, w), z));
 emit("common/conversion/rad", product(x, Math.fround(Math.PI / 180)));
 emit("common/conversion/deg", product(x, Math.fround(180 / Math.PI)));
 
-const bezierLow = storage("math:internal", "w_bezier_low");
-const bezierHigh = storage("math:internal", "w_bezier_high");
-const bezierMidpoint = storage("math:internal", "w_bezier_midpoint");
-const bezierInput = storage("math:internal", "w_bezier_u");
-const bezierCurveX1 = storage("math:internal", "w_bezier_x1");
-const bezierCurveY1 = storage("math:internal", "w_bezier_y1");
-const bezierCurveX2 = storage("math:internal", "w_bezier_x2");
-const bezierCurveY2 = storage("math:internal", "w_bezier_y2");
+const bezierLow = internalStorage("w_bezier_low");
+const bezierHigh = internalStorage("w_bezier_high");
+const bezierMidpoint = internalStorage("w_bezier_midpoint");
+const bezierInput = internalStorage("w_bezier_u");
+const bezierCurveX1 = internalStorage("w_bezier_x1");
+const bezierCurveY1 = internalStorage("w_bezier_y1");
+const bezierCurveX2 = internalStorage("w_bezier_x2");
+const bezierCurveY2 = internalStorage("w_bezier_y2");
 
 function cubicBezier(parameter, firstControl, secondControl) {
   const inverse = sum(1, product(-1, parameter));
@@ -380,12 +386,12 @@ emit("bezier/x", bezierCurveX);
 emit("bezier/y", cubicBezier(bezierMidpoint, bezierCurveY1, bezierCurveY2));
 emit("bezier/compare_x", floatComparison(subtractExpression(bezierCurveX, bezierInput), 0));
 emitPredicate("bezier/x_before_input", inlineValueCheck(
-  storage("math:internal", "w_comparison.bezier_x"),
+  internalStorage("w_comparison.bezier_x"),
   undefined,
   -1,
 ));
 emit("bezier/result", sum(publicA, product(
-  storage("math:internal", "w_bezier_y"),
+  internalStorage("w_bezier_y"),
   sum(publicB, product(-1, publicA)),
 )));
 emit("common/rounding/negate", negate(x));
@@ -399,11 +405,11 @@ emit("common/rounding/reduce", sum(w, product(-1, z, y)));
 emit("common/rounding/double_y", product(2, y));
 emit("common/rounding/half_y", product(0.5, y));
 emit("remainder/00", modulo(x, y));
-const storedRemainderXExponent = storage("math:internal", "w_remainder_x_exponent");
-const storedRemainderYExponent = storage("math:internal", "w_remainder_y_exponent");
-const storedRemainderShift = storage("math:internal", "w_remainder_shift");
-const storedRemainderRemainingShift = storage("math:internal", "w_remainder_remaining_shift");
-const storedRemainderScaledDivisor = storage("math:internal", "w_remainder_scaled_divisor");
+const storedRemainderXExponent = internalStorage("w_remainder_x_exponent");
+const storedRemainderYExponent = internalStorage("w_remainder_y_exponent");
+const storedRemainderShift = internalStorage("w_remainder_shift");
+const storedRemainderRemainingShift = internalStorage("w_remainder_remaining_shift");
+const storedRemainderScaledDivisor = internalStorage("w_remainder_scaled_divisor");
 emit("common/reduce_remainder/shift", sum(storedRemainderXExponent, product(-1, storedRemainderYExponent)));
 const remainderShifts = Array.from({ length: 277 }, (_, shift) => ({
   shift,
@@ -438,13 +444,13 @@ emit("common/reduce_remainder/decrement_remaining_shift", sum(storedRemainderRem
 const periodHalfDifference = sum(x, product(-0.5, y));
 emit("common/normalize/period/positive/00", numberDispatcher([
   {
-    condition: inlineValueCheck(storage("math:internal", "w_comparison.period_half"), 0, undefined),
+    condition: inlineValueCheck(internalStorage("w_comparison.period_half"), 0, undefined),
     number_provider: subtractExpression(x, y),
   },
 ], x));
 emit("common/normalize/period/negative/00", numberDispatcher([
   {
-    condition: inlineValueCheck(storage("math:internal", "w_comparison.period_half"), 1, undefined),
+    condition: inlineValueCheck(internalStorage("w_comparison.period_half"), 1, undefined),
     number_provider: subtractExpression(y, x),
   },
 ], product(-1, x)));
@@ -465,11 +471,11 @@ const halfPiPrevious = previousPositiveFloat(halfPi);
 const halfPiNext = nextPositiveFloat(halfPi);
 emit("sin/fold/00", numberDispatcher([
   {
-    condition: inlineValueCheck(storage("math:internal", "w_comparison.sin_fold_lower"), undefined, 0),
+    condition: inlineValueCheck(internalStorage("w_comparison.sin_fold_lower"), undefined, 0),
     number_provider: sum(-pi, product(-1, z)),
   },
   {
-    condition: inlineValueCheck(storage("math:internal", "w_comparison.sin_fold_upper"), 0, undefined),
+    condition: inlineValueCheck(internalStorage("w_comparison.sin_fold_upper"), 0, undefined),
     number_provider: sum(pi, product(-1, z)),
   },
 ], z));
@@ -507,8 +513,8 @@ emit("sin/compare/negative_lower", floatComparison(x, -halfPiNext));
 emit("sin/compare/negative_upper", floatComparison(x, -halfPiPrevious));
 emit("cos/00", cosine(x));
 emit("tan/00", divide(
-  storage("math:internal", "w_tan_sin"),
-  storage("math:internal", "w_tan_cos"),
+  internalStorage("w_tan_sin"),
+  internalStorage("w_tan_cos"),
 ));
 const tangentGuardBase = 0.00002;
 const tangentGuardBaseUp = nextPositiveFloat(tangentGuardBase);
@@ -529,7 +535,7 @@ function tangentGuard(domain, coefficient) {
   const excess = maximum(0, sum(absoluteInput, -domain));
   return numberDispatcher([
     {
-      condition: inlineValueCheck(storage("math:internal", "w_comparison.tan_domain"), undefined, 0),
+      condition: inlineValueCheck(internalStorage("w_comparison.tan_domain"), undefined, 0),
       number_provider: tangentGuardBase,
     },
   ], minimum(2, sum(tangentGuardBaseUp, tangentPeriodStepError, product(excess, coefficient))));
@@ -545,9 +551,9 @@ emit("tan/guard/degrees/compare_domain", floatComparison(maximum(publicA, produc
 // keeping every branch decision at least one integer apart.
 const stagedReciprocalAbsolute = maximum(x, product(-1, x));
 const stagedReciprocalMantissa = product(0.5, stagedReciprocalAbsolute);
-const storedReciprocalMantissa = storage("math:internal", "w_reciprocal_mantissa");
-const storedReciprocalEstimate = storage("math:internal", "w_reciprocal_estimate");
-const storedReciprocalSign = storage("math:internal", "w_reciprocal_sign");
+const storedReciprocalMantissa = internalStorage("w_reciprocal_mantissa");
+const storedReciprocalEstimate = internalStorage("w_reciprocal_estimate");
+const storedReciprocalSign = internalStorage("w_reciprocal_sign");
 emit("internal/reciprocal/mantissa", stagedReciprocalMantissa);
 emit("internal/reciprocal/initial_estimate", sum(
   Math.fround(48 / 17),
@@ -580,21 +586,21 @@ emit("internal/reciprocal/normalized", product(
   storedReciprocalEstimate,
   storedReciprocalEstimate,
 ));
-const divideAMantissa = storage("math:internal", "w_divide_a_mantissa");
-const divideAExponent = storage("math:internal", "w_divide_a_exponent");
-const divideBMantissa = storage("math:internal", "w_divide_b_mantissa");
-const divideBExponent = storage("math:internal", "w_divide_b_exponent");
-const divideExponent = storage("math:internal", "w_divide_exponent");
-const divideSign = storage("math:internal", "w_divide_sign");
-const divideReciprocal = storage("math:internal", "w_divide_reciprocal");
-const divideQuotient = storage("math:internal", "w_divide_quotient");
-const divideProductHigh = storage("math:internal", "w_divide_product_high");
-const divideProductLow = storage("math:internal", "w_divide_product_low");
-const divideResidualHigh = storage("math:internal", "w_divide_residual_high");
-const divideResidualLow = storage("math:internal", "w_divide_residual_low");
-const divideCorrection = storage("math:internal", "w_divide_correction");
-const divideScale = storage("math:internal", "w_divide_scale");
-const divideFactor = storage("math:internal", "w_divide_factor");
+const divideAMantissa = internalStorage("w_divide_a_mantissa");
+const divideAExponent = internalStorage("w_divide_a_exponent");
+const divideBMantissa = internalStorage("w_divide_b_mantissa");
+const divideBExponent = internalStorage("w_divide_b_exponent");
+const divideExponent = internalStorage("w_divide_exponent");
+const divideSign = internalStorage("w_divide_sign");
+const divideReciprocal = internalStorage("w_divide_reciprocal");
+const divideQuotient = internalStorage("w_divide_quotient");
+const divideProductHigh = internalStorage("w_divide_product_high");
+const divideProductLow = internalStorage("w_divide_product_low");
+const divideResidualHigh = internalStorage("w_divide_residual_high");
+const divideResidualLow = internalStorage("w_divide_residual_low");
+const divideCorrection = internalStorage("w_divide_correction");
+const divideScale = internalStorage("w_divide_scale");
+const divideFactor = internalStorage("w_divide_factor");
 emit("internal/divide/normalized_reciprocal", product(0.5, storedReciprocalEstimate));
 emit("internal/divide/product/high", product(divideBMantissa, divideQuotient));
 emit("internal/divide/product/low", twoProductLow(divideBMantissa, divideQuotient));
@@ -617,8 +623,8 @@ emit("internal/divide/result", product(
   divideScale,
 ));
 
-const storedLogMantissa = storage("math:internal", "w_log_mantissa");
-const storedLogReciprocal = storage("math:internal", "w_log_reciprocal");
+const storedLogMantissa = internalStorage("w_log_mantissa");
+const storedLogReciprocal = internalStorage("w_log_reciprocal");
 emit("internal/reciprocal/log_mantissa", product(0.25, x));
 emit("internal/reciprocal/log_initial", sum(
   Math.fround(48 / 17),
@@ -632,13 +638,13 @@ emit("internal/reciprocal/log_denominator", product(0.25, storedLogReciprocal));
 emitPredicate("comparison/negative_integer", inlineValueCheck(w, undefined, -1));
 emitPredicate("comparison/x_negative_integer", inlineValueCheck(x, undefined, -1));
 
-const sqrtEstimate = storage("math:internal", "w_sqrt_estimate");
-const sqrtMantissa = storage("math:internal", "w_sqrt_mantissa");
-const sqrtReciprocal = storage("math:internal", "w_sqrt_reciprocal");
-const sqrtScale = storage("math:internal", "w_sqrt_scale");
-const sqrtResidual = storage("math:internal", "w_sqrt_residual");
+const sqrtEstimate = internalStorage("w_sqrt_estimate");
+const sqrtMantissa = internalStorage("w_sqrt_mantissa");
+const sqrtReciprocal = internalStorage("w_sqrt_reciprocal");
+const sqrtScale = internalStorage("w_sqrt_scale");
+const sqrtResidual = internalStorage("w_sqrt_residual");
 const sqrtEstimateAtLeastTwo = inlineValueCheck(
-  storage("math:internal", "w_comparison.sqrt_estimate_at_least_two"),
+  internalStorage("w_comparison.sqrt_estimate_at_least_two"),
   0,
   undefined,
 );
@@ -679,7 +685,7 @@ emit("log/normalize/compare_center/00", product(
   sum(storedNormalizeMantissa, -Math.fround(Math.SQRT2)),
   Math.fround(2 ** 23),
 ));
-const logBelowCenter = inlineValueCheck(storage("math:internal", "w_comparison.log_center"), undefined, -1);
+const logBelowCenter = inlineValueCheck(internalStorage("w_comparison.log_center"), undefined, -1);
 emit("log/normalize/centered_mantissa/00", numberDispatcher([{
   condition: logBelowCenter,
   number_provider: storedNormalizeMantissa,
@@ -817,20 +823,20 @@ for (const [index, component] of publicRotation.entries()) {
 }
 
 const quaternionMaximum = maximum(...quaternionComponents.flatMap(component => [component, product(-1, component)]));
-const quaternionScaleMultiplierA = storage("math:internal", "w_quaternion_scale_multiplier_a");
-const quaternionScaleMultiplierB = storage("math:internal", "w_quaternion_scale_multiplier_b");
-const quaternionMaximumMantissa = storage("math:internal", "w_quaternion_maximum_mantissa");
-const quaternionInverseMaximumMantissa = storage("math:internal", "w_quaternion_inverse_maximum_mantissa");
-const quaternionInverseLength = storage("math:internal", "w_quaternion_inverse_length");
-const quaternionVectorMaximum = storage("math:internal", "w_quaternion_vector_maximum");
-const quaternionVectorScaleMultiplierA = storage("math:internal", "w_quaternion_vector_scale_multiplier_a");
-const quaternionVectorScaleMultiplierB = storage("math:internal", "w_quaternion_vector_scale_multiplier_b");
-const quaternionVectorMaximumMantissa = storage("math:internal", "w_quaternion_vector_maximum_mantissa");
-const quaternionInverseVectorMaximumMantissa = storage("math:internal", "w_quaternion_inverse_vector_maximum_mantissa");
-const quaternionVectorScaledRaw = Array.from({ length: 3 }, (_, index) => storage("math:internal", `w_quaternion_vector_scaled_raw_${index}`));
-const quaternionVectorScaled = Array.from({ length: 3 }, (_, index) => storage("math:internal", `w_quaternion_vector_scaled_${index}`));
-const quaternionInverseVectorLength = storage("math:internal", "w_quaternion_inverse_vector_length");
-const quaternionAngle = storage("math:internal", "w_quaternion_angle");
+const quaternionScaleMultiplierA = internalStorage("w_quaternion_scale_multiplier_a");
+const quaternionScaleMultiplierB = internalStorage("w_quaternion_scale_multiplier_b");
+const quaternionMaximumMantissa = internalStorage("w_quaternion_maximum_mantissa");
+const quaternionInverseMaximumMantissa = internalStorage("w_quaternion_inverse_maximum_mantissa");
+const quaternionInverseLength = internalStorage("w_quaternion_inverse_length");
+const quaternionVectorMaximum = internalStorage("w_quaternion_vector_maximum");
+const quaternionVectorScaleMultiplierA = internalStorage("w_quaternion_vector_scale_multiplier_a");
+const quaternionVectorScaleMultiplierB = internalStorage("w_quaternion_vector_scale_multiplier_b");
+const quaternionVectorMaximumMantissa = internalStorage("w_quaternion_vector_maximum_mantissa");
+const quaternionInverseVectorMaximumMantissa = internalStorage("w_quaternion_inverse_vector_maximum_mantissa");
+const quaternionVectorScaledRaw = Array.from({ length: 3 }, (_, index) => internalStorage(`w_quaternion_vector_scaled_raw_${index}`));
+const quaternionVectorScaled = Array.from({ length: 3 }, (_, index) => internalStorage(`w_quaternion_vector_scaled_${index}`));
+const quaternionInverseVectorLength = internalStorage("w_quaternion_inverse_vector_length");
+const quaternionAngle = internalStorage("w_quaternion_angle");
 
 emit("quaternion_to_axis_angle/normalize/maximum", quaternionMaximum);
 for (let index = 0; index < 4; index += 1) {
@@ -914,11 +920,11 @@ emit("power/classify/polynomial/result/high/00", product(x, z));
 const powerLn2High = Math.fround(Math.LN2);
 const powerLn2Low = Math.fround(Math.LN2 - powerLn2High);
 const powerExponentLn2High = product(w, powerLn2High);
-const powerLogHigh = storage("math:internal", "w_power_log_high");
-const powerLogLow = storage("math:internal", "w_power_log_low");
-const powerProductHigh = storage("math:internal", "w_power_product_high");
-const powerProductLow = storage("math:internal", "w_power_product_low");
-const powerDelta = storage("math:internal", "w_power_delta");
+const powerLogHigh = internalStorage("w_power_log_high");
+const powerLogLow = internalStorage("w_power_log_low");
+const powerProductHigh = internalStorage("w_power_product_high");
+const powerProductLow = internalStorage("w_power_product_low");
+const powerDelta = internalStorage("w_power_delta");
 emit("power/classify/log/low/00", sum(
   twoSumLow(powerExponentLn2High, x),
   twoProductLow(w, powerLn2High),
@@ -990,14 +996,14 @@ emitStagedPredicate("divide/significand_at_or_above_overflow_boundary", sum(divi
 emitPredicate("divide/overflow_boundary", {
   type: "minecraft:all_of",
   terms: [
-    inlineValueCheck(storage("math:internal", "w_comparison.predicate.divide_exponent_at_overflow_boundary.value"), 0, 0),
-    inlineValueCheck(storage("math:internal", "w_comparison.predicate.divide_significand_at_or_above_overflow_boundary.minimum"), 0, undefined),
+    inlineValueCheck(internalStorage("w_comparison.predicate.divide_exponent_at_overflow_boundary.value"), 0, 0),
+    inlineValueCheck(internalStorage("w_comparison.predicate.divide_significand_at_or_above_overflow_boundary.minimum"), 0, undefined),
   ],
 });
 emitStagedPredicate("divide/exponent_underflows", divideExponent, undefined, -151);
 emit("internal/comparison/x_zero", floatComparison(x, 0));
-emitPredicate("range/negative", inlineValueCheck(storage("math:internal", "w_comparison.x_sign"), undefined, -1));
-emitPredicate("range/positive", inlineValueCheck(storage("math:internal", "w_comparison.x_sign"), 1, undefined));
+emitPredicate("range/negative", inlineValueCheck(internalStorage("w_comparison.x_sign"), undefined, -1));
+emitPredicate("range/positive", inlineValueCheck(internalStorage("w_comparison.x_sign"), 1, undefined));
 for (const [variant, guard] of [
   ["radians", "math:tan/guard/radians/00"],
   ["degrees", "math:tan/guard/degrees/00"],
@@ -1009,12 +1015,12 @@ for (const [variant, guard] of [
   );
 }
 emitPredicate("normalize_period/original_negative", inlineValueCheck(
-  storage("math:internal", "w_comparison.period_original"),
+  internalStorage("w_comparison.period_original"),
   undefined,
   -1,
 ));
 emitPredicate("asin_positive/before_target", inlineValueCheck(
-  storage("math:internal", "w_comparison.asin_positive_before_target"),
+  internalStorage("w_comparison.asin_positive_before_target"),
   undefined,
   -1,
 ));
@@ -1023,7 +1029,7 @@ emitStagedPredicate("inverse_trigonometry/x_negative", x, undefined, smallestNeg
 emitStagedPredicate("inverse_trigonometry/use_complement", x, 0.995, undefined);
 emitStagedPredicate(
   "quaternion_to_axis_angle/maximum_zero",
-  storage("math:internal", "w_quaternion_maximum"),
+  internalStorage("w_quaternion_maximum"),
   0,
   0,
 );
@@ -1072,7 +1078,7 @@ for (let index = 0; index < 3; index += 1) {
   );
 }
 emitPredicate("inverse_trigonometry/square_before_target", inlineValueCheck(
-  storage("math:internal", "w_comparison.inverse_trigonometry_square_before_target"),
+  internalStorage("w_comparison.inverse_trigonometry_square_before_target"),
   undefined,
   -1,
 ));
@@ -1164,28 +1170,28 @@ emit("common/inverse_trigonometry/half_pi", halfPi);
 emit("common/inverse_trigonometry/pi", pi);
 emit("common/inverse_trigonometry/complement", sum(1, product(-1, x, x)));
 emit("common/inverse_trigonometry/square_midpoint", product(0.5, sum(
-  storage("math:internal", "w_inverse_trigonometry_square_low"),
-  storage("math:internal", "w_inverse_trigonometry_square_high"),
+  internalStorage("w_inverse_trigonometry_square_low"),
+  internalStorage("w_inverse_trigonometry_square_high"),
 )));
 emit("common/inverse_trigonometry/square_compare", floatComparison(
   sum(
-    product(storage("math:internal", "w_inverse_trigonometry_square_midpoint"), storage("math:internal", "w_inverse_trigonometry_square_midpoint")),
-    product(-1, storage("math:internal", "w_inverse_trigonometry_square_target")),
+    product(internalStorage("w_inverse_trigonometry_square_midpoint"), internalStorage("w_inverse_trigonometry_square_midpoint")),
+    product(-1, internalStorage("w_inverse_trigonometry_square_target")),
   ),
   0,
 ));
 emit("common/inverse_trigonometry/acos", sum(
-  storage("math:internal", "w_inverse_trigonometry_half_pi"),
+  internalStorage("w_inverse_trigonometry_half_pi"),
   product(-1, x),
 ));
 emit("common/asin_positive/midpoint", product(0.5, sum(
-  storage("math:internal", "w_asin_low"),
-  storage("math:internal", "w_asin_high"),
+  internalStorage("w_asin_low"),
+  internalStorage("w_asin_high"),
 )));
 emit("common/asin_positive/compare", floatComparison(
   sum(
-    storage("math:internal", "w_asin_sine"),
-    product(-1, storage("math:internal", "w_asin_target")),
+    internalStorage("w_asin_sine"),
+    product(-1, internalStorage("w_asin_target")),
   ),
   0,
 ));
@@ -1364,17 +1370,17 @@ function atan2PublicLines(degrees = false) {
 emitPublicFunction("atan2", atan2PublicLines());
 emitPublicFunction("atan2_degrees", atan2PublicLines(true));
 
-const elasticAmplitude = storage("math:internal", "w_elastic_amplitude");
-const elasticPhase = storage("math:internal", "w_elastic_phase");
-const elasticInversePeriod = storage("math:internal", "w_elastic_inverse_period");
-const elasticU = storage("math:internal", "w_elastic_u");
-const elasticDecay = storage("math:internal", "w_elastic_decay");
-const elasticSine = storage("math:internal", "w_elastic_sine");
-const elasticEased = storage("math:internal", "w_elastic_eased");
-const elasticDecayU = storage("math:internal", "w_elastic_decay_u");
-const elasticDecayFactor = storage("math:internal", "w_elastic_decay_factor");
-const elasticDecayCosine = storage("math:internal", "w_elastic_decay_cosine");
-const elasticDecayEased = storage("math:internal", "w_elastic_decay_eased");
+const elasticAmplitude = internalStorage("w_elastic_amplitude");
+const elasticPhase = internalStorage("w_elastic_phase");
+const elasticInversePeriod = internalStorage("w_elastic_inverse_period");
+const elasticU = internalStorage("w_elastic_u");
+const elasticDecay = internalStorage("w_elastic_decay");
+const elasticSine = internalStorage("w_elastic_sine");
+const elasticEased = internalStorage("w_elastic_eased");
+const elasticDecayU = internalStorage("w_elastic_decay_u");
+const elasticDecayFactor = internalStorage("w_elastic_decay_factor");
+const elasticDecayCosine = internalStorage("w_elastic_decay_cosine");
+const elasticDecayEased = internalStorage("w_elastic_decay_eased");
 const interpolationResult = (eased) => sum(publicA, product(eased, sum(publicB, product(-1, publicA))));
 
 emit("elastic/input/amplitude", publicAmplitude);
@@ -1480,12 +1486,12 @@ emitFunction(FUNCTION_PATHS.elasticDecayFinish, [
   emitPublicFunction("elastic_decay", lines);
 }
 
-const bounceU = storage("math:internal", "w_bounce_u");
-const bounceEased = storage("math:internal", "w_bounce_eased");
-const bounceDecayU = storage("math:internal", "w_bounce_decay_u");
-const bounceDecayFactor = storage("math:internal", "w_bounce_decay_factor");
-const bounceDecayWave = storage("math:internal", "w_bounce_decay_wave");
-const bounceDecayEased = storage("math:internal", "w_bounce_decay_eased");
+const bounceU = internalStorage("w_bounce_u");
+const bounceEased = internalStorage("w_bounce_eased");
+const bounceDecayU = internalStorage("w_bounce_decay_u");
+const bounceDecayFactor = internalStorage("w_bounce_decay_factor");
+const bounceDecayWave = internalStorage("w_bounce_decay_wave");
+const bounceDecayEased = internalStorage("w_bounce_decay_eased");
 const bounceCoefficient = Math.fround(7.5625);
 const shiftedBounce = (offset, base) => sum(base, product(
   bounceCoefficient,
@@ -1493,12 +1499,12 @@ const shiftedBounce = (offset, base) => sum(base, product(
   sum(bounceU, -offset),
 ));
 
-const bounceScaledT = storage("math:internal", "w_bounce_scaled_t");
+const bounceScaledT = internalStorage("w_bounce_scaled_t");
 emit("bounce/scaled_t", product(publicT, 2 ** 126));
 emit("bounce/scaled_max", product(publicMax, 2 ** 126));
 emit("bounce/u", product(bounceScaledT, x));
 const bounceComparisons = [4 / 11, 8 / 11, 10 / 11].map((threshold, index) => {
-  const comparison = storage("math:internal", `w_comparison.bounce_${index}`);
+  const comparison = internalStorage(`w_comparison.bounce_${index}`);
   emit(`bounce/compare_${index}`, floatComparison(bounceU, Math.fround(threshold)));
   return comparison;
 });

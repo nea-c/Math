@@ -6,8 +6,8 @@
         "type": "minecraft:float_value_check",
         "value": {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_atan2_maximum"
+          "storage": "math:",
+          "path": "internal.w_atan2_maximum"
         },
         "test": {
           "max": 1.1754942106924411e-38

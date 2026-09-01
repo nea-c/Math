@@ -2,8 +2,8 @@
   "type": "minecraft:float_value_check",
   "value": {
     "type": "minecraft:storage",
-    "storage": "math:internal",
-    "path": "w_comparison.predicate.square_root_needs_refine"
+    "storage": "math:",
+    "path": "internal.w_comparison.predicate.square_root_needs_refine"
   },
   "test": {
     "min": 1,

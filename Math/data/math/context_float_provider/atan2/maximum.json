@@ -3,13 +3,13 @@
   "inputs": [
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "w_atan2_absolute_a"
+      "storage": "math:",
+      "path": "internal.w_atan2_absolute_a"
     },
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "w_atan2_absolute_b"
+      "storage": "math:",
+      "path": "internal.w_atan2_absolute_b"
     }
   ]
 }

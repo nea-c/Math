@@ -18,8 +18,8 @@
                   "inputs": [
                     {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "x"
+                      "storage": "math:",
+                      "path": "internal.x"
                     },
                     {
                       "type": "minecraft:mul",
@@ -27,8 +27,8 @@
                         -1,
                         {
                           "type": "minecraft:storage",
-                          "storage": "math:internal",
-                          "path": "z"
+                          "storage": "math:",
+                          "path": "internal.z"
                         }
                       ]
                     }
@@ -51,8 +51,8 @@
                   "inputs": [
                     {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "x"
+                      "storage": "math:",
+                      "path": "internal.x"
                     },
                     {
                       "type": "minecraft:mul",
@@ -60,8 +60,8 @@
                         -1,
                         {
                           "type": "minecraft:storage",
-                          "storage": "math:internal",
-                          "path": "z"
+                          "storage": "math:",
+                          "path": "internal.z"
                         }
                       ]
                     }

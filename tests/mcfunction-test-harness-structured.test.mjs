@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   copyTypedPath,
+  evaluateGeneratedProvider,
   getPath,
   parseGeneratedSnbt,
   removeTypedPath,
@@ -10,6 +11,11 @@ import {
   setTypedPath,
   storageFieldKey,
 } from "./mcfunction-test-harness.mjs";
+
+test("generated providers read scratch through nested internal storage", () => {
+  const result = evaluateGeneratedProvider("math:.common/add", {}, { x: 1.25, y: 2.5 });
+  assert.equal(result, 3.75);
+});
 
 test("typed public SNBT inputs retain numeric tag types while functions execute", () => {
   const result = runFunctionFromSnbt("sign", "{a:1.0d}");

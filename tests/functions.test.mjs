@@ -53,9 +53,14 @@ test("public wrappers execute providers, clear stale errors, return success, and
 test("public wrappers confine scratch state to x/y/z/w fields", () => {
   for (const [name, inputs] of wrappers) {
     const { storage } = runFunction(name, inputs);
-    assert.deepEqual(Object.keys(storage).sort(), ["math:", "math:internal"], `${name} must use only declared storage namespaces`);
-    assert.ok(Object.keys(storage["math:internal"]).every((field) => /^[xyzw](?:_|$)/.test(field)), `${name} must use x/y/z/w-prefixed scratch fields only`);
+    assert.deepEqual(Object.keys(storage).sort(), ["math:"], `${name} must use only declared storage namespaces`);
+    assert.ok(Object.keys(storage["math:"].internal).every((field) => /^[xyzw](?:_|$)/.test(field)), `${name} must use x/y/z/w-prefixed scratch fields only`);
   }
+});
+
+test("public wrappers accept explicit internal scratch input", () => {
+  const { storage } = runFunction("pi", {}, { w_stale: 17 });
+  assert.equal(storage["math:"].internal.w_stale, 17);
 });
 
 test("sign writes its result as an SNBT float", () => {

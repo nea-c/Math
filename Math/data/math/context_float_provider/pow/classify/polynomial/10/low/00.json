@@ -11,13 +11,13 @@
             "inputs": [
               {
                 "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "x"
+                "storage": "math:",
+                "path": "internal.x"
               },
               {
                 "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "z"
+                "storage": "math:",
+                "path": "internal.z"
               }
             ]
           },
@@ -31,13 +31,13 @@
                   "inputs": [
                     {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "x"
+                      "storage": "math:",
+                      "path": "internal.x"
                     },
                     {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "z"
+                      "storage": "math:",
+                      "path": "internal.z"
                     }
                   ]
                 },
@@ -54,13 +54,13 @@
                     "inputs": [
                       {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "x"
+                        "storage": "math:",
+                        "path": "internal.x"
                       },
                       {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "z"
+                        "storage": "math:",
+                        "path": "internal.z"
                       }
                     ]
                   },
@@ -72,13 +72,13 @@
                 "inputs": [
                   {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "x"
+                    "storage": "math:",
+                    "path": "internal.x"
                   },
                   {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "z"
+                    "storage": "math:",
+                    "path": "internal.z"
                   }
                 ]
               }
@@ -98,13 +98,13 @@
                   "inputs": [
                     {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "x"
+                      "storage": "math:",
+                      "path": "internal.x"
                     },
                     {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "z"
+                      "storage": "math:",
+                      "path": "internal.z"
                     }
                   ]
                 },
@@ -116,13 +116,13 @@
               "inputs": [
                 {
                   "type": "minecraft:storage",
-                  "storage": "math:internal",
-                  "path": "x"
+                  "storage": "math:",
+                  "path": "internal.x"
                 },
                 {
                   "type": "minecraft:storage",
-                  "storage": "math:internal",
-                  "path": "z"
+                  "storage": "math:",
+                  "path": "internal.z"
                 }
               ]
             }
@@ -146,8 +146,8 @@
                     4097,
                     {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "x"
+                      "storage": "math:",
+                      "path": "internal.x"
                     }
                   ]
                 },
@@ -159,15 +159,15 @@
                       4097,
                       {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "x"
+                        "storage": "math:",
+                        "path": "internal.x"
                       }
                     ]
                   },
                   "right": {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "x"
+                    "storage": "math:",
+                    "path": "internal.x"
                   }
                 }
               },
@@ -179,8 +179,8 @@
                     4097,
                     {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "z"
+                      "storage": "math:",
+                      "path": "internal.z"
                     }
                   ]
                 },
@@ -192,15 +192,15 @@
                       4097,
                       {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "z"
+                        "storage": "math:",
+                        "path": "internal.z"
                       }
                     ]
                   },
                   "right": {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "z"
+                    "storage": "math:",
+                    "path": "internal.z"
                   }
                 }
               }
@@ -211,13 +211,13 @@
             "inputs": [
               {
                 "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "x"
+                "storage": "math:",
+                "path": "internal.x"
               },
               {
                 "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "z"
+                "storage": "math:",
+                "path": "internal.z"
               }
             ]
           }
@@ -233,8 +233,8 @@
                   4097,
                   {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "x"
+                    "storage": "math:",
+                    "path": "internal.x"
                   }
                 ]
               },
@@ -246,15 +246,15 @@
                     4097,
                     {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "x"
+                      "storage": "math:",
+                      "path": "internal.x"
                     }
                   ]
                 },
                 "right": {
                   "type": "minecraft:storage",
-                  "storage": "math:internal",
-                  "path": "x"
+                  "storage": "math:",
+                  "path": "internal.x"
                 }
               }
             },
@@ -262,8 +262,8 @@
               "type": "minecraft:sub",
               "left": {
                 "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "z"
+                "storage": "math:",
+                "path": "internal.z"
               },
               "right": {
                 "type": "minecraft:sub",
@@ -273,8 +273,8 @@
                     4097,
                     {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "z"
+                      "storage": "math:",
+                      "path": "internal.z"
                     }
                   ]
                 },
@@ -286,15 +286,15 @@
                       4097,
                       {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "z"
+                        "storage": "math:",
+                        "path": "internal.z"
                       }
                     ]
                   },
                   "right": {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "z"
+                    "storage": "math:",
+                    "path": "internal.z"
                   }
                 }
               }
@@ -308,8 +308,8 @@
               "type": "minecraft:sub",
               "left": {
                 "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "x"
+                "storage": "math:",
+                "path": "internal.x"
               },
               "right": {
                 "type": "minecraft:sub",
@@ -319,8 +319,8 @@
                     4097,
                     {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "x"
+                      "storage": "math:",
+                      "path": "internal.x"
                     }
                   ]
                 },
@@ -332,15 +332,15 @@
                       4097,
                       {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "x"
+                        "storage": "math:",
+                        "path": "internal.x"
                       }
                     ]
                   },
                   "right": {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "x"
+                    "storage": "math:",
+                    "path": "internal.x"
                   }
                 }
               }
@@ -353,8 +353,8 @@
                   4097,
                   {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "z"
+                    "storage": "math:",
+                    "path": "internal.z"
                   }
                 ]
               },
@@ -366,15 +366,15 @@
                     4097,
                     {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "z"
+                      "storage": "math:",
+                      "path": "internal.z"
                     }
                   ]
                 },
                 "right": {
                   "type": "minecraft:storage",
-                  "storage": "math:internal",
-                  "path": "z"
+                  "storage": "math:",
+                  "path": "internal.z"
                 }
               }
             }
@@ -387,8 +387,8 @@
               "type": "minecraft:sub",
               "left": {
                 "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "x"
+                "storage": "math:",
+                "path": "internal.x"
               },
               "right": {
                 "type": "minecraft:sub",
@@ -398,8 +398,8 @@
                     4097,
                     {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "x"
+                      "storage": "math:",
+                      "path": "internal.x"
                     }
                   ]
                 },
@@ -411,15 +411,15 @@
                       4097,
                       {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "x"
+                        "storage": "math:",
+                        "path": "internal.x"
                       }
                     ]
                   },
                   "right": {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "x"
+                    "storage": "math:",
+                    "path": "internal.x"
                   }
                 }
               }
@@ -428,8 +428,8 @@
               "type": "minecraft:sub",
               "left": {
                 "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "z"
+                "storage": "math:",
+                "path": "internal.z"
               },
               "right": {
                 "type": "minecraft:sub",
@@ -439,8 +439,8 @@
                     4097,
                     {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "z"
+                      "storage": "math:",
+                      "path": "internal.z"
                     }
                   ]
                 },
@@ -452,15 +452,15 @@
                       4097,
                       {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "z"
+                        "storage": "math:",
+                        "path": "internal.z"
                       }
                     ]
                   },
                   "right": {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "z"
+                    "storage": "math:",
+                    "path": "internal.z"
                   }
                 }
               }
@@ -474,13 +474,13 @@
       "inputs": [
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "y"
+          "storage": "math:",
+          "path": "internal.y"
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "z"
+          "storage": "math:",
+          "path": "internal.z"
         }
       ]
     },

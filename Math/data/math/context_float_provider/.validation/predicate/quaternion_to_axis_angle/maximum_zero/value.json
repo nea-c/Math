@@ -6,8 +6,8 @@
         "type": "minecraft:float_value_check",
         "value": {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_quaternion_maximum"
+          "storage": "math:",
+          "path": "internal.w_quaternion_maximum"
         },
         "test": {
           "min": 0,

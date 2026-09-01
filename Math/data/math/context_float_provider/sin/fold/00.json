@@ -6,8 +6,8 @@
         "type": "minecraft:float_value_check",
         "value": {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_comparison.sin_fold_lower"
+          "storage": "math:",
+          "path": "internal.w_comparison.sin_fold_lower"
         },
         "test": {
           "max": 0
@@ -23,8 +23,8 @@
               -1,
               {
                 "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "z"
+                "storage": "math:",
+                "path": "internal.z"
               }
             ]
           }
@@ -36,8 +36,8 @@
         "type": "minecraft:float_value_check",
         "value": {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_comparison.sin_fold_upper"
+          "storage": "math:",
+          "path": "internal.w_comparison.sin_fold_upper"
         },
         "test": {
           "min": 0
@@ -53,8 +53,8 @@
               -1,
               {
                 "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "z"
+                "storage": "math:",
+                "path": "internal.z"
               }
             ]
           }
@@ -64,7 +64,7 @@
   ],
   "default": {
     "type": "minecraft:storage",
-    "storage": "math:internal",
-    "path": "z"
+    "storage": "math:",
+    "path": "internal.z"
   }
 }

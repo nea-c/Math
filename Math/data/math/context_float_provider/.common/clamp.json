@@ -6,20 +6,20 @@
       "inputs": [
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "x"
+          "storage": "math:",
+          "path": "internal.x"
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w"
+          "storage": "math:",
+          "path": "internal.w"
         }
       ]
     },
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "z"
+      "storage": "math:",
+      "path": "internal.z"
     }
   ]
 }

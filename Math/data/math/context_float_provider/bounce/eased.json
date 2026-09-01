@@ -6,8 +6,8 @@
         "type": "minecraft:float_value_check",
         "value": {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_comparison.bounce_0"
+          "storage": "math:",
+          "path": "internal.w_comparison.bounce_0"
         },
         "test": {
           "max": 0
@@ -19,13 +19,13 @@
           7.5625,
           {
             "type": "minecraft:storage",
-            "storage": "math:internal",
-            "path": "w_bounce_u"
+            "storage": "math:",
+            "path": "internal.w_bounce_u"
           },
           {
             "type": "minecraft:storage",
-            "storage": "math:internal",
-            "path": "w_bounce_u"
+            "storage": "math:",
+            "path": "internal.w_bounce_u"
           }
         ]
       }
@@ -35,8 +35,8 @@
         "type": "minecraft:float_value_check",
         "value": {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_comparison.bounce_1"
+          "storage": "math:",
+          "path": "internal.w_comparison.bounce_1"
         },
         "test": {
           "max": 0
@@ -55,8 +55,8 @@
                 "inputs": [
                   {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "w_bounce_u"
+                    "storage": "math:",
+                    "path": "internal.w_bounce_u"
                   },
                   -0.5454545617103577
                 ]
@@ -66,8 +66,8 @@
                 "inputs": [
                   {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "w_bounce_u"
+                    "storage": "math:",
+                    "path": "internal.w_bounce_u"
                   },
                   -0.5454545617103577
                 ]
@@ -82,8 +82,8 @@
         "type": "minecraft:float_value_check",
         "value": {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_comparison.bounce_2"
+          "storage": "math:",
+          "path": "internal.w_comparison.bounce_2"
         },
         "test": {
           "max": 0
@@ -102,8 +102,8 @@
                 "inputs": [
                   {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "w_bounce_u"
+                    "storage": "math:",
+                    "path": "internal.w_bounce_u"
                   },
                   -0.8181818127632141
                 ]
@@ -113,8 +113,8 @@
                 "inputs": [
                   {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "w_bounce_u"
+                    "storage": "math:",
+                    "path": "internal.w_bounce_u"
                   },
                   -0.8181818127632141
                 ]
@@ -138,8 +138,8 @@
             "inputs": [
               {
                 "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "w_bounce_u"
+                "storage": "math:",
+                "path": "internal.w_bounce_u"
               },
               -0.9545454382896423
             ]
@@ -149,8 +149,8 @@
             "inputs": [
               {
                 "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "w_bounce_u"
+                "storage": "math:",
+                "path": "internal.w_bounce_u"
               },
               -0.9545454382896423
             ]

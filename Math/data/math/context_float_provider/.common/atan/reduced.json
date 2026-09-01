@@ -3,13 +3,13 @@
   "inputs": [
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "w_atan_numerator"
+      "storage": "math:",
+      "path": "internal.w_atan_numerator"
     },
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "x"
+      "storage": "math:",
+      "path": "internal.x"
     }
   ]
 }

@@ -3,18 +3,18 @@
   "inputs": [
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "w_quaternion_component_1"
+      "storage": "math:",
+      "path": "internal.w_quaternion_component_1"
     },
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "w_quaternion_scale_multiplier_a"
+      "storage": "math:",
+      "path": "internal.w_quaternion_scale_multiplier_a"
     },
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "w_quaternion_scale_multiplier_b"
+      "storage": "math:",
+      "path": "internal.w_quaternion_scale_multiplier_b"
     }
   ]
 }

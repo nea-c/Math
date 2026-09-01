@@ -258,7 +258,12 @@ export function copyTypedPath(root, numericTags, destinationStorageId, destinati
 // A focused mcfunction interpreter: it executes only the generated command subset,
 // and evaluates provider expressions through the real provider evaluator.
 function runWithStorage(name, publicInput, internalInput, initialPublicTags = new Map()) {
-  const storage = { "math:": clone(publicInput), "math:internal": clone(internalInput) };
+  const storage = {
+    "math:": {
+      ...clone(publicInput),
+      internal: clone(internalInput),
+    },
+  };
   const numericTags = new Map(
     [...initialPublicTags].map(([pathText, type]) => [storageFieldKey("math:", pathText), type]),
   );
@@ -354,6 +359,19 @@ function runWithStorage(name, publicInput, internalInput, initialPublicTags = ne
       const matches = predicateMatches(match[2]);
       return (match[1] === "if" ? matches : !matches) ? execute(match[3]) : undefined;
     }
+    match = command.match(/^execute (if|unless) data storage (\S+) \{internal:\{([A-Za-z0-9_]+):(-?(?:\d+(?:\.\d+)?|Infinity)|NaN)([fb])\}\} run (.+)$/);
+    if (match) {
+      const expected = Number(match[4]);
+      const internalPath = `internal.${match[3]}`;
+      const actual = getPath(storage[match[2]], internalPath);
+      const expectedType = match[5] === "f" ? "float" : "byte";
+      const actualType = numericTags.get(storageFieldKey(match[2], internalPath));
+      const typeMatches = actualType === undefined || actualType === expectedType;
+      const matches = typeMatches && ((Number.isNaN(expected) && Number.isNaN(actual))
+        || Object.is(Math.fround(actual), Math.fround(expected))
+        || (expected === 0 && actual === 0));
+      return (match[1] === "if" ? matches : !matches) ? execute(match[6]) : undefined;
+    }
     match = command.match(/^execute (if|unless) data storage (\S+) \{([A-Za-z0-9_]+):(-?(?:\d+(?:\.\d+)?|Infinity)|NaN)([fb])\} run (.+)$/);
     if (match) {
       const expected = Number(match[4]);
@@ -393,8 +411,8 @@ function runWithStorage(name, publicInput, internalInput, initialPublicTags = ne
   return { storage, numericTags, returned, commandsExecuted, functionCalls };
 }
 
-export function runFunction(name, publicInput) {
-  return runWithStorage(publicImplementationPath(name), publicInput, {});
+export function runFunction(name, publicInput, internalInput = {}) {
+  return runWithStorage(publicImplementationPath(name), publicInput, internalInput);
 }
 
 export function runFunctionFromSnbt(name, publicInputSnbt) {
@@ -408,7 +426,6 @@ export function runImplementation(path, publicInput = {}, internalInput = {}) {
 
 export function evaluateGeneratedProvider(id, publicInput = {}, internalInput = {}) {
   return evaluateProvider(id, providers, new Map([
-    ["math:", clone(publicInput)],
-    ["math:internal", clone(internalInput)],
+    ["math:", { ...clone(publicInput), internal: clone(internalInput) }],
   ]));
 }

@@ -4,8 +4,8 @@
     2,
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "z"
+      "storage": "math:",
+      "path": "internal.z"
     },
     {
       "type": "minecraft:add",
@@ -19,13 +19,13 @@
               "inputs": [
                 {
                   "type": "minecraft:storage",
-                  "storage": "math:internal",
-                  "path": "z"
+                  "storage": "math:",
+                  "path": "internal.z"
                 },
                 {
                   "type": "minecraft:storage",
-                  "storage": "math:internal",
-                  "path": "z"
+                  "storage": "math:",
+                  "path": "internal.z"
                 }
               ]
             },
@@ -41,13 +41,13 @@
                       "inputs": [
                         {
                           "type": "minecraft:storage",
-                          "storage": "math:internal",
-                          "path": "z"
+                          "storage": "math:",
+                          "path": "internal.z"
                         },
                         {
                           "type": "minecraft:storage",
-                          "storage": "math:internal",
-                          "path": "z"
+                          "storage": "math:",
+                          "path": "internal.z"
                         }
                       ]
                     },
@@ -63,13 +63,13 @@
                               "inputs": [
                                 {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "z"
+                                  "storage": "math:",
+                                  "path": "internal.z"
                                 },
                                 {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "z"
+                                  "storage": "math:",
+                                  "path": "internal.z"
                                 }
                               ]
                             },
@@ -85,13 +85,13 @@
                                       "inputs": [
                                         {
                                           "type": "minecraft:storage",
-                                          "storage": "math:internal",
-                                          "path": "z"
+                                          "storage": "math:",
+                                          "path": "internal.z"
                                         },
                                         {
                                           "type": "minecraft:storage",
-                                          "storage": "math:internal",
-                                          "path": "z"
+                                          "storage": "math:",
+                                          "path": "internal.z"
                                         }
                                       ]
                                     },
@@ -107,13 +107,13 @@
                                               "inputs": [
                                                 {
                                                   "type": "minecraft:storage",
-                                                  "storage": "math:internal",
-                                                  "path": "z"
+                                                  "storage": "math:",
+                                                  "path": "internal.z"
                                                 },
                                                 {
                                                   "type": "minecraft:storage",
-                                                  "storage": "math:internal",
-                                                  "path": "z"
+                                                  "storage": "math:",
+                                                  "path": "internal.z"
                                                 }
                                               ]
                                             },

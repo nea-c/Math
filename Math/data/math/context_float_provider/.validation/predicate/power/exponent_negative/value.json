@@ -6,8 +6,8 @@
         "type": "minecraft:float_value_check",
         "value": {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "y"
+          "storage": "math:",
+          "path": "internal.y"
         },
         "test": {
           "max": -1.401298464324817e-45

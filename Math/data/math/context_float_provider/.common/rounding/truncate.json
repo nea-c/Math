@@ -2,7 +2,7 @@
   "type": "minecraft:truncate",
   "input": {
     "type": "minecraft:storage",
-    "storage": "math:internal",
-    "path": "x"
+    "storage": "math:",
+    "path": "internal.x"
   }
 }

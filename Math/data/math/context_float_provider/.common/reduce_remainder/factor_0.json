@@ -6,8 +6,8 @@
         "type": "minecraft:float_value_check",
         "value": {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_remainder_shift"
+          "storage": "math:",
+          "path": "internal.w_remainder_shift"
         },
         "test": {
           "max": 63
@@ -21,8 +21,8 @@
               "type": "minecraft:float_value_check",
               "value": {
                 "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "w_remainder_shift"
+                "storage": "math:",
+                "path": "internal.w_remainder_shift"
               },
               "test": {
                 "max": 31
@@ -36,8 +36,8 @@
                     "type": "minecraft:float_value_check",
                     "value": {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "w_remainder_shift"
+                      "storage": "math:",
+                      "path": "internal.w_remainder_shift"
                     },
                     "test": {
                       "max": 15
@@ -51,8 +51,8 @@
                           "type": "minecraft:float_value_check",
                           "value": {
                             "type": "minecraft:storage",
-                            "storage": "math:internal",
-                            "path": "w_remainder_shift"
+                            "storage": "math:",
+                            "path": "internal.w_remainder_shift"
                           },
                           "test": {
                             "max": 7
@@ -66,8 +66,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 3
@@ -81,8 +81,8 @@
                                       "type": "minecraft:float_value_check",
                                       "value": {
                                         "type": "minecraft:storage",
-                                        "storage": "math:internal",
-                                        "path": "w_remainder_shift"
+                                        "storage": "math:",
+                                        "path": "internal.w_remainder_shift"
                                       },
                                       "test": {
                                         "max": 1
@@ -96,8 +96,8 @@
                                             "type": "minecraft:float_value_check",
                                             "value": {
                                               "type": "minecraft:storage",
-                                              "storage": "math:internal",
-                                              "path": "w_remainder_shift"
+                                              "storage": "math:",
+                                              "path": "internal.w_remainder_shift"
                                             },
                                             "test": {
                                               "max": 0
@@ -118,8 +118,8 @@
                                         "type": "minecraft:float_value_check",
                                         "value": {
                                           "type": "minecraft:storage",
-                                          "storage": "math:internal",
-                                          "path": "w_remainder_shift"
+                                          "storage": "math:",
+                                          "path": "internal.w_remainder_shift"
                                         },
                                         "test": {
                                           "max": 2
@@ -141,8 +141,8 @@
                                   "type": "minecraft:float_value_check",
                                   "value": {
                                     "type": "minecraft:storage",
-                                    "storage": "math:internal",
-                                    "path": "w_remainder_shift"
+                                    "storage": "math:",
+                                    "path": "internal.w_remainder_shift"
                                   },
                                   "test": {
                                     "max": 5
@@ -156,8 +156,8 @@
                                         "type": "minecraft:float_value_check",
                                         "value": {
                                           "type": "minecraft:storage",
-                                          "storage": "math:internal",
-                                          "path": "w_remainder_shift"
+                                          "storage": "math:",
+                                          "path": "internal.w_remainder_shift"
                                         },
                                         "test": {
                                           "max": 4
@@ -178,8 +178,8 @@
                                     "type": "minecraft:float_value_check",
                                     "value": {
                                       "type": "minecraft:storage",
-                                      "storage": "math:internal",
-                                      "path": "w_remainder_shift"
+                                      "storage": "math:",
+                                      "path": "internal.w_remainder_shift"
                                     },
                                     "test": {
                                       "max": 6
@@ -202,8 +202,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_remainder_shift"
+                              "storage": "math:",
+                              "path": "internal.w_remainder_shift"
                             },
                             "test": {
                               "max": 11
@@ -217,8 +217,8 @@
                                   "type": "minecraft:float_value_check",
                                   "value": {
                                     "type": "minecraft:storage",
-                                    "storage": "math:internal",
-                                    "path": "w_remainder_shift"
+                                    "storage": "math:",
+                                    "path": "internal.w_remainder_shift"
                                   },
                                   "test": {
                                     "max": 9
@@ -232,8 +232,8 @@
                                         "type": "minecraft:float_value_check",
                                         "value": {
                                           "type": "minecraft:storage",
-                                          "storage": "math:internal",
-                                          "path": "w_remainder_shift"
+                                          "storage": "math:",
+                                          "path": "internal.w_remainder_shift"
                                         },
                                         "test": {
                                           "max": 8
@@ -254,8 +254,8 @@
                                     "type": "minecraft:float_value_check",
                                     "value": {
                                       "type": "minecraft:storage",
-                                      "storage": "math:internal",
-                                      "path": "w_remainder_shift"
+                                      "storage": "math:",
+                                      "path": "internal.w_remainder_shift"
                                     },
                                     "test": {
                                       "max": 10
@@ -277,8 +277,8 @@
                               "type": "minecraft:float_value_check",
                               "value": {
                                 "type": "minecraft:storage",
-                                "storage": "math:internal",
-                                "path": "w_remainder_shift"
+                                "storage": "math:",
+                                "path": "internal.w_remainder_shift"
                               },
                               "test": {
                                 "max": 13
@@ -292,8 +292,8 @@
                                     "type": "minecraft:float_value_check",
                                     "value": {
                                       "type": "minecraft:storage",
-                                      "storage": "math:internal",
-                                      "path": "w_remainder_shift"
+                                      "storage": "math:",
+                                      "path": "internal.w_remainder_shift"
                                     },
                                     "test": {
                                       "max": 12
@@ -314,8 +314,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 14
@@ -339,8 +339,8 @@
                       "type": "minecraft:float_value_check",
                       "value": {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "w_remainder_shift"
+                        "storage": "math:",
+                        "path": "internal.w_remainder_shift"
                       },
                       "test": {
                         "max": 23
@@ -354,8 +354,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_remainder_shift"
+                              "storage": "math:",
+                              "path": "internal.w_remainder_shift"
                             },
                             "test": {
                               "max": 19
@@ -369,8 +369,8 @@
                                   "type": "minecraft:float_value_check",
                                   "value": {
                                     "type": "minecraft:storage",
-                                    "storage": "math:internal",
-                                    "path": "w_remainder_shift"
+                                    "storage": "math:",
+                                    "path": "internal.w_remainder_shift"
                                   },
                                   "test": {
                                     "max": 17
@@ -384,8 +384,8 @@
                                         "type": "minecraft:float_value_check",
                                         "value": {
                                           "type": "minecraft:storage",
-                                          "storage": "math:internal",
-                                          "path": "w_remainder_shift"
+                                          "storage": "math:",
+                                          "path": "internal.w_remainder_shift"
                                         },
                                         "test": {
                                           "max": 16
@@ -406,8 +406,8 @@
                                     "type": "minecraft:float_value_check",
                                     "value": {
                                       "type": "minecraft:storage",
-                                      "storage": "math:internal",
-                                      "path": "w_remainder_shift"
+                                      "storage": "math:",
+                                      "path": "internal.w_remainder_shift"
                                     },
                                     "test": {
                                       "max": 18
@@ -429,8 +429,8 @@
                               "type": "minecraft:float_value_check",
                               "value": {
                                 "type": "minecraft:storage",
-                                "storage": "math:internal",
-                                "path": "w_remainder_shift"
+                                "storage": "math:",
+                                "path": "internal.w_remainder_shift"
                               },
                               "test": {
                                 "max": 21
@@ -444,8 +444,8 @@
                                     "type": "minecraft:float_value_check",
                                     "value": {
                                       "type": "minecraft:storage",
-                                      "storage": "math:internal",
-                                      "path": "w_remainder_shift"
+                                      "storage": "math:",
+                                      "path": "internal.w_remainder_shift"
                                     },
                                     "test": {
                                       "max": 20
@@ -466,8 +466,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 22
@@ -490,8 +490,8 @@
                         "type": "minecraft:float_value_check",
                         "value": {
                           "type": "minecraft:storage",
-                          "storage": "math:internal",
-                          "path": "w_remainder_shift"
+                          "storage": "math:",
+                          "path": "internal.w_remainder_shift"
                         },
                         "test": {
                           "max": 27
@@ -505,8 +505,8 @@
                               "type": "minecraft:float_value_check",
                               "value": {
                                 "type": "minecraft:storage",
-                                "storage": "math:internal",
-                                "path": "w_remainder_shift"
+                                "storage": "math:",
+                                "path": "internal.w_remainder_shift"
                               },
                               "test": {
                                 "max": 25
@@ -520,8 +520,8 @@
                                     "type": "minecraft:float_value_check",
                                     "value": {
                                       "type": "minecraft:storage",
-                                      "storage": "math:internal",
-                                      "path": "w_remainder_shift"
+                                      "storage": "math:",
+                                      "path": "internal.w_remainder_shift"
                                     },
                                     "test": {
                                       "max": 24
@@ -542,8 +542,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 26
@@ -565,8 +565,8 @@
                           "type": "minecraft:float_value_check",
                           "value": {
                             "type": "minecraft:storage",
-                            "storage": "math:internal",
-                            "path": "w_remainder_shift"
+                            "storage": "math:",
+                            "path": "internal.w_remainder_shift"
                           },
                           "test": {
                             "max": 29
@@ -580,8 +580,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 28
@@ -602,8 +602,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_remainder_shift"
+                              "storage": "math:",
+                              "path": "internal.w_remainder_shift"
                             },
                             "test": {
                               "max": 30
@@ -628,8 +628,8 @@
                 "type": "minecraft:float_value_check",
                 "value": {
                   "type": "minecraft:storage",
-                  "storage": "math:internal",
-                  "path": "w_remainder_shift"
+                  "storage": "math:",
+                  "path": "internal.w_remainder_shift"
                 },
                 "test": {
                   "max": 47
@@ -643,8 +643,8 @@
                       "type": "minecraft:float_value_check",
                       "value": {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "w_remainder_shift"
+                        "storage": "math:",
+                        "path": "internal.w_remainder_shift"
                       },
                       "test": {
                         "max": 39
@@ -658,8 +658,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_remainder_shift"
+                              "storage": "math:",
+                              "path": "internal.w_remainder_shift"
                             },
                             "test": {
                               "max": 35
@@ -673,8 +673,8 @@
                                   "type": "minecraft:float_value_check",
                                   "value": {
                                     "type": "minecraft:storage",
-                                    "storage": "math:internal",
-                                    "path": "w_remainder_shift"
+                                    "storage": "math:",
+                                    "path": "internal.w_remainder_shift"
                                   },
                                   "test": {
                                     "max": 33
@@ -688,8 +688,8 @@
                                         "type": "minecraft:float_value_check",
                                         "value": {
                                           "type": "minecraft:storage",
-                                          "storage": "math:internal",
-                                          "path": "w_remainder_shift"
+                                          "storage": "math:",
+                                          "path": "internal.w_remainder_shift"
                                         },
                                         "test": {
                                           "max": 32
@@ -710,8 +710,8 @@
                                     "type": "minecraft:float_value_check",
                                     "value": {
                                       "type": "minecraft:storage",
-                                      "storage": "math:internal",
-                                      "path": "w_remainder_shift"
+                                      "storage": "math:",
+                                      "path": "internal.w_remainder_shift"
                                     },
                                     "test": {
                                       "max": 34
@@ -733,8 +733,8 @@
                               "type": "minecraft:float_value_check",
                               "value": {
                                 "type": "minecraft:storage",
-                                "storage": "math:internal",
-                                "path": "w_remainder_shift"
+                                "storage": "math:",
+                                "path": "internal.w_remainder_shift"
                               },
                               "test": {
                                 "max": 37
@@ -748,8 +748,8 @@
                                     "type": "minecraft:float_value_check",
                                     "value": {
                                       "type": "minecraft:storage",
-                                      "storage": "math:internal",
-                                      "path": "w_remainder_shift"
+                                      "storage": "math:",
+                                      "path": "internal.w_remainder_shift"
                                     },
                                     "test": {
                                       "max": 36
@@ -770,8 +770,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 38
@@ -794,8 +794,8 @@
                         "type": "minecraft:float_value_check",
                         "value": {
                           "type": "minecraft:storage",
-                          "storage": "math:internal",
-                          "path": "w_remainder_shift"
+                          "storage": "math:",
+                          "path": "internal.w_remainder_shift"
                         },
                         "test": {
                           "max": 43
@@ -809,8 +809,8 @@
                               "type": "minecraft:float_value_check",
                               "value": {
                                 "type": "minecraft:storage",
-                                "storage": "math:internal",
-                                "path": "w_remainder_shift"
+                                "storage": "math:",
+                                "path": "internal.w_remainder_shift"
                               },
                               "test": {
                                 "max": 41
@@ -824,8 +824,8 @@
                                     "type": "minecraft:float_value_check",
                                     "value": {
                                       "type": "minecraft:storage",
-                                      "storage": "math:internal",
-                                      "path": "w_remainder_shift"
+                                      "storage": "math:",
+                                      "path": "internal.w_remainder_shift"
                                     },
                                     "test": {
                                       "max": 40
@@ -846,8 +846,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 42
@@ -869,8 +869,8 @@
                           "type": "minecraft:float_value_check",
                           "value": {
                             "type": "minecraft:storage",
-                            "storage": "math:internal",
-                            "path": "w_remainder_shift"
+                            "storage": "math:",
+                            "path": "internal.w_remainder_shift"
                           },
                           "test": {
                             "max": 45
@@ -884,8 +884,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 44
@@ -906,8 +906,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_remainder_shift"
+                              "storage": "math:",
+                              "path": "internal.w_remainder_shift"
                             },
                             "test": {
                               "max": 46
@@ -931,8 +931,8 @@
                   "type": "minecraft:float_value_check",
                   "value": {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "w_remainder_shift"
+                    "storage": "math:",
+                    "path": "internal.w_remainder_shift"
                   },
                   "test": {
                     "max": 55
@@ -946,8 +946,8 @@
                         "type": "minecraft:float_value_check",
                         "value": {
                           "type": "minecraft:storage",
-                          "storage": "math:internal",
-                          "path": "w_remainder_shift"
+                          "storage": "math:",
+                          "path": "internal.w_remainder_shift"
                         },
                         "test": {
                           "max": 51
@@ -961,8 +961,8 @@
                               "type": "minecraft:float_value_check",
                               "value": {
                                 "type": "minecraft:storage",
-                                "storage": "math:internal",
-                                "path": "w_remainder_shift"
+                                "storage": "math:",
+                                "path": "internal.w_remainder_shift"
                               },
                               "test": {
                                 "max": 49
@@ -976,8 +976,8 @@
                                     "type": "minecraft:float_value_check",
                                     "value": {
                                       "type": "minecraft:storage",
-                                      "storage": "math:internal",
-                                      "path": "w_remainder_shift"
+                                      "storage": "math:",
+                                      "path": "internal.w_remainder_shift"
                                     },
                                     "test": {
                                       "max": 48
@@ -998,8 +998,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 50
@@ -1021,8 +1021,8 @@
                           "type": "minecraft:float_value_check",
                           "value": {
                             "type": "minecraft:storage",
-                            "storage": "math:internal",
-                            "path": "w_remainder_shift"
+                            "storage": "math:",
+                            "path": "internal.w_remainder_shift"
                           },
                           "test": {
                             "max": 53
@@ -1036,8 +1036,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 52
@@ -1058,8 +1058,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_remainder_shift"
+                              "storage": "math:",
+                              "path": "internal.w_remainder_shift"
                             },
                             "test": {
                               "max": 54
@@ -1082,8 +1082,8 @@
                     "type": "minecraft:float_value_check",
                     "value": {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "w_remainder_shift"
+                      "storage": "math:",
+                      "path": "internal.w_remainder_shift"
                     },
                     "test": {
                       "max": 59
@@ -1097,8 +1097,8 @@
                           "type": "minecraft:float_value_check",
                           "value": {
                             "type": "minecraft:storage",
-                            "storage": "math:internal",
-                            "path": "w_remainder_shift"
+                            "storage": "math:",
+                            "path": "internal.w_remainder_shift"
                           },
                           "test": {
                             "max": 57
@@ -1112,8 +1112,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 56
@@ -1134,8 +1134,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_remainder_shift"
+                              "storage": "math:",
+                              "path": "internal.w_remainder_shift"
                             },
                             "test": {
                               "max": 58
@@ -1157,8 +1157,8 @@
                       "type": "minecraft:float_value_check",
                       "value": {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "w_remainder_shift"
+                        "storage": "math:",
+                        "path": "internal.w_remainder_shift"
                       },
                       "test": {
                         "max": 61
@@ -1172,8 +1172,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_remainder_shift"
+                              "storage": "math:",
+                              "path": "internal.w_remainder_shift"
                             },
                             "test": {
                               "max": 60
@@ -1194,8 +1194,8 @@
                         "type": "minecraft:float_value_check",
                         "value": {
                           "type": "minecraft:storage",
-                          "storage": "math:internal",
-                          "path": "w_remainder_shift"
+                          "storage": "math:",
+                          "path": "internal.w_remainder_shift"
                         },
                         "test": {
                           "max": 62
@@ -1221,8 +1221,8 @@
           "type": "minecraft:float_value_check",
           "value": {
             "type": "minecraft:storage",
-            "storage": "math:internal",
-            "path": "w_remainder_shift"
+            "storage": "math:",
+            "path": "internal.w_remainder_shift"
           },
           "test": {
             "max": 95
@@ -1236,8 +1236,8 @@
                 "type": "minecraft:float_value_check",
                 "value": {
                   "type": "minecraft:storage",
-                  "storage": "math:internal",
-                  "path": "w_remainder_shift"
+                  "storage": "math:",
+                  "path": "internal.w_remainder_shift"
                 },
                 "test": {
                   "max": 79
@@ -1251,8 +1251,8 @@
                       "type": "minecraft:float_value_check",
                       "value": {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "w_remainder_shift"
+                        "storage": "math:",
+                        "path": "internal.w_remainder_shift"
                       },
                       "test": {
                         "max": 71
@@ -1266,8 +1266,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_remainder_shift"
+                              "storage": "math:",
+                              "path": "internal.w_remainder_shift"
                             },
                             "test": {
                               "max": 67
@@ -1281,8 +1281,8 @@
                                   "type": "minecraft:float_value_check",
                                   "value": {
                                     "type": "minecraft:storage",
-                                    "storage": "math:internal",
-                                    "path": "w_remainder_shift"
+                                    "storage": "math:",
+                                    "path": "internal.w_remainder_shift"
                                   },
                                   "test": {
                                     "max": 65
@@ -1296,8 +1296,8 @@
                                         "type": "minecraft:float_value_check",
                                         "value": {
                                           "type": "minecraft:storage",
-                                          "storage": "math:internal",
-                                          "path": "w_remainder_shift"
+                                          "storage": "math:",
+                                          "path": "internal.w_remainder_shift"
                                         },
                                         "test": {
                                           "max": 64
@@ -1318,8 +1318,8 @@
                                     "type": "minecraft:float_value_check",
                                     "value": {
                                       "type": "minecraft:storage",
-                                      "storage": "math:internal",
-                                      "path": "w_remainder_shift"
+                                      "storage": "math:",
+                                      "path": "internal.w_remainder_shift"
                                     },
                                     "test": {
                                       "max": 66
@@ -1341,8 +1341,8 @@
                               "type": "minecraft:float_value_check",
                               "value": {
                                 "type": "minecraft:storage",
-                                "storage": "math:internal",
-                                "path": "w_remainder_shift"
+                                "storage": "math:",
+                                "path": "internal.w_remainder_shift"
                               },
                               "test": {
                                 "max": 69
@@ -1356,8 +1356,8 @@
                                     "type": "minecraft:float_value_check",
                                     "value": {
                                       "type": "minecraft:storage",
-                                      "storage": "math:internal",
-                                      "path": "w_remainder_shift"
+                                      "storage": "math:",
+                                      "path": "internal.w_remainder_shift"
                                     },
                                     "test": {
                                       "max": 68
@@ -1378,8 +1378,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 70
@@ -1402,8 +1402,8 @@
                         "type": "minecraft:float_value_check",
                         "value": {
                           "type": "minecraft:storage",
-                          "storage": "math:internal",
-                          "path": "w_remainder_shift"
+                          "storage": "math:",
+                          "path": "internal.w_remainder_shift"
                         },
                         "test": {
                           "max": 75
@@ -1417,8 +1417,8 @@
                               "type": "minecraft:float_value_check",
                               "value": {
                                 "type": "minecraft:storage",
-                                "storage": "math:internal",
-                                "path": "w_remainder_shift"
+                                "storage": "math:",
+                                "path": "internal.w_remainder_shift"
                               },
                               "test": {
                                 "max": 73
@@ -1432,8 +1432,8 @@
                                     "type": "minecraft:float_value_check",
                                     "value": {
                                       "type": "minecraft:storage",
-                                      "storage": "math:internal",
-                                      "path": "w_remainder_shift"
+                                      "storage": "math:",
+                                      "path": "internal.w_remainder_shift"
                                     },
                                     "test": {
                                       "max": 72
@@ -1454,8 +1454,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 74
@@ -1477,8 +1477,8 @@
                           "type": "minecraft:float_value_check",
                           "value": {
                             "type": "minecraft:storage",
-                            "storage": "math:internal",
-                            "path": "w_remainder_shift"
+                            "storage": "math:",
+                            "path": "internal.w_remainder_shift"
                           },
                           "test": {
                             "max": 77
@@ -1492,8 +1492,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 76
@@ -1514,8 +1514,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_remainder_shift"
+                              "storage": "math:",
+                              "path": "internal.w_remainder_shift"
                             },
                             "test": {
                               "max": 78
@@ -1539,8 +1539,8 @@
                   "type": "minecraft:float_value_check",
                   "value": {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "w_remainder_shift"
+                    "storage": "math:",
+                    "path": "internal.w_remainder_shift"
                   },
                   "test": {
                     "max": 87
@@ -1554,8 +1554,8 @@
                         "type": "minecraft:float_value_check",
                         "value": {
                           "type": "minecraft:storage",
-                          "storage": "math:internal",
-                          "path": "w_remainder_shift"
+                          "storage": "math:",
+                          "path": "internal.w_remainder_shift"
                         },
                         "test": {
                           "max": 83
@@ -1569,8 +1569,8 @@
                               "type": "minecraft:float_value_check",
                               "value": {
                                 "type": "minecraft:storage",
-                                "storage": "math:internal",
-                                "path": "w_remainder_shift"
+                                "storage": "math:",
+                                "path": "internal.w_remainder_shift"
                               },
                               "test": {
                                 "max": 81
@@ -1584,8 +1584,8 @@
                                     "type": "minecraft:float_value_check",
                                     "value": {
                                       "type": "minecraft:storage",
-                                      "storage": "math:internal",
-                                      "path": "w_remainder_shift"
+                                      "storage": "math:",
+                                      "path": "internal.w_remainder_shift"
                                     },
                                     "test": {
                                       "max": 80
@@ -1606,8 +1606,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 82
@@ -1629,8 +1629,8 @@
                           "type": "minecraft:float_value_check",
                           "value": {
                             "type": "minecraft:storage",
-                            "storage": "math:internal",
-                            "path": "w_remainder_shift"
+                            "storage": "math:",
+                            "path": "internal.w_remainder_shift"
                           },
                           "test": {
                             "max": 85
@@ -1644,8 +1644,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 84
@@ -1666,8 +1666,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_remainder_shift"
+                              "storage": "math:",
+                              "path": "internal.w_remainder_shift"
                             },
                             "test": {
                               "max": 86
@@ -1690,8 +1690,8 @@
                     "type": "minecraft:float_value_check",
                     "value": {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "w_remainder_shift"
+                      "storage": "math:",
+                      "path": "internal.w_remainder_shift"
                     },
                     "test": {
                       "max": 91
@@ -1705,8 +1705,8 @@
                           "type": "minecraft:float_value_check",
                           "value": {
                             "type": "minecraft:storage",
-                            "storage": "math:internal",
-                            "path": "w_remainder_shift"
+                            "storage": "math:",
+                            "path": "internal.w_remainder_shift"
                           },
                           "test": {
                             "max": 89
@@ -1720,8 +1720,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 88
@@ -1742,8 +1742,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_remainder_shift"
+                              "storage": "math:",
+                              "path": "internal.w_remainder_shift"
                             },
                             "test": {
                               "max": 90
@@ -1765,8 +1765,8 @@
                       "type": "minecraft:float_value_check",
                       "value": {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "w_remainder_shift"
+                        "storage": "math:",
+                        "path": "internal.w_remainder_shift"
                       },
                       "test": {
                         "max": 93
@@ -1780,8 +1780,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_remainder_shift"
+                              "storage": "math:",
+                              "path": "internal.w_remainder_shift"
                             },
                             "test": {
                               "max": 92
@@ -1802,8 +1802,8 @@
                         "type": "minecraft:float_value_check",
                         "value": {
                           "type": "minecraft:storage",
-                          "storage": "math:internal",
-                          "path": "w_remainder_shift"
+                          "storage": "math:",
+                          "path": "internal.w_remainder_shift"
                         },
                         "test": {
                           "max": 94
@@ -1828,8 +1828,8 @@
             "type": "minecraft:float_value_check",
             "value": {
               "type": "minecraft:storage",
-              "storage": "math:internal",
-              "path": "w_remainder_shift"
+              "storage": "math:",
+              "path": "internal.w_remainder_shift"
             },
             "test": {
               "max": 111
@@ -1843,8 +1843,8 @@
                   "type": "minecraft:float_value_check",
                   "value": {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "w_remainder_shift"
+                    "storage": "math:",
+                    "path": "internal.w_remainder_shift"
                   },
                   "test": {
                     "max": 103
@@ -1858,8 +1858,8 @@
                         "type": "minecraft:float_value_check",
                         "value": {
                           "type": "minecraft:storage",
-                          "storage": "math:internal",
-                          "path": "w_remainder_shift"
+                          "storage": "math:",
+                          "path": "internal.w_remainder_shift"
                         },
                         "test": {
                           "max": 99
@@ -1873,8 +1873,8 @@
                               "type": "minecraft:float_value_check",
                               "value": {
                                 "type": "minecraft:storage",
-                                "storage": "math:internal",
-                                "path": "w_remainder_shift"
+                                "storage": "math:",
+                                "path": "internal.w_remainder_shift"
                               },
                               "test": {
                                 "max": 97
@@ -1888,8 +1888,8 @@
                                     "type": "minecraft:float_value_check",
                                     "value": {
                                       "type": "minecraft:storage",
-                                      "storage": "math:internal",
-                                      "path": "w_remainder_shift"
+                                      "storage": "math:",
+                                      "path": "internal.w_remainder_shift"
                                     },
                                     "test": {
                                       "max": 96
@@ -1910,8 +1910,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 98
@@ -1933,8 +1933,8 @@
                           "type": "minecraft:float_value_check",
                           "value": {
                             "type": "minecraft:storage",
-                            "storage": "math:internal",
-                            "path": "w_remainder_shift"
+                            "storage": "math:",
+                            "path": "internal.w_remainder_shift"
                           },
                           "test": {
                             "max": 101
@@ -1948,8 +1948,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 100
@@ -1970,8 +1970,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_remainder_shift"
+                              "storage": "math:",
+                              "path": "internal.w_remainder_shift"
                             },
                             "test": {
                               "max": 102
@@ -1994,8 +1994,8 @@
                     "type": "minecraft:float_value_check",
                     "value": {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "w_remainder_shift"
+                      "storage": "math:",
+                      "path": "internal.w_remainder_shift"
                     },
                     "test": {
                       "max": 107
@@ -2009,8 +2009,8 @@
                           "type": "minecraft:float_value_check",
                           "value": {
                             "type": "minecraft:storage",
-                            "storage": "math:internal",
-                            "path": "w_remainder_shift"
+                            "storage": "math:",
+                            "path": "internal.w_remainder_shift"
                           },
                           "test": {
                             "max": 105
@@ -2024,8 +2024,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 104
@@ -2046,8 +2046,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_remainder_shift"
+                              "storage": "math:",
+                              "path": "internal.w_remainder_shift"
                             },
                             "test": {
                               "max": 106
@@ -2069,8 +2069,8 @@
                       "type": "minecraft:float_value_check",
                       "value": {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "w_remainder_shift"
+                        "storage": "math:",
+                        "path": "internal.w_remainder_shift"
                       },
                       "test": {
                         "max": 109
@@ -2084,8 +2084,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_remainder_shift"
+                              "storage": "math:",
+                              "path": "internal.w_remainder_shift"
                             },
                             "test": {
                               "max": 108
@@ -2106,8 +2106,8 @@
                         "type": "minecraft:float_value_check",
                         "value": {
                           "type": "minecraft:storage",
-                          "storage": "math:internal",
-                          "path": "w_remainder_shift"
+                          "storage": "math:",
+                          "path": "internal.w_remainder_shift"
                         },
                         "test": {
                           "max": 110
@@ -2131,8 +2131,8 @@
               "type": "minecraft:float_value_check",
               "value": {
                 "type": "minecraft:storage",
-                "storage": "math:internal",
-                "path": "w_remainder_shift"
+                "storage": "math:",
+                "path": "internal.w_remainder_shift"
               },
               "test": {
                 "max": 119
@@ -2146,8 +2146,8 @@
                     "type": "minecraft:float_value_check",
                     "value": {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "w_remainder_shift"
+                      "storage": "math:",
+                      "path": "internal.w_remainder_shift"
                     },
                     "test": {
                       "max": 115
@@ -2161,8 +2161,8 @@
                           "type": "minecraft:float_value_check",
                           "value": {
                             "type": "minecraft:storage",
-                            "storage": "math:internal",
-                            "path": "w_remainder_shift"
+                            "storage": "math:",
+                            "path": "internal.w_remainder_shift"
                           },
                           "test": {
                             "max": 113
@@ -2176,8 +2176,8 @@
                                 "type": "minecraft:float_value_check",
                                 "value": {
                                   "type": "minecraft:storage",
-                                  "storage": "math:internal",
-                                  "path": "w_remainder_shift"
+                                  "storage": "math:",
+                                  "path": "internal.w_remainder_shift"
                                 },
                                 "test": {
                                   "max": 112
@@ -2198,8 +2198,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_remainder_shift"
+                              "storage": "math:",
+                              "path": "internal.w_remainder_shift"
                             },
                             "test": {
                               "max": 114
@@ -2221,8 +2221,8 @@
                       "type": "minecraft:float_value_check",
                       "value": {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "w_remainder_shift"
+                        "storage": "math:",
+                        "path": "internal.w_remainder_shift"
                       },
                       "test": {
                         "max": 117
@@ -2236,8 +2236,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_remainder_shift"
+                              "storage": "math:",
+                              "path": "internal.w_remainder_shift"
                             },
                             "test": {
                               "max": 116
@@ -2258,8 +2258,8 @@
                         "type": "minecraft:float_value_check",
                         "value": {
                           "type": "minecraft:storage",
-                          "storage": "math:internal",
-                          "path": "w_remainder_shift"
+                          "storage": "math:",
+                          "path": "internal.w_remainder_shift"
                         },
                         "test": {
                           "max": 118
@@ -2282,8 +2282,8 @@
                 "type": "minecraft:float_value_check",
                 "value": {
                   "type": "minecraft:storage",
-                  "storage": "math:internal",
-                  "path": "w_remainder_shift"
+                  "storage": "math:",
+                  "path": "internal.w_remainder_shift"
                 },
                 "test": {
                   "max": 123
@@ -2297,8 +2297,8 @@
                       "type": "minecraft:float_value_check",
                       "value": {
                         "type": "minecraft:storage",
-                        "storage": "math:internal",
-                        "path": "w_remainder_shift"
+                        "storage": "math:",
+                        "path": "internal.w_remainder_shift"
                       },
                       "test": {
                         "max": 121
@@ -2312,8 +2312,8 @@
                             "type": "minecraft:float_value_check",
                             "value": {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_remainder_shift"
+                              "storage": "math:",
+                              "path": "internal.w_remainder_shift"
                             },
                             "test": {
                               "max": 120
@@ -2334,8 +2334,8 @@
                         "type": "minecraft:float_value_check",
                         "value": {
                           "type": "minecraft:storage",
-                          "storage": "math:internal",
-                          "path": "w_remainder_shift"
+                          "storage": "math:",
+                          "path": "internal.w_remainder_shift"
                         },
                         "test": {
                           "max": 122
@@ -2357,8 +2357,8 @@
                   "type": "minecraft:float_value_check",
                   "value": {
                     "type": "minecraft:storage",
-                    "storage": "math:internal",
-                    "path": "w_remainder_shift"
+                    "storage": "math:",
+                    "path": "internal.w_remainder_shift"
                   },
                   "test": {
                     "max": 125
@@ -2372,8 +2372,8 @@
                         "type": "minecraft:float_value_check",
                         "value": {
                           "type": "minecraft:storage",
-                          "storage": "math:internal",
-                          "path": "w_remainder_shift"
+                          "storage": "math:",
+                          "path": "internal.w_remainder_shift"
                         },
                         "test": {
                           "max": 124
@@ -2394,8 +2394,8 @@
                     "type": "minecraft:float_value_check",
                     "value": {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "w_remainder_shift"
+                      "storage": "math:",
+                      "path": "internal.w_remainder_shift"
                     },
                     "test": {
                       "max": 126

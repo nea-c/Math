@@ -12,13 +12,13 @@
               "inputs": [
                 {
                   "type": "minecraft:storage",
-                  "storage": "math:internal",
-                  "path": "w_inverse_trigonometry_square_midpoint"
+                  "storage": "math:",
+                  "path": "internal.w_inverse_trigonometry_square_midpoint"
                 },
                 {
                   "type": "minecraft:storage",
-                  "storage": "math:internal",
-                  "path": "w_inverse_trigonometry_square_midpoint"
+                  "storage": "math:",
+                  "path": "internal.w_inverse_trigonometry_square_midpoint"
                 }
               ]
             },
@@ -28,8 +28,8 @@
                 -1,
                 {
                   "type": "minecraft:storage",
-                  "storage": "math:internal",
-                  "path": "w_inverse_trigonometry_square_target"
+                  "storage": "math:",
+                  "path": "internal.w_inverse_trigonometry_square_target"
                 }
               ]
             }

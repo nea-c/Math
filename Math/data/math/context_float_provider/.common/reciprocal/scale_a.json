@@ -3,13 +3,13 @@
   "inputs": [
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "y"
+      "storage": "math:",
+      "path": "internal.y"
     },
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "w_normalize_multiplier_a"
+      "storage": "math:",
+      "path": "internal.w_normalize_multiplier_a"
     }
   ]
 }

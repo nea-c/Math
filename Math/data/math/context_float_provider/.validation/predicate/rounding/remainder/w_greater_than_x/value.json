@@ -9,8 +9,8 @@
           "inputs": [
             {
               "type": "minecraft:storage",
-              "storage": "math:internal",
-              "path": "w"
+              "storage": "math:",
+              "path": "internal.w"
             },
             {
               "type": "minecraft:mul",
@@ -18,8 +18,8 @@
                 -1,
                 {
                   "type": "minecraft:storage",
-                  "storage": "math:internal",
-                  "path": "x"
+                  "storage": "math:",
+                  "path": "internal.x"
                 }
               ]
             }

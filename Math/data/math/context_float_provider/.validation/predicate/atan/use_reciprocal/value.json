@@ -6,8 +6,8 @@
         "type": "minecraft:float_value_check",
         "value": {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "x"
+          "storage": "math:",
+          "path": "internal.x"
         },
         "test": {
           "min": 1.0000001192092896

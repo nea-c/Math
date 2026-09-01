@@ -8,13 +8,13 @@
         -1,
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_elastic_decay_factor"
+          "storage": "math:",
+          "path": "internal.w_elastic_decay_factor"
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_elastic_decay_cosine"
+          "storage": "math:",
+          "path": "internal.w_elastic_decay_cosine"
         }
       ]
     }

@@ -7,13 +7,13 @@
       "inputs": [
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_asin_low"
+          "storage": "math:",
+          "path": "internal.w_asin_low"
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_asin_high"
+          "storage": "math:",
+          "path": "internal.w_asin_high"
         }
       ]
     }

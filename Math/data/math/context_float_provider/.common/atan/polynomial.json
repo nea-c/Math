@@ -3,8 +3,8 @@
   "inputs": [
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "x"
+      "storage": "math:",
+      "path": "internal.x"
     },
     {
       "type": "minecraft:add",
@@ -15,8 +15,8 @@
           "inputs": [
             {
               "type": "minecraft:storage",
-              "storage": "math:internal",
-              "path": "w_atan_square"
+              "storage": "math:",
+              "path": "internal.w_atan_square"
             },
             {
               "type": "minecraft:add",
@@ -27,8 +27,8 @@
                   "inputs": [
                     {
                       "type": "minecraft:storage",
-                      "storage": "math:internal",
-                      "path": "w_atan_square"
+                      "storage": "math:",
+                      "path": "internal.w_atan_square"
                     },
                     {
                       "type": "minecraft:add",
@@ -39,8 +39,8 @@
                           "inputs": [
                             {
                               "type": "minecraft:storage",
-                              "storage": "math:internal",
-                              "path": "w_atan_square"
+                              "storage": "math:",
+                              "path": "internal.w_atan_square"
                             },
                             {
                               "type": "minecraft:add",
@@ -51,8 +51,8 @@
                                   "inputs": [
                                     {
                                       "type": "minecraft:storage",
-                                      "storage": "math:internal",
-                                      "path": "w_atan_square"
+                                      "storage": "math:",
+                                      "path": "internal.w_atan_square"
                                     },
                                     {
                                       "type": "minecraft:add",
@@ -63,8 +63,8 @@
                                           "inputs": [
                                             {
                                               "type": "minecraft:storage",
-                                              "storage": "math:internal",
-                                              "path": "w_atan_square"
+                                              "storage": "math:",
+                                              "path": "internal.w_atan_square"
                                             },
                                             {
                                               "type": "minecraft:add",
@@ -75,8 +75,8 @@
                                                   "inputs": [
                                                     {
                                                       "type": "minecraft:storage",
-                                                      "storage": "math:internal",
-                                                      "path": "w_atan_square"
+                                                      "storage": "math:",
+                                                      "path": "internal.w_atan_square"
                                                     },
                                                     0.07692307978868484
                                                   ]

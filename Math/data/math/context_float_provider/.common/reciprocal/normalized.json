@@ -3,19 +3,19 @@
   "inputs": [
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "x"
+      "storage": "math:",
+      "path": "internal.x"
     },
     0.25,
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "w_reciprocal_estimate"
+      "storage": "math:",
+      "path": "internal.w_reciprocal_estimate"
     },
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "w_reciprocal_estimate"
+      "storage": "math:",
+      "path": "internal.w_reciprocal_estimate"
     }
   ]
 }

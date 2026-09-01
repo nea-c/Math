@@ -3,8 +3,8 @@
   "inputs": [
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "w_remainder_x_exponent"
+      "storage": "math:",
+      "path": "internal.w_remainder_x_exponent"
     },
     {
       "type": "minecraft:mul",
@@ -12,8 +12,8 @@
         -1,
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_remainder_y_exponent"
+          "storage": "math:",
+          "path": "internal.w_remainder_y_exponent"
         }
       ]
     }

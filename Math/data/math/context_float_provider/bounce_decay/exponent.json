@@ -9,8 +9,8 @@
     },
     {
       "type": "minecraft:storage",
-      "storage": "math:internal",
-      "path": "w_bounce_decay_u"
+      "storage": "math:",
+      "path": "internal.w_bounce_decay_u"
     }
   ]
 }

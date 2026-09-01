@@ -15,8 +15,8 @@
                 -1,
                 {
                   "type": "minecraft:storage",
-                  "storage": "math:internal",
-                  "path": "w_bezier_midpoint"
+                  "storage": "math:",
+                  "path": "internal.w_bezier_midpoint"
                 }
               ]
             }
@@ -32,8 +32,8 @@
                 -1,
                 {
                   "type": "minecraft:storage",
-                  "storage": "math:internal",
-                  "path": "w_bezier_midpoint"
+                  "storage": "math:",
+                  "path": "internal.w_bezier_midpoint"
                 }
               ]
             }
@@ -41,13 +41,13 @@
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_bezier_midpoint"
+          "storage": "math:",
+          "path": "internal.w_bezier_midpoint"
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_bezier_y1"
+          "storage": "math:",
+          "path": "internal.w_bezier_y1"
         }
       ]
     },
@@ -65,8 +65,8 @@
                 -1,
                 {
                   "type": "minecraft:storage",
-                  "storage": "math:internal",
-                  "path": "w_bezier_midpoint"
+                  "storage": "math:",
+                  "path": "internal.w_bezier_midpoint"
                 }
               ]
             }
@@ -74,18 +74,18 @@
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_bezier_midpoint"
+          "storage": "math:",
+          "path": "internal.w_bezier_midpoint"
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_bezier_midpoint"
+          "storage": "math:",
+          "path": "internal.w_bezier_midpoint"
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_bezier_y2"
+          "storage": "math:",
+          "path": "internal.w_bezier_y2"
         }
       ]
     },
@@ -94,18 +94,18 @@
       "inputs": [
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_bezier_midpoint"
+          "storage": "math:",
+          "path": "internal.w_bezier_midpoint"
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_bezier_midpoint"
+          "storage": "math:",
+          "path": "internal.w_bezier_midpoint"
         },
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_bezier_midpoint"
+          "storage": "math:",
+          "path": "internal.w_bezier_midpoint"
         }
       ]
     }

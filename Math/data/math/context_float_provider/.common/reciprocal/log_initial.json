@@ -8,8 +8,8 @@
         -1.8823529481887817,
         {
           "type": "minecraft:storage",
-          "storage": "math:internal",
-          "path": "w_log_mantissa"
+          "storage": "math:",
+          "path": "internal.w_log_mantissa"
         }
       ]
     }
