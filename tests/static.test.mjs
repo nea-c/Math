@@ -425,6 +425,17 @@ test("public documentation uses function tags", () => {
   assert.match(integrationHarness, /run function #math:add/);
 });
 
+test("README documents a valid-input contract for every public function", () => {
+  const readme = fs.readFileSync("README.md", "utf8");
+  const documented = new Set(
+    [...readme.matchAll(/^\| `#math:([a-z0-9_]+)` \|[^\n]*\|[^\n]*\|[^\n]+\|$/gm)]
+      .map((match) => match[1]),
+  );
+  assert.deepEqual([...documented].sort(), [...PUBLIC_FUNCTION_NAMES].sort());
+  assert.match(readme, /無効な入力に対する `ans` の存在・型・値は保証しません/);
+  assert.match(readme, /すべての数値入力は有限値で指定し、32-bit floatとして評価されます/);
+});
+
 test("release pack excludes prototype debug functions", () => {
   const debugRoot = "Math/data/math/function/debug";
   const debugFunctions = fs.existsSync(debugRoot)

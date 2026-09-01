@@ -16,7 +16,7 @@ Minecraft Java Edition 26.3 Pre-Release 1 以降
 
 リポジトリの `Math` ディレクトリを、使用するワールドの `datapacks` ディレクトリへ入れてください。
 
-必要な値を `storage math:` に書き込み、対応するfunctionタグを実行します。計算に成功すると `storage math: ans` に結果が入り、失敗すると `storage math: error` にエラーIDが入ります。
+必要な値を `storage math:` に書き込み、対応するfunctionタグを実行します。
 
 ```mcfunction
 # 12 / 5を計算する
@@ -26,10 +26,13 @@ function #math:div
 data get storage math: ans
 ```
 
-- 成功時は古い `error` を削除し、function result `1` を返します。
-- 失敗時は古い `ans` を削除し、function result `0` を返します。
+実行前に古い `ans` は削除され、計算結果が得られた場合だけ新しい値が入ります。function resultによる成功・失敗は返しません。
+
 - 入力値は変更されません。
-- 数値には有限な値を指定してください。計算は32-bit floatを基準に行われます。
+- すべての数値入力は有限値で指定し、32-bit floatとして評価されます。
+- 下表の有効入力条件を満たさない入力の動作は未定義です。
+- 無効な入力に対する `ans` の存在・型・値は保証しません。
+- `internal` は非公開scratchであり、通常終了後に削除されます。
 - 公開APIは `#math:<関数名>` です。`math:internal` や `Math/data/math/function` 内のfunctionは直接実行しないでください。
 
 ### 入出力
@@ -45,70 +48,69 @@ data get storage math: ans
 | `oscillations`, `damping` | `elastic_decay` の振動回数と減衰率 |
 | `bounces`, `decay` | `bounce_decay` の跳ねる回数と減衰率 |
 | `rotation` | クォータニオン `[x,y,z,w]` |
-| `ans` | 成功時の計算結果 |
-| `error` | 失敗時のエラーID |
+| `ans` | 計算結果 |
 
 ### API一覧
 
 #### 基本演算
 
-| functionタグ | 入力 | 計算内容 |
-| :- | :-: | :- |
-| `#math:add` | `a`, `b` | `a + b` |
-| `#math:sub` | `a`, `b` | `a - b` |
-| `#math:mul` | `a`, `b` | `a * b` |
-| `#math:div` | `a`, `b` | `a / b` |
-| `#math:reciprocal` | `a` | `1 / a` |
-| `#math:remainder` | `a`, `b` | 切り捨て除算を基準にした剰余 |
-| `#math:mod` | `a`, `b` | floor除算を基準にした剰余 |
-| `#math:abs` | `a` | 絶対値 |
-| `#math:sign` | `a` | 符号 |
-| `#math:min` | `a`, `b` | 小さい方の値 |
-| `#math:max` | `a`, `b` | 大きい方の値 |
-| `#math:clamp` | `a`, `min`, `max` | `a` を `min` 以上 `max` 以下に制限 |
+| functionタグ | 入力 | 計算内容 | 有効入力 |
+| :- | :-: | :- | :- |
+| `#math:add` | `a`, `b` | `a + b` | `a`, `b`が有限で、数学的結果が有限floatに収まる |
+| `#math:sub` | `a`, `b` | `a - b` | `a`, `b`が有限で、数学的結果が有限floatに収まる |
+| `#math:mul` | `a`, `b` | `a * b` | `a`, `b`が有限で、数学的結果が有限floatに収まる |
+| `#math:div` | `a`, `b` | `a / b` | `a`, `b`が有限、`b != 0`、商が有限floatに収まる |
+| `#math:reciprocal` | `a` | `1 / a` | `a`が有限、`a != 0`、逆数が有限floatに収まる |
+| `#math:remainder` | `a`, `b` | 切り捨て除算を基準にした剰余 | `a`, `b`が有限、`b != 0` |
+| `#math:mod` | `a`, `b` | floor除算を基準にした剰余 | `a`, `b`が有限、`b != 0` |
+| `#math:abs` | `a` | 絶対値 | 必須入力が有限 |
+| `#math:sign` | `a` | 符号 | 必須入力が有限 |
+| `#math:min` | `a`, `b` | 小さい方の値 | 必須入力が有限 |
+| `#math:max` | `a`, `b` | 大きい方の値 | 必須入力が有限 |
+| `#math:clamp` | `a`, `min`, `max` | `a` を `min` 以上 `max` 以下に制限 | `a`, `min`, `max`が有限、`min <= max` |
 
 #### 丸め
 
-| functionタグ | 入力 | 計算内容 |
-| :- | :-: | :- |
-| `#math:floor` | `a` | 負の無限大方向へ丸める |
-| `#math:ceil` | `a` | 正の無限大方向へ丸める |
-| `#math:round` | `a` | `floor(a + 0.5)` |
-| `#math:truncate` | `a` | 0方向へ丸める |
+| functionタグ | 入力 | 計算内容 | 有効入力 |
+| :- | :-: | :- | :- |
+| `#math:floor` | `a` | 負の無限大方向へ丸める | `a`が有限 |
+| `#math:ceil` | `a` | 正の無限大方向へ丸める | `a`が有限 |
+| `#math:round` | `a` | `floor(a + 0.5)` | `a`が有限 |
+| `#math:truncate` | `a` | 0方向へ丸める | `a`が有限 |
 
 結果はいずれもfloatで返します。`round(-1.5)` は `-1.0f` です。
 
 #### 累乗・指数・対数
 
-| functionタグ | 入力 | 計算内容 |
-| :- | :-: | :- |
-| `#math:square` | `a` | `a²` |
-| `#math:cube` | `a` | `a³` |
-| `#math:sqrt` | `a` | 平方根 |
-| `#math:pow` | `a`, `b` | `a` の `b` 乗 |
-| `#math:exp` | `a` | `e` の `a` 乗 |
-| `#math:log` | `a` | 自然対数 |
+| functionタグ | 入力 | 計算内容 | 有効入力 |
+| :- | :-: | :- | :- |
+| `#math:square` | `a` | `a²` | `a`が有限で、結果が有限floatに収まる |
+| `#math:cube` | `a` | `a³` | `a`が有限で、結果が有限floatに収まる |
+| `#math:sqrt` | `a` | 平方根 | `a`が有限、`a >= 0` |
+| `#math:pow` | `a`, `b` | `a` の `b` 乗 | `a`, `b`が有限。`a < 0`なら`b`は整数。`a == 0`なら`b >= 0`。結果が有限floatに収まる |
+| `#math:exp` | `a` | `e` の `a` 乗 | `a`が有限、`a <= 88.72283172607422f` |
+| `#math:log` | `a` | 自然対数 | `a`が有限、`a > 0` |
 
-`pow` は正の底で実数指数を扱えます。負の底では `b` が整数の場合のみ成功します。`pow(0,0)` は `1.0f`、0の負数乗はエラーです。
+`pow` は正の底で実数指数を扱えます。負の底では `b` が整数の場合のみ有効です。`pow(0,0)` は `1.0f` です。
 
 #### 三角関数
 
-| functionタグ | 入力 | 単位・計算内容 |
-| :- | :-: | :- |
-| `#math:sin` | `a` | ラジアン |
-| `#math:cos` | `a` | ラジアン |
-| `#math:tan` | `a` | ラジアン |
-| `#math:sin_degrees` | `a` | 度 |
-| `#math:cos_degrees` | `a` | 度 |
-| `#math:tan_degrees` | `a` | 度 |
-| `#math:asin` | `a` | 結果をラジアンで返す |
-| `#math:acos` | `a` | 結果をラジアンで返す |
-| `#math:atan` | `a` | 結果をラジアンで返す |
-| `#math:atan2` | `a`, `b` | `a=y`, `b=x` として結果をラジアンで返す |
-| `#math:asin_degrees` | `a` | 結果を度で返す |
-| `#math:acos_degrees` | `a` | 結果を度で返す |
-| `#math:atan_degrees` | `a` | 結果を度で返す |
-| `#math:atan2_degrees` | `a`, `b` | `a=y`, `b=x` として結果を度で返す |
+| functionタグ | 入力 | 単位・計算内容 | 有効入力 |
+| :- | :-: | :- | :- |
+| `#math:sin` | `a` | ラジアン | `a`が有限 |
+| `#math:cos` | `a` | ラジアン | `a`が有限 |
+| `#math:tan` | `a` | ラジアン | `a`が有限で、正接が定義され安全に有限floatで表現できる |
+| `#math:sin_degrees` | `a` | 度 | `a`が有限 |
+| `#math:cos_degrees` | `a` | 度 | `a`が有限 |
+| `#math:tan_degrees` | `a` | 度 | `a`が有限で、正接が定義され安全に有限floatで表現できる |
+| `#math:asin` | `a` | 結果をラジアンで返す | `a`が有限、`-1 <= a <= 1` |
+| `#math:acos` | `a` | 結果をラジアンで返す | `a`が有限、`-1 <= a <= 1` |
+| `#math:atan` | `a` | 結果をラジアンで返す | `a`が有限 |
+| `#math:atan2` | `a`, `b` | `a=y`, `b=x` として結果をラジアンで返す | `a`, `b`が有限。`atan2(0,0)`は`0.0f` |
+| `#math:asin_degrees` | `a` | 結果を度で返す | `a`が有限、`-1 <= a <= 1` |
+| `#math:acos_degrees` | `a` | 結果を度で返す | `a`が有限、`-1 <= a <= 1` |
+| `#math:atan_degrees` | `a` | 結果を度で返す | `a`が有限 |
+| `#math:atan2_degrees` | `a`, `b` | `a=y`, `b=x` として結果を度で返す | `a`, `b`が有限。`atan2(0,0)`は`0.0f` |
 
 `asin` と `acos` の入力範囲は `-1` 以上 `1` 以下です。`atan2(0,0)` は `0.0f` を返します。
 
@@ -122,26 +124,26 @@ data get storage math: ans
 
 #### 角度変換・定数
 
-| functionタグ | 入力 | 計算内容 |
-| :- | :-: | :- |
-| `#math:rad` | `a` | 度からラジアンへ変換 |
-| `#math:deg` | `a` | ラジアンから度へ変換 |
-| `#math:pi` | なし | 円周率 `π` |
-| `#math:tau` | なし | `2π` |
-| `#math:e` | なし | ネイピア数 `e` |
+| functionタグ | 入力 | 計算内容 | 有効入力 |
+| :- | :-: | :- | :- |
+| `#math:rad` | `a` | 度からラジアンへ変換 | `a`が有限で、変換結果が有限floatに収まる |
+| `#math:deg` | `a` | ラジアンから度へ変換 | `a`が有限で、変換結果が有限floatに収まる |
+| `#math:pi` | なし | 円周率 `π` | 入力なし |
+| `#math:tau` | なし | `2π` | 入力なし |
+| `#math:e` | なし | ネイピア数 `e` | 入力なし |
 
 #### 補間
 
 `lerp` は `t` をそのまま補間係数として使用します。それ以外の補間APIは `t <= 0` で正確に `a`、`t >= max` で正確に `b` を返します。`max` には0より大きい値を指定してください。
 
-| functionタグ | 入力 | 計算内容 |
-| :- | :- | :- |
-| `#math:lerp` | `a`, `b`, `t` | `t` を補間係数とした線形補間 |
-| `#math:bezier` | `a`, `b`, `t`, `max`, `curve` | cubic-bezierによる補間 |
-| `#math:elastic` | `a`, `b`, `t`, `max`, `amplitude`, `period` | 振幅と周期を指定するElastic Out |
-| `#math:elastic_decay` | `a`, `b`, `t`, `max`, `oscillations`, `damping` | 振動回数と減衰率を指定するElastic Out |
-| `#math:bounce` | `a`, `b`, `t`, `max` | 3回の跳ね返りを行う一般的なBounce Out |
-| `#math:bounce_decay` | `a`, `b`, `t`, `max`, `bounces`, `decay` | 跳ねる回数と減衰率を指定するBounce Out |
+| functionタグ | 入力 | 計算内容 | 有効入力 |
+| :- | :- | :- | :- |
+| `#math:lerp` | `a`, `b`, `t` | `t` を補間係数とした線形補間 | `a`, `b`, `t`が有限で、結果が有限floatに収まる |
+| `#math:bezier` | `a`, `b`, `t`, `max`, `curve` | cubic-bezierによる補間 | `a`, `b`, `t`, `max`, `curve`の全要素が有限、`max > 0`、`curve`は4要素、`0 <= x1 <= 1`、`0 <= x2 <= 1` |
+| `#math:elastic` | `a`, `b`, `t`, `max`, `amplitude`, `period` | 振幅と周期を指定するElastic Out | `a`, `b`, `t`, `max`, `amplitude`, `period`が有限、`max > 0`、`amplitude >= 1`、`period > 0` |
+| `#math:elastic_decay` | `a`, `b`, `t`, `max`, `oscillations`, `damping` | 振動回数と減衰率を指定するElastic Out | 必須入力が有限、`max > 0`、`oscillations > 0`、`damping > 0` |
+| `#math:bounce` | `a`, `b`, `t`, `max` | 3回の跳ね返りを行う一般的なBounce Out | `a`, `b`, `t`, `max`が有限、`max > 0` |
+| `#math:bounce_decay` | `a`, `b`, `t`, `max`, `bounces`, `decay` | 跳ねる回数と減衰率を指定するBounce Out | 必須入力が有限、`max > 0`、`bounces > 0`、`decay >= 0`。精度保証は`bounces <= 30` |
 
 `bezier` の `curve` はCSSと同じ `[x1,y1,x2,y2]` 形式です。`x1` と `x2` は0以上1以下、`y1` と `y2` は範囲外も指定できます。
 
@@ -171,31 +173,17 @@ function #math:quaternion_to_axis_angle
 data get storage math: ans
 ```
 
-成功時は次の形式で結果を返します。角度の単位はラジアンです。
+結果は次の形式です。角度の単位はラジアンです。
 
 ```snbt
 {angle:<float>,axis:[<float>,<float>,<float>]}
 ```
 
-入力は安全に正規化されるため、正規化済みである必要はありません。角度はクォータニオンの符号を保った `0` 以上 `2π` 以下となり、`q` と `-q` は同一視されません。回転軸を一意に決められない場合は `+Y` を返します。全要素が0のクォータニオンはエラーです。
+入力は安全に正規化されるため、正規化済みである必要はありません。角度はクォータニオンの符号を保った `0` 以上 `2π` 以下となり、`q` と `-q` は同一視されません。回転軸を一意に決められない場合は `+Y` を返します。
 
-### エラー
-
-| `error` | 条件 |
-| :- | :- |
-| `division_by_zero` | 除数が0 |
-| `negative_square_root` | 負数の平方根を計算した |
-| `undefined_tangent` | tangentの極付近で結果を安全に求められない |
-| `non_real_result` | 実数として結果を求められない |
-| `zero_to_negative_power` | 0の負数乗を計算した |
-| `invalid_clamp_range` | `clamp` で `min > max` |
-| `invalid_duration` | 補間APIで `max <= 0` |
-| `invalid_curve` | `curve` の形式または範囲が不正 |
-| `invalid_elastic` | Elastic固有の引数が範囲外 |
-| `invalid_bounce` | `bounces <= 0` または `decay < 0` |
-| `invalid_number` | 必須入力が有限値ではない |
-| `invalid_quaternion` | クォータニオンの形式または値が不正 |
-| `result_out_of_range` | 結果を有限な32-bit floatで表現できない |
+| functionタグ | 入力 | 計算内容 | 有効入力 |
+| :- | :- | :- | :- |
+| `#math:quaternion_to_axis_angle` | `rotation` | `rotation:[x,y,z,w]` をaxis-angle形式へ変換 | `rotation`が有限float 4要素の`[x,y,z,w]`で、全要素が同時に0ではない |
 
 ## ライセンス
 
