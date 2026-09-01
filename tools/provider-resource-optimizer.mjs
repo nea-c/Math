@@ -95,6 +95,7 @@ function pruneUnreachableProviders(files) {
 }
 
 function inlineSmallSingleUseProviders(files, maxInlineBytes) {
+  const inlineLimit = Math.min(maxInlineBytes, 128);
   let optimized = files;
   while (true) {
     const providers = new Map();
@@ -106,6 +107,7 @@ function inlineSmallSingleUseProviders(files, maxInlineBytes) {
     const jsonConsumers = new Map([...knownIds].map(id => [id, []]));
     const commandConsumers = new Map([...knownIds].map(id => [id, []]));
     const unsupportedTextReferences = new Set();
+    const unsupportedCommandConsumers = new Set();
 
     const collectJsonReferences = (value, file) => {
       if (typeof value === "string") {
@@ -126,19 +128,31 @@ function inlineSmallSingleUseProviders(files, maxInlineBytes) {
         const commandReferences = commandProviderReferences(file.text, knownIds);
         for (const reference of commandReferences) commandConsumers.get(reference.id).push(file);
 
-        const supportedRanges = commandReferences.map(reference => [reference.index, reference.index + reference.full.length]);
+        const supportedRanges = commandReferences.map(reference => {
+          const start = reference.index + reference.full.lastIndexOf(reference.id);
+          return [start, start + reference.id.length];
+        });
+        let hasUnsupportedReference = false;
         for (const match of file.text.matchAll(resourceLocationPattern)) {
           if (!knownIds.has(match[1])) continue;
-          const inSupportedCommand = supportedRanges.some(([start, end]) => match.index >= start && match.index < end);
-          if (!inSupportedCommand) unsupportedTextReferences.add(match[1]);
+          const tokenStart = match.index + match[0].length - match[1].length;
+          const inSupportedCommand = supportedRanges.some(([start, end]) => tokenStart === start && match[1].length === end - start);
+          if (!inSupportedCommand) {
+            unsupportedTextReferences.add(match[1]);
+            hasUnsupportedReference = true;
+          }
+        }
+        if (hasUnsupportedReference) {
+          for (const reference of commandReferences) unsupportedCommandConsumers.add(reference.id);
         }
       }
     }
 
     const candidate = [...providers].find(([id, file]) => (
       !unsupportedTextReferences.has(id)
+      && !unsupportedCommandConsumers.has(id)
       && jsonConsumers.get(id).length + commandConsumers.get(id).length === 1
-      && Buffer.byteLength(JSON.stringify(file.value)) <= maxInlineBytes
+      && Buffer.byteLength(JSON.stringify(file.value)) <= inlineLimit
     ));
     if (!candidate) return optimized;
 

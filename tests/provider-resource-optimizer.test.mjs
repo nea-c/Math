@@ -58,11 +58,7 @@ test("small provider with one compute-command consumer is inlined", () => {
   const provider = {
     kind: "json",
     relativePath: "Math/data/math/context_float_provider/quotient.json",
-    value: {
-      type: "minecraft:div",
-      left: { type: "minecraft:storage", storage: "math:", path: "a" },
-      right: { type: "minecraft:storage", storage: "math:", path: "b" },
-    },
+    value: { type: "minecraft:constant", value: 1 },
   };
   const command = {
     kind: "function",
@@ -72,7 +68,7 @@ test("small provider with one compute-command consumer is inlined", () => {
 
   assert.deepEqual(optimizeProviderResources([provider, command], { maxInlineBytes: 256 }), [{
     ...command,
-    text: "data modify storage math: ans set compute default float {\"type\":\"minecraft:div\",\"left\":{\"type\":\"minecraft:storage\",\"storage\":\"math:\",\"path\":\"a\"},\"right\":{\"type\":\"minecraft:storage\",\"storage\":\"math:\",\"path\":\"b\"}}\n",
+    text: "data modify storage math: ans set compute default float {\"type\":\"minecraft:constant\",\"value\":1}\n",
   }]);
 });
 
@@ -124,4 +120,40 @@ test("JSON consumer and oversized providers remain unchanged", () => {
   };
 
   assert.deepEqual(optimizeProviderResources([provider, jsonConsumer, command], { maxInlineBytes: 8 }), [provider, jsonConsumer, command]);
+});
+
+test("provider over 128 bytes stays external despite larger requested limit", () => {
+  const provider = {
+    kind: "json",
+    relativePath: "Math/data/math/context_float_provider/large.json",
+    value: { type: "minecraft:constant", value: "this value makes the serialized provider exceed one hundred twenty-eight bytes by a comfortable margin for the regression" },
+  };
+  const command = {
+    kind: "function",
+    relativePath: "Math/data/math/function/example.mcfunction",
+    text: "data modify storage math: ans set compute default float math:large\n",
+  };
+
+  assert.ok(Buffer.byteLength(JSON.stringify(provider.value)) > 128);
+  assert.deepEqual(optimizeProviderResources([provider, command], { maxInlineBytes: 256 }), [provider, command]);
+});
+
+test("provider-like IDs in guarded prefixes disqualify command inlining", () => {
+  const prefixProvider = {
+    kind: "json",
+    relativePath: "Math/data/math/context_float_provider/prefix.json",
+    value: { type: "minecraft:constant", value: 1 },
+  };
+  const commandProvider = {
+    kind: "json",
+    relativePath: "Math/data/math/context_float_provider/command.json",
+    value: { type: "minecraft:constant", value: 2 },
+  };
+  const command = {
+    kind: "function",
+    relativePath: "Math/data/math/function/example.mcfunction",
+    text: "execute if score @s math:prefix run data modify storage math: ans set compute default float math:command\n",
+  };
+
+  assert.deepEqual(optimizeProviderResources([prefixProvider, commandProvider, command], { maxInlineBytes: 256 }), [prefixProvider, commandProvider, command]);
 });
