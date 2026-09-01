@@ -1,5 +1,6 @@
 const providerPathPattern = /^Math\/data\/([^/]+)\/context_float_provider\/(.+)\.json$/;
 const resourceLocationPattern = /(?:^|[^a-z0-9_.-])([a-z0-9_.-]+:[a-z0-9_./-]+)/g;
+const computeProviderPattern = /^((?:execute .* run )?data modify storage \S+ \S+ set compute default float )([a-z0-9_.-]+:[a-z0-9_./-]+)$/gm;
 
 function providerId(file) {
   const match = providerPathPattern.exec(file.relativePath);
@@ -27,6 +28,27 @@ function referencedTextIds(text, knownIds) {
     if (knownIds.has(match[1])) result.add(match[1]);
   }
   return result;
+}
+
+function commandProviderReferences(text, knownIds) {
+  const result = [];
+  for (const match of text.matchAll(computeProviderPattern)) {
+    if (knownIds.has(match[2])) {
+      result.push({ id: match[2], index: match.index, full: match[0], prefix: match[1] });
+    }
+  }
+  return result;
+}
+
+function inlineCommandProvider(text, id, replacement) {
+  let replacements = 0;
+  const next = text.replace(computeProviderPattern, (full, prefix, reference) => {
+    if (reference !== id) return full;
+    replacements += 1;
+    return `${prefix}${JSON.stringify(replacement)}`;
+  });
+  if (replacements !== 1) throw new Error(`Expected one compute consumer for ${id}, found ${replacements}`);
+  return next;
 }
 
 function replaceReference(value, id, replacement) {
@@ -82,7 +104,8 @@ function inlineSmallSingleUseProviders(files, maxInlineBytes) {
     }
     const knownIds = new Set(providers.keys());
     const jsonConsumers = new Map([...knownIds].map(id => [id, []]));
-    const textReferences = new Set();
+    const commandConsumers = new Map([...knownIds].map(id => [id, []]));
+    const unsupportedTextReferences = new Set();
 
     const collectJsonReferences = (value, file) => {
       if (typeof value === "string") {
@@ -100,24 +123,37 @@ function inlineSmallSingleUseProviders(files, maxInlineBytes) {
       if (file.kind === "json") {
         collectJsonReferences(file.value, file);
       } else {
-        for (const id of referencedTextIds(file.text, knownIds)) textReferences.add(id);
+        const commandReferences = commandProviderReferences(file.text, knownIds);
+        for (const reference of commandReferences) commandConsumers.get(reference.id).push(file);
+
+        const supportedRanges = commandReferences.map(reference => [reference.index, reference.index + reference.full.length]);
+        for (const match of file.text.matchAll(resourceLocationPattern)) {
+          if (!knownIds.has(match[1])) continue;
+          const inSupportedCommand = supportedRanges.some(([start, end]) => match.index >= start && match.index < end);
+          if (!inSupportedCommand) unsupportedTextReferences.add(match[1]);
+        }
       }
     }
 
     const candidate = [...providers].find(([id, file]) => (
-      !textReferences.has(id)
-      && jsonConsumers.get(id).length === 1
+      !unsupportedTextReferences.has(id)
+      && jsonConsumers.get(id).length + commandConsumers.get(id).length === 1
       && Buffer.byteLength(JSON.stringify(file.value)) <= maxInlineBytes
     ));
     if (!candidate) return optimized;
 
     const [id, provider] = candidate;
-    const consumer = jsonConsumers.get(id)[0];
-    optimized = optimized
-      .filter(file => file !== provider)
-      .map(file => file === consumer
-        ? { ...file, value: replaceReference(file.value, id, provider.value) }
-        : file);
+    const jsonConsumer = jsonConsumers.get(id)[0];
+    const commandConsumer = commandConsumers.get(id)[0];
+    optimized = optimized.filter(file => file !== provider).map(file => {
+      if (file === jsonConsumer) {
+        return { ...file, value: replaceReference(file.value, id, provider.value) };
+      }
+      if (file === commandConsumer) {
+        return { ...file, text: inlineCommandProvider(file.text, id, provider.value) };
+      }
+      return file;
+    });
   }
 }
 

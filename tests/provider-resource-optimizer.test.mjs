@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { optimizeProviderResources } from "../tools/provider-resource-optimizer.mjs";
 
-test("small providers with one JSON consumer are inlined without removing function roots", () => {
+test("small providers with one JSON consumer are inlined through command roots", () => {
   const storage = {
     type: "minecraft:storage",
     storage: "math:internal",
@@ -30,10 +30,98 @@ test("small providers with one JSON consumer are inlined without removing functi
 
   assert.deepEqual(optimized, [
     {
-      kind: "json",
-      relativePath: "Math/data/math/context_float_provider/root.json",
-      value: { type: "minecraft:abs", input: storage },
+      ...files[2],
+      text: `data modify storage math: ans set compute default float ${JSON.stringify({ type: "minecraft:abs", input: storage })}\n`,
     },
-    files[2],
   ]);
+});
+
+test("guarded compute-command consumers are recognized", () => {
+  const provider = {
+    kind: "json",
+    relativePath: "Math/data/math/context_float_provider/leaf.json",
+    value: { type: "minecraft:constant", value: 1 },
+  };
+  const command = {
+    kind: "function",
+    relativePath: "Math/data/math/function/example.mcfunction",
+    text: "execute as @s at @s run data modify storage math: ans set compute default float math:leaf\n",
+  };
+
+  assert.deepEqual(optimizeProviderResources([provider, command], { maxInlineBytes: 256 }), [{
+    ...command,
+    text: "execute as @s at @s run data modify storage math: ans set compute default float {\"type\":\"minecraft:constant\",\"value\":1}\n",
+  }]);
+});
+
+test("small provider with one compute-command consumer is inlined", () => {
+  const provider = {
+    kind: "json",
+    relativePath: "Math/data/math/context_float_provider/quotient.json",
+    value: {
+      type: "minecraft:div",
+      left: { type: "minecraft:storage", storage: "math:", path: "a" },
+      right: { type: "minecraft:storage", storage: "math:", path: "b" },
+    },
+  };
+  const command = {
+    kind: "function",
+    relativePath: "Math/data/math/function/div/0.start.mcfunction",
+    text: "data modify storage math: ans set compute default float math:quotient\n",
+  };
+
+  assert.deepEqual(optimizeProviderResources([provider, command], { maxInlineBytes: 256 }), [{
+    ...command,
+    text: "data modify storage math: ans set compute default float {\"type\":\"minecraft:div\",\"left\":{\"type\":\"minecraft:storage\",\"storage\":\"math:\",\"path\":\"a\"},\"right\":{\"type\":\"minecraft:storage\",\"storage\":\"math:\",\"path\":\"b\"}}\n",
+  }]);
+});
+
+test("providers with disqualified command references remain unchanged", () => {
+  const cases = [
+    {
+      name: "two compute commands",
+      texts: [
+        "data modify storage math: x set compute default float math:leaf\n",
+        "data modify storage math: y set compute default float math:leaf\n",
+      ],
+    },
+    {
+      name: "unsupported text position",
+      texts: ["say math:leaf\n"],
+    },
+  ];
+
+  for (const { name, texts } of cases) {
+    const provider = {
+      kind: "json",
+      relativePath: "Math/data/math/context_float_provider/leaf.json",
+      value: { type: "minecraft:constant", value: 1 },
+    };
+    const commands = texts.map((text, index) => ({
+      kind: "function",
+      relativePath: `Math/data/math/function/${name.replaceAll(" ", "-")}-${index}.mcfunction`,
+      text,
+    }));
+    assert.deepEqual(optimizeProviderResources([provider, ...commands], { maxInlineBytes: 256 }), [provider, ...commands], name);
+  }
+});
+
+test("JSON consumer and oversized providers remain unchanged", () => {
+  const provider = {
+    kind: "json",
+    relativePath: "Math/data/math/context_float_provider/leaf.json",
+    value: { type: "minecraft:constant", value: 123456789 },
+  };
+  const jsonConsumer = {
+    kind: "json",
+    relativePath: "Math/data/math/context_float_provider/root.json",
+    value: { input: "math:leaf" },
+  };
+  const command = {
+    kind: "function",
+    relativePath: "Math/data/math/function/example.mcfunction",
+    text: "data modify storage math: ans set compute default float math:root\n",
+  };
+
+  assert.deepEqual(optimizeProviderResources([provider, jsonConsumer, command], { maxInlineBytes: 8 }), [provider, jsonConsumer, command]);
 });
