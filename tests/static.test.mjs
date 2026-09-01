@@ -157,17 +157,22 @@ function validatePackGraph(packRoot, { onReference } = {}) {
     for (const character of rawLine.trim()) {
       if (quote) {
         if (escaped) {
+          token += character;
           escaped = false;
         } else if (character === "\\") {
+          token += character;
           escaped = true;
         } else if (character === quote) {
+          token += character;
           quote = undefined;
+        } else {
+          token += character;
         }
         continue;
       }
       if (character === '"' || character === "'") {
         quote = character;
-        token += "<quoted>";
+        token += character;
       } else if (/\s/.test(character)) {
         finishToken();
       } else {
@@ -182,6 +187,20 @@ function validatePackGraph(packRoot, { onReference } = {}) {
     const checkAt = (registry, index) => {
       if (index < tokens.length) checkReference(registry, tokens[index], source, location);
     };
+    const checkProviderAt = (index) => {
+      if (index >= tokens.length) return;
+      const value = tokens[index];
+      try {
+        const inline = JSON.parse(value);
+        if (typeof inline === "number" || (inline && typeof inline === "object" && !Array.isArray(inline))) {
+          walkProvider(inline, source, `${location}.inline`);
+          return;
+        }
+      } catch {
+        // Resource locations are checked below.
+      }
+      checkReference("context_float_provider", value, source, location);
+    };
     const scanDataModify = () => {
       if (tokens[start + 1] !== "modify") return;
       const targetType = tokens[start + 2];
@@ -190,7 +209,7 @@ function validatePackGraph(packRoot, { onReference } = {}) {
       if (!["append", "insert", "merge", "prepend", "set"].includes(operation)) return;
       const sourceIndex = operationIndex + (operation === "insert" ? 2 : 1);
       if (tokens[sourceIndex] === "compute" && tokens[sourceIndex + 2] === "float") {
-        checkAt("context_float_provider", sourceIndex + 3);
+        checkProviderAt(sourceIndex + 3);
       }
     };
     const scanExecute = () => {
@@ -250,7 +269,7 @@ function validatePackGraph(packRoot, { onReference } = {}) {
         checkAt("function", start + 1);
         return;
       case "compute":
-        if (tokens[start + 2] === "float") checkAt("context_float_provider", start + 3);
+        if (tokens[start + 2] === "float") checkProviderAt(start + 3);
         return;
       case "data":
         scanDataModify();
@@ -400,6 +419,8 @@ test("pack graph validator detects controlled dangling registry references", () 
       "data modify storage math:internal x merge compute default float math:missing/data_merge",
       "data modify storage math:internal x prepend compute default float math:missing/data_prepend",
       "data modify storage math:internal x set compute default float math:missing/data_set",
+      "data modify storage math:internal x set compute default float 1.25",
+      'data modify storage math:internal x set compute default float {"type":"minecraft:add","inputs":["math:missing/inline_ref",1]}',
       'tellraw @a {"text":"function math:missing/literal is prose"}',
       "say function math:missing/chat",
       'tellraw @a {"text":"escaped \\\" quote; function math:missing/escaped is prose"}',
@@ -423,6 +444,7 @@ test("pack graph validator detects controlled dangling registry references", () 
       "data/math/function/fixture/root.mcfunction:12: dangling context_float_provider math:missing/data_merge",
       "data/math/function/fixture/root.mcfunction:13: dangling context_float_provider math:missing/data_prepend",
       "data/math/function/fixture/root.mcfunction:14: dangling context_float_provider math:missing/data_set",
+      "data/math/function/fixture/root.mcfunction:16.inline.inputs[0]: dangling context_float_provider math:missing/inline_ref",
       "data/math/context_float_provider/fixture/aggregate.json:inputs[0]: dangling context_float_provider math:missing/input",
       "data/math/context_float_provider/fixture/conditional.json:conditions: dangling predicate math:missing/conditional_condition",
       "data/math/context_float_provider/fixture/conditional.json:on_false: dangling context_float_provider math:missing/on_false",
@@ -661,9 +683,12 @@ test("easing, inverse-sine, and quaternion assets are generator-owned", () => {
     "Math/data/math/tags/function/bounce.json",
     "Math/data/math/tags/function/bounce_decay.json",
     "Math/data/math/function/quaternion_to_axis_angle/0.start.mcfunction",
-    "Math/data/math/context_float_provider/quaternion_to_axis_angle/input/rotation_0.json",
+    "Math/data/math/function/quaternion_to_axis_angle/1.compute.mcfunction",
     "Math/data/math/tags/function/quaternion_to_axis_angle.json",
   ]) assert.ok(manifest.files.includes(file), `${file} must be generated`);
+  const quaternionCompute = fs.readFileSync("Math/data/math/function/quaternion_to_axis_angle/1.compute.mcfunction", "utf8");
+  assert.match(quaternionCompute, /set compute default float \{"type":"minecraft:storage","storage":"math:","path":"rotation\[0\]"\}/,
+    "quaternion input provider must remain represented in its generated consumer");
 });
 
 test("generated value-check predicates use the format 119 float type discriminator", () => {
