@@ -48,9 +48,6 @@ const powerOverflowLogThreshold = Math.log((2 - 2 ** -24) * 2 ** 127);
 const powerOverflowThresholdHigh = Math.fround(powerOverflowLogThreshold);
 const powerOverflowThresholdLow = Math.fround(powerOverflowLogThreshold - powerOverflowThresholdHigh);
 const powerClassifierDegree = 18;
-// Widest binary32 residual threshold that keeps the adaptive square-root
-// corpus within the documented relative-error bound (bits 0x384b0000).
-const squareRootResidualThreshold = Math.fround(0.00004839897155761719);
 const generatedFiles = [];
 
 const renamedSharedProviders = new Map([
@@ -626,13 +623,11 @@ emit("internal/reciprocal/log_newton", product(
 ));
 emit("internal/reciprocal/log_denominator", product(0.25, storedLogReciprocal));
 emitPredicate("comparison/negative_integer", inlineValueCheck(w, undefined, -1));
-emitPredicate("comparison/x_negative_integer", inlineValueCheck(x, undefined, -1));
 
 const sqrtEstimate = internalStorage("w_sqrt_estimate");
 const sqrtMantissa = internalStorage("w_sqrt_mantissa");
 const sqrtReciprocal = internalStorage("w_sqrt_reciprocal");
 const sqrtScale = internalStorage("w_sqrt_scale");
-const sqrtResidual = internalStorage("w_sqrt_residual");
 const sqrtEstimateAtLeastTwo = inlineValueCheck(
   internalStorage("w_comparison.sqrt_estimate_at_least_two"),
   0,
@@ -995,16 +990,9 @@ emitPredicate("inverse_trigonometry/square_before_target", inlineValueCheck(
   undefined,
   -1,
 ));
-emitStagedPredicate(
-  "square_root/needs_refine",
-  maximum(sqrtResidual, product(-1, sqrtResidual)),
-  squareRootResidualThreshold,
-  undefined,
-);
 emitStagedPredicate("exp/underflows_to_zero", x, undefined, maximumZeroExpInput);
 emitStagedPredicate("power/exponent_negative", y, undefined, smallestNegativeFloat);
 emitStagedPredicate("power/exponent_integer", sum(publicB, product(-1, z)), 0, 0);
-emitStagedPredicate("power/below_overflow_classification", x, undefined, previousPositiveFloat(Math.fround(88.7)));
 emitStagedPredicate("power/needs_overflow_classification", x, 88.7, 88.75);
 emitStagedPredicate("power/classifier_overflow", powerDelta, smallestPositiveFloat, undefined);
 emitStagedPredicate("rounding/remainder/can_subtract_y", sum(x, product(-1, y)), 0, undefined);
@@ -1841,26 +1829,6 @@ function powerBoundaryLines(negativeResult) {
     "data modify storage math:internal x set compute default math:power/classify/evaluation_exponent/00",
     ...finalPowerResultLines(negativeResult),
   ];
-}
-
-function powerEvaluationLines(negativeResult) {
-  const lines = [
-    `function ${functionId(FUNCTION_PATHS.log)}`,
-    "data modify storage math:internal x set compute default math:power/positive/00",
-    ...stagePredicate("power/below_overflow_classification"),
-    `execute unless predicate math:internal/power/below_overflow_classification run return run function ${functionId(negativeResult ? FUNCTION_PATHS.powerBoundaryNegative : FUNCTION_PATHS.powerBoundaryPositive)}`,
-    ...stagePredicate("exp/underflows_to_zero"),
-    `execute if predicate math:internal/exp/underflows_to_zero run data modify storage math: ans set value ${negativeResult ? "-0.0f" : "0.0f"}`,
-    "execute if predicate math:internal/exp/underflows_to_zero run return 1",
-  ];
-  lines.push(`execute if data storage math:internal {x:-103.97207641601562f} run data modify storage math: ans set compute default math:exp/minimum/${negativeResult ? "negative/" : ""}00`);
-  lines.push("execute if data storage math:internal {x:-103.97207641601562f} run return 1");
-  lines.push(`function ${functionId(FUNCTION_PATHS.exp)}`);
-  lines.push(negativeResult
-    ? "data modify storage math: ans set compute default math:common/rounding/negate"
-    : "data modify storage math: ans set compute default math:common/input/x");
-  lines.push("return 1");
-  return lines;
 }
 
 emitFunction(FUNCTION_PATHS.powerNonfinitePositive, powerNonfiniteLines(false));

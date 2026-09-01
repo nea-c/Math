@@ -12,12 +12,6 @@ const maximumZeroExpInput = Math.fround(-103.97208404541016);
 const minimumNonzeroExpInput = Math.fround(-103.97207641601562);
 const powerOverflowLogThreshold = Math.log((2 - 2 ** -24) * 2 ** 127);
 
-function evaluateTangentGuard(variant, input) {
-  const publicInput = { a: Math.fround(input) };
-  const tanDomain = evaluateGeneratedProvider(`math:tan/guard/${variant}/compare_domain`, publicInput);
-  return evaluateGeneratedProvider(`math:tan/guard/${variant}/00`, publicInput, { w_comparison: { tan_domain: tanDomain } });
-}
-
 function floatFromBits(bits) {
   const bytes = new ArrayBuffer(4);
   const view = new DataView(bytes);
@@ -194,14 +188,19 @@ test("log exp and power generated graphs use responsibility subdirectories", () 
     assert.ok(fs.existsSync(path.join("Math/data/math/context_float_provider", provider)), `missing ${provider}`);
   }
   for (const predicate of [
-    "exp/input_finite.json",
-    "exp/input_in_range.json",
     "exp/underflows_to_zero.json",
     "power/exponent_integer.json",
-    "power/exponent_large_even.json",
     "power/classifier_overflow.json",
   ]) {
     assert.ok(fs.existsSync(path.join("Math/data/math/predicate/.validation", predicate)), `missing ${predicate}`);
+  }
+  for (const predicate of [
+    "exp/input_finite.json",
+    "exp/input_in_range.json",
+    "power/below_overflow_classification.json",
+    "power/exponent_large_even.json",
+  ]) {
+    assert.equal(fs.existsSync(path.join("Math/data/math/predicate/.validation", predicate)), false, `obsolete ${predicate} remains`);
   }
 });
 
@@ -319,7 +318,6 @@ test("real power handles negative bases only for exact integer exponents with ex
   ]) assertPower(a, b);
 
 });
-
 test("real power preserves finite underflow results", () => {
   assert.equal(assertSuccessfulUnary("exp", maximumZeroExpInput), 0);
   assert.equal(assertPower(2, -200), 0);
@@ -520,19 +518,26 @@ function deterministicAngles(minimum, maximum, count, seed) {
   return values;
 }
 
-test("trigonometric generated graphs use shared-kernel responsibility directories", () => {
+test("trigonometric generated graphs keep shared kernels and omit obsolete guards", () => {
   for (const provider of [
     "sin/00.json",
     "sin/fold/00.json",
     "cos/00.json",
     "tan/00.json",
-    "tan/guard/radians/compare_domain.json",
-    "tan/guard/degrees/compare_domain.json",
   ]) {
     assert.ok(fs.existsSync(path.join("Math/data/math/context_float_provider", provider)), `missing ${provider}`);
   }
-  assert.ok(fs.existsSync("Math/data/math/predicate/.validation/tan/undefined_radians.json"));
-  assert.ok(fs.existsSync("Math/data/math/predicate/.validation/tan/undefined_degrees.json"));
+  for (const provider of [
+    "tan/guard/radians/00.json",
+    "tan/guard/radians/compare_domain.json",
+    "tan/guard/degrees/00.json",
+    "tan/guard/degrees/compare_domain.json",
+  ]) {
+    assert.equal(fs.existsSync(path.join("Math/data/math/context_float_provider", provider)), false, `obsolete ${provider} remains`);
+  }
+  for (const predicate of ["undefined_radians", "undefined_degrees"]) {
+    assert.equal(fs.existsSync(`Math/data/math/predicate/.validation/tan/${predicate}.json`), false, `obsolete tan/${predicate} predicate remains`);
+  }
 });
 
 test("log materializes three private Newton updates with small active providers", () => {
@@ -716,75 +721,5 @@ test("sine and cosine wrappers handle huge finite inputs", () => {
       assert.equal(result.numericTags.get(storageFieldKey("math:", "ans")), "float");
       assert.equal(result.storage["math:"].internal, undefined);
     }
-  }
-});
-
-test("tangent uncertainty guards round upward from independent phase-error bounds", () => {
-  const tauFloat = Math.fround(Math.PI * 2);
-  const tauAbsoluteError = Math.abs(tauFloat - Math.PI * 2);
-  const tauErrorRatio = tauAbsoluteError / (Math.PI * 2);
-  const unitRoundoff = 2 ** -24;
-  const radCoefficient = tauErrorRatio;
-  const radFloat = Math.fround(Math.PI / 180);
-  const degreeCoefficient = Math.abs(radFloat - Math.PI / 180)
-    + radFloat * unitRoundoff
-    + radFloat * (1 + unitRoundoff) * tauErrorRatio;
-
-  assert.equal(evaluateTangentGuard("radians", 100), Math.fround(0.00002));
-  assert.equal(evaluateTangentGuard("degrees", 5000), Math.fround(0.00002));
-
-  for (const [provider, domain, coefficient, inputs] of [
-    ["math:tan/guard/radians/00", 100, radCoefficient, [nextPositiveFloat(100), 278.03094482421875, 1_000_000, 35_000_000]],
-    ["math:tan/guard/degrees/00", 5000, degreeCoefficient, [nextPositiveFloat(5000), 15210, 1_000_170, 500_000_000]],
-  ]) {
-    for (const input of inputs.map(Math.fround)) {
-      const actual = evaluateTangentGuard(provider.includes("radians") ? "radians" : "degrees", input);
-      const independentLowerBound = 0.00002 + (Math.abs(input) - domain) * coefficient;
-      assert.ok(actual >= independentLowerBound || actual >= 1, `${provider}(${input}) ${actual} must not underestimate ${independentLowerBound}`);
-      assert.ok(Number.isFinite(actual));
-    }
-  }
-
-  for (const [name, input] of [["tan", 1000], ["tan_degrees", 10000]]) {
-    const result = runFunction(name, { a: Math.fround(input), error: "stale_error" });
-    assert.equal(result.returned, undefined, `${name}(${input}) representative uncertified-domain angle remains usable`);
-    assert.ok(Number.isFinite(result.storage["math:"].ans));
-    assert.equal(result.storage["math:"].error, undefined);
-  }
-
-});
-
-test("radian tangent guard covers nextUp and nextDown at centered quotient transitions", () => {
-  const tauFloat = Math.fround(Math.PI * 2);
-  const tauAbsoluteError = Math.abs(tauFloat - Math.PI * 2);
-  const centeredPeriodCount = (magnitude) => Math.floor(magnitude / tauFloat + 0.5);
-  const domainPeriodCount = centeredPeriodCount(100);
-  const transition = Math.fround(16.5 * tauFloat);
-
-  for (const input of [previousPositiveFloat(transition), transition, nextPositiveFloat(transition)]) {
-    const actual = evaluateTangentGuard("radians", input);
-    const additionalPeriods = centeredPeriodCount(input) - domainPeriodCount;
-    const independentLowerBound = 0.00002 + additionalPeriods * tauAbsoluteError;
-    assert.ok(actual >= independentLowerBound, `radian transition guard(${input}) ${actual} must cover ${independentLowerBound}`);
-  }
-});
-
-test("degree tangent guard adds quotient steps to conversion and product uncertainty", () => {
-  const tauFloat = Math.fround(Math.PI * 2);
-  const tauAbsoluteError = Math.abs(tauFloat - Math.PI * 2);
-  const radFloat = Math.fround(Math.PI / 180);
-  const unitRoundoff = 2 ** -24;
-  const conversionCoefficient = Math.abs(radFloat - Math.PI / 180) + radFloat * unitRoundoff;
-  const centeredPeriodCount = (magnitude) => Math.floor(magnitude / tauFloat + 0.5);
-  const domainPeriodCount = centeredPeriodCount(Math.fround(5000 * radFloat));
-  const transition = Math.fround(14.5 * tauFloat / radFloat);
-
-  for (const input of [previousPositiveFloat(transition), transition, nextPositiveFloat(transition)]) {
-    const converted = Math.fround(input * radFloat);
-    const additionalPeriods = centeredPeriodCount(converted) - domainPeriodCount;
-    const conversionIncrement = (input - 5000) * conversionCoefficient;
-    const independentLowerBound = 0.00002 + conversionIncrement + additionalPeriods * tauAbsoluteError;
-    const actual = evaluateTangentGuard("degrees", input);
-    assert.ok(actual >= independentLowerBound, `degree transition guard(${input}) ${actual} must cover ${independentLowerBound}`);
   }
 });

@@ -547,6 +547,21 @@ test("generated assets omit context-float-provider documents with no consumers",
   );
 });
 
+test("generated predicates each have a generated consumer", () => {
+  const manifest = JSON.parse(fs.readFileSync("tools/generated-math-files.json", "utf8"));
+  const predicatePrefix = "Math/data/math/predicate/.validation/";
+  for (const relativePath of manifest.files) {
+    if (!relativePath.startsWith(predicatePrefix) || !relativePath.endsWith(".json")) continue;
+    const predicateId = `math:.validation/${relativePath.slice(predicatePrefix.length, -".json".length)}`;
+    const consumers = manifest.files.filter((candidate) => (
+      candidate !== relativePath
+      && /\.(?:json|mcfunction)$/.test(candidate)
+      && fs.readFileSync(candidate, "utf8").includes(predicateId)
+    ));
+    assert.ok(consumers.length > 0, `${relativePath} has no generated consumer`);
+  }
+});
+
 test("easing, inverse-sine, and quaternion assets are generator-owned", () => {
   const manifest = JSON.parse(fs.readFileSync("tools/generated-math-files.json", "utf8"));
   for (const file of [
