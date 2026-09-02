@@ -29,6 +29,47 @@ function commandProviderReferences(line) {
   return match ? [match[1]] : [];
 }
 
+function inlineProviderForAudit(value) {
+  return typeof value === "number"
+    ? { type: "minecraft:constant", value }
+    : value;
+}
+
+function redundantSingleCommandProviderIds(files, readFile) {
+  const providerFiles = files.filter((relativePath) => (
+    relativePath.startsWith("Math/data/math/context_float_provider/") && relativePath.endsWith(".json")
+  ));
+  const providerIds = new Set(providerFiles.map(providerIdFromManifestPath));
+  const commandConsumers = new Map([...providerIds].map(id => [id, []]));
+  const otherTextConsumers = new Map([...providerIds].map(id => [id, []]));
+  const jsonConsumers = new Map([...providerIds].map(id => [id, []]));
+
+  for (const relativePath of files.filter(file => file.endsWith(".mcfunction"))) {
+    for (const line of readFile(relativePath).split(/\r?\n/)) {
+      const recognized = new Set(commandProviderReferences(line));
+      for (const id of recognized) if (commandConsumers.has(id)) commandConsumers.get(id).push(relativePath);
+      for (const id of line.match(/math:[a-z0-9_./-]+/g) ?? []) {
+        if (otherTextConsumers.has(id) && !recognized.has(id)) otherTextConsumers.get(id).push(relativePath);
+      }
+    }
+  }
+  for (const relativePath of files.filter(file => file.endsWith(".json"))) {
+    const source = readFile(relativePath);
+    for (const match of source.matchAll(/"(math:[a-z0-9_./-]+)"/g)) {
+      if (jsonConsumers.has(match[1])) jsonConsumers.get(match[1]).push(relativePath);
+    }
+  }
+
+  return providerFiles
+    .filter(relativePath => Buffer.byteLength(JSON.stringify(
+      inlineProviderForAudit(JSON.parse(readFile(relativePath))),
+    )) <= 128)
+    .map(relativePath => providerIdFromManifestPath(relativePath))
+    .filter(id => commandConsumers.get(id).length === 1
+      && otherTextConsumers.get(id).length === 0
+      && jsonConsumers.get(id).length === 0);
+}
+
 function repositorySnapshot(root) {
   const snapshot = new Map();
   const visit = (directory) => {
@@ -672,6 +713,32 @@ test("generated resources use one math storage with nested internal scratch", ()
   );
 });
 
+test("redundancy audit uses compact inline provider bytes, not pretty JSON bytes", () => {
+  const providerPath = "Math/data/math/context_float_provider/fixture/abs.json";
+  const numericProviderPath = "Math/data/math/context_float_provider/fixture/numeric.json";
+  const functionPath = "Math/data/math/function/fixture.mcfunction";
+  const provider = {
+    type: "minecraft:abs",
+    input: { type: "minecraft:storage", storage: "math:", path: "internal.x" },
+  };
+  const sources = new Map([
+    [providerPath, `${JSON.stringify(provider, null, 2)}\n`],
+    [numericProviderPath, "3.1415927410125732\n"],
+    [functionPath, [
+      "data modify storage math: ans set compute default float math:fixture/abs",
+      "data modify storage math: numeric set compute default float math:fixture/numeric",
+      "",
+    ].join("\n")],
+  ]);
+
+  assert.ok(Buffer.byteLength(sources.get(providerPath)) > 128);
+  assert.ok(Buffer.byteLength(JSON.stringify(provider)) <= 128);
+  assert.deepEqual(redundantSingleCommandProviderIds([...sources.keys()], file => sources.get(file)), [
+    "math:fixture/abs",
+    "math:fixture/numeric",
+  ]);
+});
+
 test("simple public wrappers read public storage inline and leave no eligible provider resource", () => {
   const inputPaths = new Map([
     ["add", ["a", "b"]], ["sub", ["a", "b"]], ["mul", ["a", "b"]], ["abs", ["a"]],
@@ -690,36 +757,7 @@ test("simple public wrappers read public storage inline and leave no eligible pr
   }
 
   const manifest = JSON.parse(fs.readFileSync("tools/generated-math-files.json", "utf8"));
-  const providerFiles = manifest.files.filter((relativePath) => (
-    relativePath.startsWith("Math/data/math/context_float_provider/") && relativePath.endsWith(".json")
-  ));
-  const providerIds = new Set(providerFiles.map(providerIdFromManifestPath));
-  const commandConsumers = new Map([...providerIds].map(id => [id, []]));
-  const otherTextConsumers = new Map([...providerIds].map(id => [id, []]));
-  const jsonConsumers = new Map([...providerIds].map(id => [id, []]));
-
-  for (const relativePath of manifest.files.filter(file => file.endsWith(".mcfunction"))) {
-    for (const line of fs.readFileSync(relativePath, "utf8").split(/\r?\n/)) {
-      const recognized = new Set(commandProviderReferences(line));
-      for (const id of recognized) if (commandConsumers.has(id)) commandConsumers.get(id).push(relativePath);
-      for (const id of line.match(/math:[a-z0-9_./-]+/g) ?? []) {
-        if (otherTextConsumers.has(id) && !recognized.has(id)) otherTextConsumers.get(id).push(relativePath);
-      }
-    }
-  }
-  for (const relativePath of manifest.files.filter(file => file.endsWith(".json"))) {
-    const source = fs.readFileSync(relativePath, "utf8");
-    for (const match of source.matchAll(/"(math:[a-z0-9_./-]+)"/g)) {
-      if (jsonConsumers.has(match[1])) jsonConsumers.get(match[1]).push(relativePath);
-    }
-  }
-
-  const redundant = providerFiles
-    .filter(relativePath => fs.statSync(relativePath).size <= 128)
-    .map(relativePath => providerIdFromManifestPath(relativePath))
-    .filter(id => commandConsumers.get(id).length === 1
-      && otherTextConsumers.get(id).length === 0
-      && jsonConsumers.get(id).length === 0);
+  const redundant = redundantSingleCommandProviderIds(manifest.files, relativePath => fs.readFileSync(relativePath, "utf8"));
   assert.deepEqual(redundant, [], "eligible one-command provider resources must be inlined");
 });
 
