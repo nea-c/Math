@@ -43,6 +43,7 @@ const maximumZeroExpInput = Math.fround(-103.97208404541016);
 const pi = Math.fround(Math.PI);
 const halfPi = Math.fround(Math.PI / 2);
 const tau = Math.fround(Math.PI * 2);
+const radiansPerDegree = Math.fround(Math.PI / 180);
 const generatedFiles = [];
 
 const renamedSharedProviders = new Map([
@@ -994,9 +995,9 @@ function inverseTrigonometryPublicLines(sharedFunction, degrees = false) {
 }
 
 emitDirectPublicFunction("asin", inverseTrigonometryPublicLines(FUNCTION_PATHS.asin));
-emitDirectPublicFunction("asin_degrees", inverseTrigonometryPublicLines(FUNCTION_PATHS.asin, true));
+emitDirectPublicFunction("asin_deg", inverseTrigonometryPublicLines(FUNCTION_PATHS.asin, true));
 emitDirectPublicFunction("acos", inverseTrigonometryPublicLines(FUNCTION_PATHS.acos));
-emitDirectPublicFunction("acos_degrees", inverseTrigonometryPublicLines(FUNCTION_PATHS.acos, true));
+emitDirectPublicFunction("acos_deg", inverseTrigonometryPublicLines(FUNCTION_PATHS.acos, true));
 
 emitFunction(FUNCTION_PATHS.atanReciprocal, [
   "data modify storage math:internal y set value 1.0f",
@@ -1038,7 +1039,7 @@ function atanPublicLines(degrees = false) {
 }
 
 emitDirectPublicFunction("atan", atanPublicLines());
-emitDirectPublicFunction("atan_degrees", atanPublicLines(true));
+emitDirectPublicFunction("atan_deg", atanPublicLines(true));
 
 function atan2PublicLines(degrees = false) {
   const lines = [];
@@ -1073,7 +1074,7 @@ emitFunction(FUNCTION_PATHS.atan2ScaleSubnormal, [
 ]);
 
 emitControlledPublicFunction("atan2", FUNCTION_PATHS.atan2Compute, atan2PublicLines());
-emitControlledPublicFunction("atan2_degrees", FUNCTION_PATHS.atan2DegreesCompute, atan2PublicLines(true));
+emitControlledPublicFunction("atan2_deg", FUNCTION_PATHS.atan2DegCompute, atan2PublicLines(true));
 
 const elasticAmplitude = internalStorage("w_elastic_amplitude");
 const elasticPhase = internalStorage("w_elastic_phase");
@@ -1758,28 +1759,21 @@ function tangentResultLines() {
   ];
 }
 
-function trigWrapper(name, computePath, kernelPath, isTangent, degrees, zeroResult) {
-  const lines = [];
-  lines.push("data modify storage math:internal x set from storage math: a");
-  if (degrees) lines.push("data modify storage math:internal x set compute default math:common/conversion/rad");
-  lines.push(`execute if data storage math:internal {x:0.0f} run data modify storage math: ans set ${zeroResult}`);
-  lines.push("execute if data storage math:internal {x:0.0f} run return 1");
-  if (isTangent) {
-    lines.push(`function ${functionId(kernelPath)}`);
-    lines.push(...tangentResultLines());
-  } else {
-    lines.push(`function ${functionId(kernelPath)}`);
-    lines.push("data modify storage math: ans set compute default math:common/input/x");
-  }
+function tangentWrapper(name, computePath, degrees) {
+  const lines = ["data modify storage math:internal x set from storage math: a"];
+  if (degrees) lines.push("data modify storage math:internal x set compute default math:.common/rad");
+  lines.push("execute if data storage math:internal {x:0.0f} run return run data modify storage math: ans set compute default float math:.common/input/x");
+  lines.push(`function ${functionId(FUNCTION_PATHS.tan)}`);
+  lines.push(...tangentResultLines());
   emitControlledPublicFunction(name, computePath, lines);
 }
 
-for (const degrees of [false, true]) {
-  const suffix = degrees ? "_degrees" : "";
-  trigWrapper(`sin${suffix}`, degrees ? FUNCTION_PATHS.sineDegreesCompute : FUNCTION_PATHS.sineCompute, FUNCTION_PATHS.sin, false, degrees, "compute default math:common/input/x");
-  trigWrapper(`cos${suffix}`, degrees ? FUNCTION_PATHS.cosineDegreesCompute : FUNCTION_PATHS.cosineCompute, FUNCTION_PATHS.cos, false, degrees, "value 1.0f");
-  trigWrapper(`tan${suffix}`, degrees ? FUNCTION_PATHS.tangentDegreesCompute : FUNCTION_PATHS.tangentCompute, FUNCTION_PATHS.tan, true, degrees, "compute default math:common/input/x");
-}
+emitDirectPublicFunction("sin", [computeInline("ans", sine(publicA))]);
+emitDirectPublicFunction("cos", [computeInline("ans", cosine(publicA))]);
+emitDirectPublicFunction("sin_deg", [computeInline("ans", sine(product(publicA, radiansPerDegree)))]);
+emitDirectPublicFunction("cos_deg", [computeInline("ans", cosine(product(publicA, radiansPerDegree)))]);
+tangentWrapper("tan", FUNCTION_PATHS.tangentCompute, false);
+tangentWrapper("tan_deg", FUNCTION_PATHS.tangentDegCompute, true);
 
 {
   const lines = [];

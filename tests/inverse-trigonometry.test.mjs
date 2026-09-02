@@ -27,8 +27,8 @@ function assertInverse(name, input, reference, tolerance) {
 const implementations = [
   ["asin", Math.asin, radiansTolerance],
   ["acos", Math.acos, radiansTolerance],
-  ["asin_degrees", input => Math.asin(input) * 180 / Math.PI, degreesTolerance],
-  ["acos_degrees", input => Math.acos(input) * 180 / Math.PI, degreesTolerance],
+  ["asin_deg", input => Math.asin(input) * 180 / Math.PI, degreesTolerance],
+  ["acos_deg", input => Math.acos(input) * 180 / Math.PI, degreesTolerance],
 ];
 
 test("inverse trigonometric functions retain public state and meet their angular accuracy bounds", () => {
@@ -61,12 +61,12 @@ test("inverse trigonometric endpoint constants are stored exactly", () => {
     ["acos", -1, Math.fround(Math.PI)],
     ["acos", 0, Math.fround(Math.PI / 2)],
     ["acos", 1, 0],
-    ["asin_degrees", -1, -90],
-    ["asin_degrees", 0, 0],
-    ["asin_degrees", 1, 90],
-    ["acos_degrees", -1, 180],
-    ["acos_degrees", 0, 90],
-    ["acos_degrees", 1, 0],
+    ["asin_deg", -1, -90],
+    ["asin_deg", 0, 0],
+    ["asin_deg", 1, 90],
+    ["acos_deg", -1, 180],
+    ["acos_deg", 0, 90],
+    ["acos_deg", 1, 0],
   ];
   for (const [name, input, expected] of endpoints) {
     const result = runFunction(name, { a: input, ans: 91 });
@@ -80,9 +80,9 @@ test("inverse trigonometric endpoints accept every finite numeric NBT type", () 
   const negativeOne = ["-1b", "-1s", "-1", "-1l", "-1.0f", "-1.0d"];
   for (const [name, inputs, expected] of [
     ["asin", positiveOne, Math.fround(Math.PI / 2)],
-    ["asin_degrees", negativeOne, -90],
+    ["asin_deg", negativeOne, -90],
     ["acos", negativeOne, Math.fround(Math.PI)],
-    ["acos_degrees", positiveOne, 0],
+    ["acos_deg", positiveOne, 0],
   ]) {
     for (const input of inputs) {
       const result = runFunctionFromSnbt(name, `{a:${input},ans:91}`);
@@ -94,7 +94,7 @@ test("inverse trigonometric endpoints accept every finite numeric NBT type", () 
 });
 
 test("inverse sine preserves double negative zero while staging to binary32", () => {
-  for (const name of ["asin", "asin_degrees"]) {
+  for (const name of ["asin", "asin_deg"]) {
     const result = runFunctionFromSnbt(name, "{a:-0.0d,ans:91}");
     assert.equal(result.returned, undefined);
     assert.ok(Object.is(result.storage["math:"].ans, -0), `${name}(-0.0d) must return -0`);
@@ -102,7 +102,7 @@ test("inverse sine preserves double negative zero while staging to binary32", ()
 });
 
 test("inverse sine preserves negative zero", () => {
-  for (const name of ["asin", "asin_degrees"]) {
+  for (const name of ["asin", "asin_deg"]) {
     const result = runFunction(name, { a: -0, ans: 91 });
     assert.equal(result.returned, undefined);
     assert.ok(Object.is(result.storage["math:"].ans, -0), `${name}(-0) must return -0`);

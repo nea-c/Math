@@ -13,6 +13,23 @@ const directWrappers = [
   "div", "reciprocal", "remainder", "sqrt", "pow",
 ];
 
+test("retired degrees API names are absent", () => {
+  const roots = ["README.md", "tools", "tests", "Math/data/math/function", "Math/data/math/tags/function"];
+  const retired = ["sin", "cos", "tan", "asin", "acos", "atan", "atan2"].map(base => `${base}_degrees`);
+  const filesBelow = (entryPath) => {
+    if (fs.statSync(entryPath).isFile()) return [entryPath];
+    return fs.readdirSync(entryPath, { withFileTypes: true }).flatMap((entry) => {
+      const child = path.join(entryPath, entry.name);
+      return entry.isDirectory() ? filesBelow(child) : [child];
+    });
+  };
+  const matches = roots.flatMap(filesBelow).filter((file) => {
+    const source = fs.readFileSync(file, "utf8");
+    return retired.some((name) => source.includes(name));
+  });
+  assert.deepEqual(matches, []);
+});
+
 function providerIdFromManifestPath(relativePath) {
   const prefix = "Math/data/math/context_float_provider/";
   return `math:${relativePath.slice(prefix.length, -".json".length)}`;
@@ -791,9 +808,29 @@ test("simple public wrappers read public storage inline and leave no eligible pr
   assert.deepEqual(redundant, [], "eligible one-command provider resources must be inlined");
 });
 
+test("public sine and cosine wrappers use direct native providers", () => {
+  const radiansPerDegree = Math.fround(Math.PI / 180);
+  for (const name of ["sin", "cos", "sin_deg", "cos_deg"]) {
+    const source = fs.readFileSync(`Math/data/math/function/${name}/0.start.mcfunction`, "utf8");
+    assert.doesNotMatch(source, /data modify storage math: internal\.[^ ]+ set /);
+    assert.doesNotMatch(source, /^function /m);
+    assert.equal(fs.existsSync(`Math/data/math/function/${name}/1.compute.mcfunction`), false);
+
+    const providerSource = source.match(/data modify storage math: ans set compute default float (.+)$/m)?.[1];
+    assert.ok(providerSource, `${name} must compute ans inline`);
+    const provider = JSON.parse(providerSource);
+    assert.deepEqual(providerStoragePaths(provider), ["a"], `${name} must read public a once`);
+    if (name.endsWith("_deg")) {
+      assert.equal(provider.input.type, "minecraft:mul", `${name} must convert degrees inline`);
+      assert.ok(provider.input.inputs.includes(radiansPerDegree), `${name} must use the float radians-per-degree constant`);
+    } else {
+      assert.equal(provider.type, name === "sin" ? "minecraft:sin" : "minecraft:cos");
+    }
+  }
+});
+
 test("stateful wrappers retain scratch that later calls or branches reuse", () => {
   const retained = [
-    ["sin/1.compute", "internal.x set from storage math: a"],
     ["elastic/1.compute", "internal.x set from storage math: internal.w_elastic_amplitude"],
     ["bounce/1.compute", "internal.w_bounce_scaled_t set from storage math: t"],
   ];

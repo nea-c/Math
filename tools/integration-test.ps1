@@ -311,14 +311,14 @@ try {
     Add-SuccessCase -Case 'atan_one' -Function 'atan' -ExpectedAnswer '0.7853982f' -Setup @(
         'data modify storage math: a set value 1.0f'
     )
-    Add-SuccessCase -Case 'atan_degrees_one_double' -Function 'atan_degrees' -ExpectedAnswer '45.0f' -Setup @(
+    Add-SuccessCase -Case 'atan_deg_one_double' -Function 'atan_deg' -ExpectedAnswer '45.0f' -Setup @(
         'data modify storage math: a set value 1.0d'
     )
     Add-SuccessCase -Case 'atan2_quadrant_two' -Function 'atan2' -ExpectedAnswer '2.3561945f' -Setup @(
         'data modify storage math: a set value 1.0f'
         'data modify storage math: b set value -1.0f'
     )
-    Add-SuccessCase -Case 'atan2_degrees_quadrant_three' -Function 'atan2_degrees' -ExpectedAnswer '-135.0f' -Setup @(
+    Add-SuccessCase -Case 'atan2_deg_quadrant_three' -Function 'atan2_deg' -ExpectedAnswer '-135.0f' -Setup @(
         'data modify storage math: a set value -1.0d'
         'data modify storage math: b set value -1.0d'
     )
@@ -350,16 +350,16 @@ try {
     Add-SuccessCase -Case 'asin_one_double' -Function 'asin' -ExpectedAnswer '1.5707964f' -Setup @(
         'data modify storage math: a set value 1.0d'
     )
-    Add-SuccessCase -Case 'asin_degrees_minus_one' -Function 'asin_degrees' -ExpectedAnswer '-90.0f' -Setup @(
+    Add-SuccessCase -Case 'asin_deg_minus_one' -Function 'asin_deg' -ExpectedAnswer '-90.0f' -Setup @(
         'data modify storage math: a set value -1.0f'
     )
-    Add-SuccessCase -Case 'asin_degrees_minus_one_int' -Function 'asin_degrees' -ExpectedAnswer '-90.0f' -Setup @(
+    Add-SuccessCase -Case 'asin_deg_minus_one_int' -Function 'asin_deg' -ExpectedAnswer '-90.0f' -Setup @(
         'data modify storage math: a set value -1'
     )
-    Add-SuccessCase -Case 'asin_degrees_zero' -Function 'asin_degrees' -ExpectedAnswer '0.0f' -Setup @(
+    Add-SuccessCase -Case 'asin_deg_zero' -Function 'asin_deg' -ExpectedAnswer '0.0f' -Setup @(
         'data modify storage math: a set value 0.0f'
     )
-    Add-SuccessCase -Case 'asin_degrees_one' -Function 'asin_degrees' -ExpectedAnswer '90.0f' -Setup @(
+    Add-SuccessCase -Case 'asin_deg_one' -Function 'asin_deg' -ExpectedAnswer '90.0f' -Setup @(
         'data modify storage math: a set value 1.0f'
     )
     Add-SuccessCase -Case 'acos_minus_one' -Function 'acos' -ExpectedAnswer '3.1415927f' -Setup @(
@@ -374,16 +374,16 @@ try {
     Add-SuccessCase -Case 'acos_one' -Function 'acos' -ExpectedAnswer '0.0f' -Setup @(
         'data modify storage math: a set value 1.0f'
     )
-    Add-SuccessCase -Case 'acos_degrees_minus_one' -Function 'acos_degrees' -ExpectedAnswer '180.0f' -Setup @(
+    Add-SuccessCase -Case 'acos_deg_minus_one' -Function 'acos_deg' -ExpectedAnswer '180.0f' -Setup @(
         'data modify storage math: a set value -1.0f'
     )
-    Add-SuccessCase -Case 'acos_degrees_zero' -Function 'acos_degrees' -ExpectedAnswer '90.0f' -Setup @(
+    Add-SuccessCase -Case 'acos_deg_zero' -Function 'acos_deg' -ExpectedAnswer '90.0f' -Setup @(
         'data modify storage math: a set value 0.0f'
     )
-    Add-SuccessCase -Case 'acos_degrees_one' -Function 'acos_degrees' -ExpectedAnswer '0.0f' -Setup @(
+    Add-SuccessCase -Case 'acos_deg_one' -Function 'acos_deg' -ExpectedAnswer '0.0f' -Setup @(
         'data modify storage math: a set value 1.0f'
     )
-    Add-SuccessCase -Case 'acos_degrees_one_double' -Function 'acos_degrees' -ExpectedAnswer '0.0f' -Setup @(
+    Add-SuccessCase -Case 'acos_deg_one_double' -Function 'acos_deg' -ExpectedAnswer '0.0f' -Setup @(
         'data modify storage math: a set value 1.0d'
     )
 

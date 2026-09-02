@@ -92,7 +92,7 @@ test("algorithmic predicates and shared reciprocal kernels use distinct private 
 });
 
 test("retained shared calculation providers use private names", () => {
-  for (const name of ["abs", "deg", "mul", "rad", "sub"]) {
+  for (const name of ["abs", "deg", "mul", "sub"]) {
     assert.equal(fs.existsSync(path.join(providerRoot, ".common", `${name}.json`)), true, `missing provider ${name}`);
   }
 
