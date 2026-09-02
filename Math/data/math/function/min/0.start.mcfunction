@@ -1,5 +1,3 @@
 data remove storage math: ans
-data modify storage math: internal.x set from storage math: a
-data modify storage math: internal.y set from storage math: b
-data modify storage math: ans set compute default float math:.common/min
+data modify storage math: ans set compute default float {"type":"minecraft:min","inputs":[{"type":"minecraft:storage","storage":"math:","path":"a"},{"type":"minecraft:storage","storage":"math:","path":"b"}]}
 data remove storage math: internal

@@ -300,6 +300,10 @@ function runWithStorage(name, publicInput, internalInput, initialPublicTags = ne
     return value < Math.fround(truncated) ? (truncated - 1) | 0 : truncated;
   }
 
+  function commandProvider(value) {
+    return value.startsWith("math:") ? value : JSON.parse(value);
+  }
+
   function runCommands(functionName) {
     functionCalls.set(functionName, (functionCalls.get(functionName) ?? 0) + 1);
     for (const command of commandsFor(functionName)) {
@@ -324,7 +328,7 @@ function runWithStorage(name, publicInput, internalInput, initialPublicTags = ne
     match = command.match(/^data modify storage (\S+) (\S+) set compute default float (\S+)$/);
     if (match) {
       setTypedPath(storage[match[1]] ??= {}, numericTags, match[1], match[2], {
-        value: evaluateProvider(match[3], providers, new Map(Object.entries(storage))),
+        value: evaluateProvider(commandProvider(match[3]), providers, new Map(Object.entries(storage))),
         numericTags: new Map([["", "float"]]),
       });
       return undefined;
@@ -346,7 +350,7 @@ function runWithStorage(name, publicInput, internalInput, initialPublicTags = ne
     }
     match = command.match(/^execute store result storage (\S+) (\S+) float (-?\d+(?:\.\d+)?) run compute default float (\S+)$/);
     if (match) {
-      const value = evaluateProvider(match[4], providers, new Map(Object.entries(storage)));
+      const value = evaluateProvider(commandProvider(match[4]), providers, new Map(Object.entries(storage)));
       const result = computeCommandResult(value);
       setTypedPath(storage[match[1]] ??= {}, numericTags, match[1], match[2], {
         value: Math.fround(result * Number(match[3])),

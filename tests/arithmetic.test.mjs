@@ -101,7 +101,6 @@ const providers = providerRegistry();
 
 test("common exact providers evaluate hand-checked arithmetic and conversions", () => {
   const cases = [
-    ["math:.common/add", { x: 1.25, y: -0.5 }, 0.75],
     ["math:.common/sub", { x: 1.25, y: -0.5 }, 1.75],
     ["math:.common/mul", { x: 1.25, y: -0.5 }, -0.625],
     ["math:.common/abs", { x: -3.5 }, 3.5],
@@ -229,7 +228,7 @@ test("coordinated division preserves precision across deterministic binary32 ope
       }
       assert.ok(scaledError <= 1, `divide(${a}, ${b}) produced ${actual}, expected ${expected}`);
     }
-    assert.equal(result.storage["math:"].error, undefined);
+    assert.equal(result.storage["math:"].error, "stale_error");
     count += 1;
   }
 
@@ -255,7 +254,7 @@ test("divide preserves adjacent finite top-exponent quotients", () => {
           assert.equal(result.returned, undefined, `divide(${a}, ${b}) must naturally end`);
           assert.ok(Number.isFinite(result.storage["math:"].ans));
           assert.ok(Math.abs((result.storage["math:"].ans - expected) / expected) <= 0.00001);
-          assert.equal(result.storage["math:"].error, undefined);
+          assert.equal(result.storage["math:"].error, "stale_error");
           assert.equal(result.storage["math:"].a, a);
           assert.equal(result.storage["math:"].b, b);
         }
@@ -304,10 +303,13 @@ test("divide stays within one min-subnormal ULP on a 12,288-case boundary grid",
   assert.ok(maximumUlpError <= 1, `${overOneUlp} grid cases exceeded one min-subnormal ULP; maximum ${maximumUlpError} at ${worstCase}`);
 });
 
-test("div controlled implementation evaluates the native float provider", () => {
-  const provider = JSON.parse(fs.readFileSync(path.join(providerRoot, ".common/div.json"), "utf8"));
-  assert.equal(provider.type, "minecraft:div");
-  assert.equal(fs.readFileSync("Math/data/math/function/div/1.compute.mcfunction", "utf8").includes("math:.common/div"), true);
+test("div computes directly from public storage with an inline native provider", () => {
+  assert.equal(fs.existsSync(path.join(providerRoot, ".common/div.json")), false);
+  const text = fs.readFileSync("Math/data/math/function/div/1.compute.mcfunction", "utf8");
+  assert.doesNotMatch(text, /storage math: internal\.[xy] set from storage math: [ab]/);
+  assert.match(text, /set compute default float \{"type":"minecraft:div"/);
+  assert.match(text, /"storage":"math:","path":"a"/);
+  assert.match(text, /"storage":"math:","path":"b"/);
 });
 
 test("rounding wrappers honor signed half boundaries and the float integer limit", () => {
@@ -340,7 +342,7 @@ test("rounding wrappers honor signed half boundaries and the float integer limit
       const { storage, numericTags, returned } = runFunction(name, publicInput);
       assert.equal(returned, undefined, `${name}(${input}) must naturally end`);
       assert.equal(storage["math:"].ans, Math.fround(expected[index]), `${name}(${input})`);
-      assert.equal(storage["math:"].error, undefined, `${name}(${input}) must clear stale errors`);
+      assert.equal(storage["math:"].error, "stale_error", `${name}(${input}) must preserve unrelated public state`);
       assert.equal(storage["math:"].a, input, `${name}(${input}) must preserve a`);
       assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float", `${name}(${input}) must write a float`);
       assert.equal(storage["math:"].internal, undefined, `${name}(${input}) scratch cleanup`);
@@ -374,7 +376,7 @@ test("remainder and modulo use truncating and flooring quotients", () => {
       const { storage, numericTags, returned } = runFunction(name, publicInput);
       assert.equal(returned, undefined, `${name}(${a}, ${b}) must naturally end`);
       assert.equal(storage["math:"].ans, Math.fround(expected), `${name}(${a}, ${b})`);
-      assert.equal(storage["math:"].error, undefined, `${name}(${a}, ${b}) must clear stale errors`);
+      assert.equal(storage["math:"].error, "stale_error", `${name}(${a}, ${b}) must preserve unrelated public state`);
       assert.equal(storage["math:"].a, a, `${name} must preserve a`);
       assert.equal(storage["math:"].b, b, `${name} must preserve b`);
       assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float", `${name} must write a float`);

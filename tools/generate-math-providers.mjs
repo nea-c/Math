@@ -98,7 +98,7 @@ function emitPredicate(relativePath, value) {
 
 function emitFunction(path, lines) {
   const migratedLines = lines.map(line => line
-    .replaceAll("compute default ", "compute default float ")
+    .replaceAll(/compute default (?!float\b)/g, "compute default float ")
     .replaceAll(/storage math:internal ([A-Za-z0-9_.\[\]-]+)/g, "storage math: internal.$1")
     .replaceAll(/storage math:internal \{([^{}]+)\}/g, "storage math: {internal:{$1}}")
     .replaceAll(/math:(?:common\/(?:arithmetic\/(?:add|subtract|multiply|divide|reciprocal|square|cube|lerp)|comparison\/(?:absolute|minimum|maximum|clamp)|conversion\/(?:rad|deg))|common\/[^ ]+|power\/[^ ]+|square_root\/[^ ]+)/g,
@@ -121,6 +121,9 @@ const publicPreamble = [
   "data remove storage math: ans",
 ];
 const publicCleanup = "data remove storage math: internal";
+const inlineProvider = provider => JSON.stringify(provider);
+const computeInline = (target, provider) =>
+  `data modify storage math: ${target} set compute default float ${inlineProvider(provider)}`;
 
 function emitDirectPublicFunction(name, computeLines) {
   emitFunction(PUBLIC_FUNCTION_PATHS[name], [
@@ -152,6 +155,7 @@ const w = internalStorage("w");
 const publicA = storage("math:", "a");
 const publicB = storage("math:", "b");
 const publicT = storage("math:", "t");
+const publicMin = storage("math:", "min");
 const publicMax = storage("math:", "max");
 const publicCurveX1 = storage("math:", "curve[0]");
 const publicCurveY1 = storage("math:", "curve[1]");
@@ -1311,30 +1315,25 @@ emitFunction(FUNCTION_PATHS.bezierFinish, [
   emitControlledPublicFunction("bezier", FUNCTION_PATHS.bezierCompute, lines);
 }
 
-function wrapper(name, provider, inputMap) {
-  const lines = [];
-  for (const [internalName, publicName] of Object.entries(inputMap)) {
-    lines.push(`data modify storage math:internal ${internalName} set from storage math: ${publicName}`);
-  }
-  lines.push(`data modify storage math: ans set compute default ${provider}`);
-  emitDirectPublicFunction(name, lines);
+function wrapper(name, provider) {
+  emitDirectPublicFunction(name, [computeInline("ans", provider)]);
 }
 
-wrapper("add", "math:common/arithmetic/add", { x: "a", y: "b" });
-wrapper("sub", "math:common/arithmetic/subtract", { x: "a", y: "b" });
-wrapper("mul", "math:common/arithmetic/multiply", { x: "a", y: "b" });
-wrapper("abs", "math:common/comparison/absolute", { x: "a" });
-wrapper("min", "math:common/comparison/minimum", { x: "a", y: "b" });
-wrapper("max", "math:common/comparison/maximum", { x: "a", y: "b" });
-wrapper("square", "math:common/arithmetic/square", { x: "a" });
-wrapper("cube", "math:common/arithmetic/cube", { x: "a" });
-wrapper("rad", "math:common/conversion/rad", { x: "a" });
-wrapper("deg", "math:common/conversion/deg", { x: "a" });
-wrapper("lerp", "math:common/arithmetic/lerp", { x: "a", y: "b", z: "t" });
-wrapper("floor", "math:common/rounding/floor", { x: "a" });
-wrapper("ceil", "math:common/rounding/ceil", { x: "a" });
-wrapper("round", "math:common/rounding/round", { x: "a" });
-wrapper("truncate", "math:common/rounding/truncate", { x: "a" });
+wrapper("add", sum(publicA, publicB));
+wrapper("sub", subtract(publicA, publicB));
+wrapper("mul", product(publicA, publicB));
+wrapper("abs", absolute(publicA));
+wrapper("min", minimum(publicA, publicB));
+wrapper("max", maximum(publicA, publicB));
+wrapper("square", product(publicA, publicA));
+wrapper("cube", product(publicA, publicA, publicA));
+wrapper("rad", product(publicA, Math.fround(Math.PI / 180)));
+wrapper("deg", product(publicA, Math.fround(180 / Math.PI)));
+wrapper("lerp", sum(publicA, product(publicT, subtract(publicB, publicA))));
+wrapper("floor", floor(publicA));
+wrapper("ceil", ceil(publicA));
+wrapper("round", round(publicA));
+wrapper("truncate", truncate(publicA));
 for (const [name, literal] of [
   ["e", "2.7182817459106445f"],
   ["pi", "3.1415927410125732f"],
@@ -1688,11 +1687,8 @@ emitFunction(FUNCTION_PATHS.powerNegative, [
 
 {
   const lines = [];
-  lines.push("data modify storage math:internal x set from storage math: b");
-  lines.push(...stopOnZeroLines());
-  lines.push("data modify storage math:internal x set from storage math: a");
-  lines.push("data modify storage math:internal y set from storage math: b");
-  lines.push("data modify storage math: ans set compute default math:common/arithmetic/divide");
+  lines.push("execute if data storage math: {b:0.0f} run return 1");
+  lines.push(computeInline("ans", divide(publicA, publicB)));
   emitControlledPublicFunction("div", FUNCTION_PATHS.divideCompute, lines);
 }
 
@@ -1883,12 +1879,7 @@ for (const degrees of [false, true]) {
 }
 
 {
-  const lines = [];
-  lines.push("data modify storage math:internal x set from storage math: a");
-  lines.push("data modify storage math:internal z set from storage math: min");
-  lines.push("data modify storage math:internal w set from storage math: max");
-  lines.push("data modify storage math: ans set compute default math:common/comparison/clamp");
-  emitDirectPublicFunction("clamp", lines);
+  wrapper("clamp", minimum(maximum(publicA, publicMin), publicMax));
 }
 
 function generate(targetRoot) {

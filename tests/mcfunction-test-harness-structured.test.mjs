@@ -13,8 +13,8 @@ import {
 } from "./mcfunction-test-harness.mjs";
 
 test("generated providers read scratch through nested internal storage", () => {
-  const result = evaluateGeneratedProvider("math:.common/add", {}, { x: 1.25, y: 2.5 });
-  assert.equal(result, 3.75);
+  const result = evaluateGeneratedProvider("math:.common/mul", {}, { x: 1.25, y: 2.5 });
+  assert.equal(result, 3.125);
 });
 
 test("typed public SNBT inputs retain numeric tag types while functions execute", () => {

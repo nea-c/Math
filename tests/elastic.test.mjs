@@ -28,7 +28,7 @@ test("elastic evaluates amplitude and tick-period Elastic Out curves", () => {
     const result = runFunction("elastic", { ...input, error: "stale_error" });
     assert.equal(result.returned, undefined);
     assertClose(result.storage["math:"].ans, elasticReference(input));
-    assert.equal(result.storage["math:"].error, undefined);
+    assert.equal(result.storage["math:"].error, "stale_error");
   }
 });
 
@@ -41,7 +41,7 @@ test("elastic_decay evaluates oscillation and damping Elastic Out curves", () =>
     const result = runFunction("elastic_decay", { ...input, error: "stale_error" });
     assert.equal(result.returned, undefined);
     assertClose(result.storage["math:"].ans, elasticDecayReference(input));
-    assert.equal(result.storage["math:"].error, undefined);
+    assert.equal(result.storage["math:"].error, "stale_error");
   }
 });
 
@@ -55,7 +55,7 @@ for (const [name, parameters] of [
       const result = runFunction(name, { ...input, ans: 91, error: "stale_error" });
       assert.equal(result.returned, undefined);
       assert.equal(result.storage["math:"].ans, expected);
-      assert.equal(result.storage["math:"].error, undefined);
+      assert.equal(result.storage["math:"].error, "stale_error");
       for (const [field, value] of Object.entries(input)) {
         assert.deepEqual(result.storage["math:"][field], value, field);
       }

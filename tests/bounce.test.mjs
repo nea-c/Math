@@ -24,7 +24,7 @@ test("bounce evaluates the standard Bounce Out curve", () => {
     const result = runFunction("bounce", { ...input, error: "stale_error" });
     assert.equal(result.returned, undefined);
     assertClose(result.storage["math:"].ans, expected);
-    assert.equal(result.storage["math:"].error, undefined);
+    assert.equal(result.storage["math:"].error, "stale_error");
   }
 });
 
@@ -39,7 +39,7 @@ test("bounce_decay accepts fractional bounce density with constant-cost damping"
     const eased = physicalBounceDecayReference(input);
     const expected = input.a + (input.b - input.a) * eased;
     assertClose(result.storage["math:"].ans, expected);
-    assert.equal(result.storage["math:"].error, undefined);
+    assert.equal(result.storage["math:"].error, "stale_error");
   }
 });
 
@@ -88,7 +88,7 @@ for (const [name, parameters] of [
       const result = runFunction(name, { ...input, ans: 91, error: "stale_error" });
       assert.equal(result.returned, undefined);
       assert.equal(result.storage["math:"].ans, expected);
-      assert.equal(result.storage["math:"].error, undefined);
+      assert.equal(result.storage["math:"].error, "stale_error");
       for (const [field, value] of Object.entries(input)) {
         assert.deepEqual(result.storage["math:"][field], value, field);
       }

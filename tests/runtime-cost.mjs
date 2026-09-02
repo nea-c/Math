@@ -96,7 +96,7 @@ function predicateProviderNodes(id, graph, stack = []) {
 function commandProviderNodes(command, graph) {
   let nodes = 0;
   for (const match of command.matchAll(/\bcompute default float (\S+)/g)) {
-    nodes += expandedProviderNodes(match[1], graph);
+    nodes += expandedProviderNodes(match[1].startsWith("{") ? JSON.parse(match[1]) : match[1], graph);
   }
   for (const match of command.matchAll(/\b(?:if|unless) predicate (\S+)/g)) {
     nodes += predicateProviderNodes(match[1], graph);

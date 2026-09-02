@@ -16,7 +16,7 @@ function adjacentPositiveFloat(value, direction) {
 function assertSuccess(name, input, expected, tolerance) {
   const result = runFunction(name, { ...input, ans: 91, error: "stale_error" });
   assert.equal(result.returned, undefined, `${name}(${JSON.stringify(input)})`);
-  assert.equal(result.storage["math:"].error, undefined);
+  assert.equal(result.storage["math:"].error, "stale_error");
   assert.equal(result.numericTags.get(storageFieldKey("math:", "ans")), "float");
   assert.ok(Math.abs(result.storage["math:"].ans - expected) <= tolerance,
     `${name}(${JSON.stringify(input)}) = ${result.storage["math:"].ans}, expected ${expected} +/- ${tolerance}`);

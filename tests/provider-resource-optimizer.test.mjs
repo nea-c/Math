@@ -91,6 +91,41 @@ test("small provider with one compute-command consumer is inlined", () => {
   }]);
 });
 
+test("numeric providers inline as constant objects accepted by compute commands", () => {
+  const provider = {
+    kind: "json",
+    relativePath: "Math/data/math/context_float_provider/constant.json",
+    value: 3.1415927410125732,
+  };
+  const command = {
+    kind: "function",
+    relativePath: "Math/data/math/function/example.mcfunction",
+    text: "data modify storage math: ans set compute default float math:constant\n",
+  };
+
+  assert.deepEqual(optimizeProviderResources([provider, command], { maxInlineBytes: 128 }), [{
+    ...command,
+    text: "data modify storage math: ans set compute default float {\"type\":\"minecraft:constant\",\"value\":3.1415927410125732}\n",
+  }]);
+});
+
+test("numeric providers use their normalized inline representation for the byte limit", () => {
+  const provider = {
+    kind: "json",
+    relativePath: "Math/data/math/context_float_provider/constant.json",
+    value: 3.1415927410125732,
+  };
+  const command = {
+    kind: "function",
+    relativePath: "Math/data/math/function/example.mcfunction",
+    text: "data modify storage math: ans set compute default float math:constant\n",
+  };
+
+  assert.ok(Buffer.byteLength(JSON.stringify(provider.value)) < 50);
+  assert.ok(Buffer.byteLength('{\"type\":\"minecraft:constant\",\"value\":3.1415927410125732}') > 50);
+  assert.deepEqual(optimizeProviderResources([provider, command], { maxInlineBytes: 50 }), [provider, command]);
+});
+
 test("providers with disqualified command references remain unchanged", () => {
   const cases = [
     {

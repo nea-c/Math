@@ -18,7 +18,7 @@ test("bezier evaluates CSS cubic-bezier timing curves", () => {
     const result = runFunction("bezier", { t: 5, max: 10, a: 0, b: 100, curve, error: "stale_error" });
     assert.equal(result.returned, undefined);
     assertClose(result.storage["math:"].ans, expected);
-    assert.equal(result.storage["math:"].error, undefined);
+    assert.equal(result.storage["math:"].error, "stale_error");
   }
 });
 test("bezier clamps elapsed time to exact endpoints and preserves inputs", () => {
@@ -27,7 +27,7 @@ test("bezier clamps elapsed time to exact endpoints and preserves inputs", () =>
     const result = runFunction("bezier", { ...input, ans: 91, error: "stale_error" });
     assert.equal(result.returned, undefined);
     assert.equal(result.storage["math:"].ans, expected);
-    assert.equal(result.storage["math:"].error, undefined);
+    assert.equal(result.storage["math:"].error, "stale_error");
     for (const [field, value] of Object.entries(input)) {
       assert.deepEqual(result.storage["math:"][field], value, field);
     }

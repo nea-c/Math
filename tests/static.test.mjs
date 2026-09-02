@@ -7,6 +7,28 @@ import os from "node:os";
 import path from "node:path";
 import { PUBLIC_FUNCTION_NAMES, PUBLIC_FUNCTION_PATHS } from "../tools/function-layout.mjs";
 
+const directWrappers = [
+  "add", "sub", "mul", "abs", "min", "max", "square", "cube",
+  "rad", "deg", "lerp", "floor", "ceil", "round", "truncate", "clamp",
+];
+
+function providerIdFromManifestPath(relativePath) {
+  const prefix = "Math/data/math/context_float_provider/";
+  return `math:${relativePath.slice(prefix.length, -".json".length)}`;
+}
+
+function providerStoragePaths(value, paths = []) {
+  if (!value || typeof value !== "object") return paths;
+  if (value.type === "minecraft:storage" && value.storage === "math:") paths.push(value.path);
+  for (const child of Object.values(value)) providerStoragePaths(child, paths);
+  return paths;
+}
+
+function commandProviderReferences(line) {
+  const match = line.match(/(?:^|\brun )data modify (?:storage|entity|block)\b.+\bset compute default float (math:[a-z0-9_./-]+)$/);
+  return match ? [match[1]] : [];
+}
+
 function repositorySnapshot(root) {
   const snapshot = new Map();
   const visit = (directory) => {
@@ -68,6 +90,9 @@ function validatePackGraph(packRoot, { onReference } = {}) {
     }
     assert.ok(provider && typeof provider === "object" && !Array.isArray(provider), `${relativeSource(source)}${location}: invalid number provider`);
     switch (provider.type) {
+      case "minecraft:constant":
+        assert.equal(typeof provider.value, "number", `${relativeSource(source)}${location}.value: constant value must be a number`);
+        return;
       case "minecraft:storage":
         return;
       case "minecraft:add":
@@ -643,8 +668,74 @@ test("generated resources use one math storage with nested internal scratch", ()
   }
   assert.match(
     fs.readFileSync("Math/data/math/function/add/0.start.mcfunction", "utf8"),
-    /storage math: internal\.x/,
+    /"storage":"math:","path":"a"/,
   );
+});
+
+test("simple public wrappers read public storage inline and leave no eligible provider resource", () => {
+  const inputPaths = new Map([
+    ["add", ["a", "b"]], ["sub", ["a", "b"]], ["mul", ["a", "b"]], ["abs", ["a"]],
+    ["min", ["a", "b"]], ["max", ["a", "b"]], ["square", ["a", "a"]], ["cube", ["a", "a", "a"]],
+    ["rad", ["a"]], ["deg", ["a"]], ["lerp", ["a", "a", "b", "t"]], ["floor", ["a"]],
+    ["ceil", ["a"]], ["round", ["a"]], ["truncate", ["a"]], ["clamp", ["a", "min", "max"]],
+  ]);
+  const functionRoot = "Math/data/math/function";
+  for (const name of directWrappers) {
+    const source = fs.readFileSync(path.join(functionRoot, `${PUBLIC_FUNCTION_PATHS[name]}.mcfunction`), "utf8");
+    const inline = source.match(/set compute default float (\{.*\})/);
+    assert.ok(inline, `${name} must compute from an inline provider`);
+    const paths = providerStoragePaths(JSON.parse(inline[1]));
+    assert.deepEqual(paths.sort(), inputPaths.get(name).slice().sort(), `${name} provider public paths`);
+    assert.doesNotMatch(source, /data modify storage math: internal\.[\w.]+ set from storage math: (?:a|b|t|min|max)$/m, name);
+  }
+
+  const manifest = JSON.parse(fs.readFileSync("tools/generated-math-files.json", "utf8"));
+  const providerFiles = manifest.files.filter((relativePath) => (
+    relativePath.startsWith("Math/data/math/context_float_provider/") && relativePath.endsWith(".json")
+  ));
+  const providerIds = new Set(providerFiles.map(providerIdFromManifestPath));
+  const commandConsumers = new Map([...providerIds].map(id => [id, []]));
+  const otherTextConsumers = new Map([...providerIds].map(id => [id, []]));
+  const jsonConsumers = new Map([...providerIds].map(id => [id, []]));
+
+  for (const relativePath of manifest.files.filter(file => file.endsWith(".mcfunction"))) {
+    for (const line of fs.readFileSync(relativePath, "utf8").split(/\r?\n/)) {
+      const recognized = new Set(commandProviderReferences(line));
+      for (const id of recognized) if (commandConsumers.has(id)) commandConsumers.get(id).push(relativePath);
+      for (const id of line.match(/math:[a-z0-9_./-]+/g) ?? []) {
+        if (otherTextConsumers.has(id) && !recognized.has(id)) otherTextConsumers.get(id).push(relativePath);
+      }
+    }
+  }
+  for (const relativePath of manifest.files.filter(file => file.endsWith(".json"))) {
+    const source = fs.readFileSync(relativePath, "utf8");
+    for (const match of source.matchAll(/"(math:[a-z0-9_./-]+)"/g)) {
+      if (jsonConsumers.has(match[1])) jsonConsumers.get(match[1]).push(relativePath);
+    }
+  }
+
+  const redundant = providerFiles
+    .filter(relativePath => fs.statSync(relativePath).size <= 128)
+    .map(relativePath => providerIdFromManifestPath(relativePath))
+    .filter(id => commandConsumers.get(id).length === 1
+      && otherTextConsumers.get(id).length === 0
+      && jsonConsumers.get(id).length === 0);
+  assert.deepEqual(redundant, [], "eligible one-command provider resources must be inlined");
+});
+
+test("stateful wrappers retain scratch that later calls or branches reuse", () => {
+  const retained = [
+    ["reciprocal/0.start", "internal.x set from storage math: a"],
+    ["remainder/0.start", "internal.y set from storage math: b"],
+    ["pow/1.compute", "internal.x set from storage math: a"],
+    ["sin/1.compute", "internal.x set from storage math: a"],
+    ["elastic/1.compute", "internal.x set from storage math: internal.w_elastic_amplitude"],
+    ["bounce/1.compute", "internal.w_bounce_scaled_t set from storage math: t"],
+  ];
+  for (const [relativePath, requiredScratch] of retained) {
+    const source = fs.readFileSync(path.join("Math/data/math/function", `${relativePath}.mcfunction`), "utf8");
+    assert.match(source, new RegExp(requiredScratch.replaceAll(".", "\\.")), relativePath);
+  }
 });
 
 test("generated assets omit context-float-provider documents with no consumers", () => {
@@ -920,7 +1011,7 @@ public final class FakeServer {
       for (int cursor = call + 1; cursor < end; cursor++) {
         String line = lines.get(cursor);
         if (line.contains("unless data storage math: {ans:") || line.contains("unless score #")) resultGuard = cursor;
-        if (line.contains("if data storage math: error run return run function math_test:fail/")) {
+        if (line.contains("unless data storage math: {error:\\"stale_error\\"} run return run function math_test:fail/")) {
           staleErrorGuard = cursor;
           staleErrorGuardCount++;
         }

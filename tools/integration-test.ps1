@@ -165,7 +165,7 @@ try {
         else {
             Add-Guard -Condition "unless data storage math: {ans:${ExpectedAnswer}}" -Case "${Case}_answer"
         }
-        Add-Guard -Condition 'if data storage math: error' -Case "${Case}_stale_error"
+        Add-Guard -Condition 'unless data storage math: {error:"stale_error"}' -Case "${Case}_stale_error"
         Add-Guard -Condition 'if data storage math: internal' -Case "${Case}_scratch"
     }
 
@@ -176,13 +176,13 @@ try {
     $assertionCommands.Add('data modify storage math: b set value 3.0f')
     $assertionCommands.Add('function #math:add')
     Add-Guard -Condition 'unless data storage math: {ans:5.0f}' -Case 'sequential_add_answer'
-    Add-Guard -Condition 'if data storage math: error' -Case 'sequential_add_stale_error'
+    Add-Guard -Condition 'unless data storage math: {error:"stale_error"}' -Case 'sequential_add_stale_error'
     Add-Guard -Condition 'if data storage math: internal' -Case 'sequential_add_scratch'
     $assertionCommands.Add('data modify storage math: a set value 7.0f')
     $assertionCommands.Add('data modify storage math: b set value -2.0f')
     $assertionCommands.Add('function #math:div')
     Add-Guard -Condition 'unless data storage math: {ans:-3.5f}' -Case 'sequential_div_answer'
-    Add-Guard -Condition 'if data storage math: error' -Case 'sequential_div_stale_error'
+    Add-Guard -Condition 'unless data storage math: {error:"stale_error"}' -Case 'sequential_div_stale_error'
     Add-Guard -Condition 'if data storage math: internal' -Case 'sequential_div_scratch'
 
     Add-SuccessCase -Case 'add' -Function 'add' -ExpectedAnswer '3.75f' -Setup @(
@@ -290,7 +290,7 @@ try {
     $assertionCommands.Add('function #math:bounce_decay')
     $assertionCommands.Add('execute store result score #bounce_decay math_test run data get storage math: ans 1000')
     Add-Guard -Condition 'unless score #bounce_decay math_test matches 64571..64574' -Case 'bounce_decay_answer'
-    Add-Guard -Condition 'if data storage math: error' -Case 'bounce_decay_stale_error'
+    Add-Guard -Condition 'unless data storage math: {error:"stale_error"}' -Case 'bounce_decay_stale_error'
     Add-Guard -Condition 'if data storage math: internal' -Case 'bounce_decay_scratch'
 
     Add-SuccessCase -Case 'bounce_decay_double_endpoint' -Function 'bounce_decay' -ExpectedAnswer '11.0f' -Setup @(
@@ -394,7 +394,7 @@ try {
     $assertionCommands.Add('execute store result score #asin_mid_domain math_test run data get storage math: ans 1000000')
     # Vanilla's sine lookup shifts the official 26.3 Pre-Release 1 centers; tolerances round up the JS precision budgets at this scale.
     Add-ScoreToleranceGuard -Score '#asin_mid_domain' -Center 523661 -Tolerance 2 -Case 'asin_mid_domain_answer'
-    Add-Guard -Condition 'if data storage math: error' -Case 'asin_mid_domain_stale_error'
+    Add-Guard -Condition 'unless data storage math: {error:"stale_error"}' -Case 'asin_mid_domain_stale_error'
     Add-Guard -Condition 'if data storage math: internal' -Case 'asin_mid_domain_scratch'
 
     $assertionCommands.Add('data modify storage math: rotation set value [0.0f,0.70710677f,0.0f,-0.70710677f]')
@@ -411,7 +411,7 @@ try {
     Add-Guard -Condition 'unless score #quaternion_axis_y math_test matches 999990..1000010' -Case 'quaternion_to_axis_angle_axis_y'
     Add-Guard -Condition 'unless score #quaternion_axis_z math_test matches -10..10' -Case 'quaternion_to_axis_angle_axis_z'
     Add-ScoreToleranceGuard -Score '#quaternion_angle' -Center 4712579 -Tolerance 6 -Case 'quaternion_to_axis_angle_angle'
-    Add-Guard -Condition 'if data storage math: error' -Case 'quaternion_to_axis_angle_stale_error'
+    Add-Guard -Condition 'unless data storage math: {error:"stale_error"}' -Case 'quaternion_to_axis_angle_stale_error'
     Add-Guard -Condition 'if data storage math: internal' -Case 'quaternion_to_axis_angle_scratch'
 
     $assertionCommands.Add('data modify storage math: rotation set value [0.0f,0.0f,0.0f,1.0f]')
@@ -420,7 +420,7 @@ try {
     $assertionCommands.Add('function #math:quaternion_to_axis_angle')
     Add-Guard -Condition 'unless data storage math: {rotation:[0.0f,0.0f,0.0f,1.0f]}' -Case 'quaternion_to_axis_angle_scalar_rotation'
     Add-Guard -Condition 'unless data storage math: {ans:{angle:0.0f,axis:[0.0f,1.0f,0.0f]}}' -Case 'quaternion_to_axis_angle_scalar_angle_float'
-    Add-Guard -Condition 'if data storage math: error' -Case 'quaternion_to_axis_angle_scalar_stale_error'
+    Add-Guard -Condition 'unless data storage math: {error:"stale_error"}' -Case 'quaternion_to_axis_angle_scalar_stale_error'
     Add-Guard -Condition 'if data storage math: internal' -Case 'quaternion_to_axis_angle_scalar_scratch'
 
     $assertionCommands.Add('data modify storage math: rotation set value [0.0d,0.0d,0.0d,1.0d]')
@@ -429,7 +429,7 @@ try {
     $assertionCommands.Add('function #math:quaternion_to_axis_angle')
     Add-Guard -Condition 'unless data storage math: {rotation:[0.0d,0.0d,0.0d,1.0d]}' -Case 'quaternion_to_axis_angle_double_rotation'
     Add-Guard -Condition 'unless data storage math: {ans:{angle:0.0f,axis:[0.0f,1.0f,0.0f]}}' -Case 'quaternion_to_axis_angle_double_result'
-    Add-Guard -Condition 'if data storage math: error' -Case 'quaternion_to_axis_angle_double_stale_error'
+    Add-Guard -Condition 'unless data storage math: {error:"stale_error"}' -Case 'quaternion_to_axis_angle_double_stale_error'
     Add-Guard -Condition 'if data storage math: internal' -Case 'quaternion_to_axis_angle_double_scratch'
 
     $assertionCommands.Add("say $passMarker")

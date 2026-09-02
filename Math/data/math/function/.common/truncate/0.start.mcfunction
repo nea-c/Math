@@ -1,2 +1,2 @@
-data modify storage math: internal.z set compute default float math:.common/rounding/truncate
+data modify storage math: internal.z set compute default float {"type":"minecraft:truncate","input":{"type":"minecraft:storage","storage":"math:","path":"internal.x"}}
 return 1

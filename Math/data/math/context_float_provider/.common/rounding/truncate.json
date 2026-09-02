@@ -1,8 +1,0 @@
-{
-  "type": "minecraft:truncate",
-  "input": {
-    "type": "minecraft:storage",
-    "storage": "math:",
-    "path": "internal.x"
-  }
-}

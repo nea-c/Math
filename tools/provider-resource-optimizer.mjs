@@ -40,12 +40,18 @@ function commandProviderReferences(text, knownIds) {
   return result;
 }
 
+function inlineProviderValue(value) {
+  return typeof value === "number"
+    ? { type: "minecraft:constant", value }
+    : value;
+}
+
 function inlineCommandProvider(text, id, replacement) {
   let replacements = 0;
   const next = text.replace(computeProviderPattern, (full, prefix, reference) => {
     if (reference !== id) return full;
     replacements += 1;
-    return `${prefix}${JSON.stringify(replacement)}`;
+    return `${prefix}${JSON.stringify(inlineProviderValue(replacement))}`;
   });
   if (replacements !== 1) throw new Error(`Expected one compute consumer for ${id}, found ${replacements}`);
   return next;
@@ -153,7 +159,7 @@ function inlineSmallSingleUseProviders(files, maxInlineBytes) {
       && !unsupportedCommandConsumers.has(id)
       && jsonConsumers.get(id).length === 0
       && commandConsumers.get(id).length === 1
-      && Buffer.byteLength(JSON.stringify(file.value)) <= inlineLimit
+      && Buffer.byteLength(JSON.stringify(inlineProviderValue(file.value))) <= inlineLimit
     ));
     if (!candidate) return optimized;
 

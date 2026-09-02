@@ -91,11 +91,8 @@ test("algorithmic predicates and shared reciprocal kernels use distinct private 
   assert.equal(fs.existsSync(path.join(predicateRoot, "internal")), false, "legacy predicate internal directory remains");
 });
 
-test("public calculation providers mirror their function names", () => {
-  for (const name of [
-    "abs", "add", "clamp", "cube", "deg", "div", "lerp",
-    "max", "min", "mul", "rad", "reciprocal", "square", "sub",
-  ]) {
+test("retained shared calculation providers use private names", () => {
+  for (const name of ["abs", "deg", "mul", "rad", "sub"]) {
     assert.equal(fs.existsSync(path.join(providerRoot, ".common", `${name}.json`)), true, `missing provider ${name}`);
   }
 
@@ -138,7 +135,7 @@ test("generated commands select float provider evaluation explicitly", () => {
     const source = fs.readFileSync(file, "utf8");
     assert.doesNotMatch(source, /\bcompute (?:default|block \S+|entity \S+) math:/, file);
     for (const line of source.split(/\r?\n/).filter(line => line.includes(" compute "))) {
-      assert.match(line, /\bcompute (?:default|block \S+|entity \S+) float math:/, `${file}: ${line}`);
+      assert.match(line, /\bcompute (?:default|block \S+|entity \S+) float \S+/, `${file}: ${line}`);
     }
   }
 });
@@ -148,14 +145,6 @@ test("native operations back directly supported public calculations", () => {
     [".common/abs.json", "minecraft:abs"],
     [".common/sub.json", "minecraft:sub"],
     [".common/mul.json", "minecraft:mul"],
-    [".common/div.json", "minecraft:div"],
-    [".common/reciprocal.json", "minecraft:div"],
-    [".common/min.json", "minecraft:min"],
-    [".common/max.json", "minecraft:max"],
-    [".common/rounding/floor.json", "minecraft:floor"],
-    [".common/rounding/ceil.json", "minecraft:ceil"],
-    [".common/rounding/round.json", "minecraft:round"],
-    [".common/rounding/truncate.json", "minecraft:truncate"],
     ["remainder/00.json", "minecraft:mod"],
     ["sin/00.json", "minecraft:sin"],
     ["cos/00.json", "minecraft:cos"],
@@ -166,6 +155,11 @@ test("native operations back directly supported public calculations", () => {
     const provider = JSON.parse(fs.readFileSync(path.join(providerRoot, relative), "utf8"));
     assert.equal(provider.type, expectedType, relative);
   }
+
+  const division = fs.readFileSync(path.join(packRoot, "data", "math", "function", "div", "1.compute.mcfunction"), "utf8");
+  const inline = division.match(/set compute default float (\{.*\})/);
+  assert.ok(inline, "division must use an inline provider at its command boundary");
+  assert.equal(JSON.parse(inline[1]).type, "minecraft:div");
 });
 
 test("generated predicates use float_value_check with the test field", () => {

@@ -1,6 +1,3 @@
 data remove storage math: ans
-data modify storage math: internal.x set from storage math: a
-data modify storage math: internal.y set from storage math: b
-data modify storage math: internal.z set from storage math: t
-data modify storage math: ans set compute default float math:.common/lerp
+data modify storage math: ans set compute default float {"type":"minecraft:add","inputs":[{"type":"minecraft:storage","storage":"math:","path":"a"},{"type":"minecraft:mul","inputs":[{"type":"minecraft:storage","storage":"math:","path":"t"},{"type":"minecraft:sub","left":{"type":"minecraft:storage","storage":"math:","path":"b"},"right":{"type":"minecraft:storage","storage":"math:","path":"a"}}]}]}
 data remove storage math: internal

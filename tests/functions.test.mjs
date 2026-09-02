@@ -45,7 +45,7 @@ test("public functions expose ans only and clean scratch", () => {
     const { storage, returned } = runFunction(name, publicInput, { x: 999, w_stale: 1 });
     assert.equal(returned, undefined, `${name} must naturally end`);
     assert.equal(storage["math:"].ans, Math.fround(expected), `${name} ans`);
-    assert.equal(storage["math:"].error, undefined, `${name} legacy error`);
+    assert.equal(storage["math:"].error, "stale_error", `${name} preserves unrelated public state`);
     assert.equal(storage["math:"].internal, undefined, `${name} scratch cleanup`);
     for (const field of ["a", "b", "min", "max", "t"]) {
       assert.deepEqual(storage["math:"][field], publicInput[field], `${name} preserves ${field}`);
@@ -68,7 +68,7 @@ test("divide zero numerator uses IEEE sign xor for every finite denominator sign
     const result = runFunction("div", { a, b, ans: 91, error: "stale_error" });
     assert.equal(result.returned, undefined, `divide(${Object.is(a, -0) ? "-0" : "+0"}, ${b}) must naturally end`);
     assert.ok(Object.is(result.storage["math:"].ans, expected), `divide(${Object.is(a, -0) ? "-0" : "+0"}, ${b}) sign`);
-    assert.equal(result.storage["math:"].error, undefined);
+    assert.equal(result.storage["math:"].error, "stale_error");
     assert.ok(Object.is(result.storage["math:"].a, a), "public numerator must be preserved");
     assert.equal(result.storage["math:"].b, b, "public denominator must be preserved");
   }
@@ -78,12 +78,12 @@ test("reciprocal and divide distinguish small nonzero divisors from zero", () =>
   const reciprocal = runFunction("reciprocal", { a: Math.fround(2 ** -14), error: "stale_error" });
   assert.equal(reciprocal.returned, undefined);
   assert.equal(reciprocal.storage["math:"].ans, 16384);
-  assert.equal(reciprocal.storage["math:"].error, undefined);
+  assert.equal(reciprocal.storage["math:"].error, "stale_error");
 
   const divide = runFunction("div", { a: 1, b: Math.fround(2 ** -14), error: "stale_error" });
   assert.equal(divide.returned, undefined);
   assert.equal(divide.storage["math:"].ans, 16384);
-  assert.equal(divide.storage["math:"].error, undefined);
+  assert.equal(divide.storage["math:"].error, "stale_error");
 });
 
 test("reciprocal accepts finite results at the exact binary32 overflow boundary", () => {
@@ -102,7 +102,7 @@ test("reciprocal accepts finite results at the exact binary32 overflow boundary"
       const result = runFunction("reciprocal", { a, ans: 91, error: "stale_error" });
       assert.equal(result.returned, undefined, `reciprocal(${a}) must naturally end`);
       assert.ok(Number.isFinite(result.storage["math:"].ans));
-      assert.equal(result.storage["math:"].error, undefined);
+      assert.equal(result.storage["math:"].error, "stale_error");
       assert.equal(result.storage["math:"].a, a);
     }
   }
@@ -129,7 +129,7 @@ test("divide coordinates subnormal operands across adjacent exponent bands", () 
     const result = runFunction("div", { a, b, error: "stale_error" });
     assert.equal(result.returned, undefined, `divide(${a}, ${b}) must naturally end`);
     assert.equal(result.storage["math:"].ans, Math.fround(expected), `divide(${a}, ${b})`);
-    assert.equal(result.storage["math:"].error, undefined);
+    assert.equal(result.storage["math:"].error, "stale_error");
     assert.equal(result.storage["math:"].a, a);
     assert.equal(result.storage["math:"].b, b);
   }
@@ -146,7 +146,7 @@ test("divide preserves signed zero on finite underflow", () => {
     const result = runFunction("div", { a, b, ans: 91, error: "stale_error" });
     assert.equal(result.returned, undefined, `divide(${a}, ${b}) underflow must naturally end`);
     assert.ok(Object.is(result.storage["math:"].ans, expected), `divide(${a}, ${b}) must preserve zero sign`);
-    assert.equal(result.storage["math:"].error, undefined);
+    assert.equal(result.storage["math:"].error, "stale_error");
   }
 
 });

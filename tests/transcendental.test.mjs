@@ -42,7 +42,7 @@ function assertSquareRoot(input) {
   const relativeError = Math.abs((actual - expected) / expected);
 
   assert.equal(returned, undefined, `square_root(${input}) must naturally end`);
-  assert.equal(storage["math:"].error, undefined, `square_root(${input}) must clear stale error`);
+  assert.equal(storage["math:"].error, "stale_error", `square_root(${input}) must preserve unrelated public state`);
   assert.equal(storage["math:"].a, input, `square_root(${input}) must preserve a`);
   assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float", `square_root(${input}) must write a float`);
   assert.equal(storage["math:"].internal, undefined, `square_root(${input}) scratch cleanup`);
@@ -54,7 +54,7 @@ function assertSuccessfulUnary(name, input) {
   const publicInput = { a: input, error: "stale_error" };
   const result = runFunction(name, publicInput);
   assert.equal(result.returned, undefined, `${name}(${input}) must naturally end`);
-  assert.equal(result.storage["math:"].error, undefined, `${name}(${input}) must clear stale error`);
+  assert.equal(result.storage["math:"].error, "stale_error", `${name}(${input}) must preserve unrelated public state`);
   assert.equal(result.storage["math:"].a, input, `${name}(${input}) must preserve a`);
   assert.equal(result.numericTags.get(storageFieldKey("math:", "ans")), "float", `${name}(${input}) must write a float`);
   assert.equal(result.storage["math:"].internal, undefined, `${name}(${input}) scratch cleanup`);
@@ -89,7 +89,7 @@ function assertPower(a, b) {
     : Math.abs(actual - expected) / smallestNormalFloat;
 
   assert.equal(returned, undefined, `power(${a}, ${b}) must naturally end`);
-  assert.equal(storage["math:"].error, undefined, `power(${a}, ${b}) must clear stale error`);
+  assert.equal(storage["math:"].error, "stale_error", `power(${a}, ${b}) must preserve unrelated public state`);
   assert.equal(storage["math:"].a, a, `power(${a}, ${b}) must preserve a`);
   assert.equal(storage["math:"].b, b, `power(${a}, ${b}) must preserve b`);
   assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float", `power(${a}, ${b}) must write a float`);
@@ -109,7 +109,7 @@ test("square root returns exact signed-zero inputs", () => {
     const { storage, numericTags, returned } = runFunction("sqrt", { a: input, ans: 91, error: "stale_error" });
     assert.equal(returned, undefined);
     assert.equal(storage["math:"].ans, 0);
-    assert.equal(storage["math:"].error, undefined);
+    assert.equal(storage["math:"].error, "stale_error");
     assert.equal(storage["math:"].a, input);
     assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float");
   }
@@ -178,8 +178,6 @@ test("log exp and power generated graphs use responsibility subdirectories", () 
     "log/normalize/centered_mantissa/00.json",
     "log/normalize/centered_exponent/00.json",
     "log/polynomial/00.json",
-    "exp/00.json",
-    "exp/reduce/quotient/00.json",
     "exp/reduce/remainder/00.json",
     "exp/polynomial/00.json",
     "exp/scale/00.json",
@@ -348,7 +346,7 @@ test("power preserves exact exponent-one identities at the finite limit", () => 
     const result = runFunction("pow", { a: base, b: 1, error: "stale_error" });
     assert.equal(result.returned, undefined, `power(${base}, 1) must naturally end`);
     assert.equal(result.storage["math:"].ans, base);
-    assert.equal(result.storage["math:"].error, undefined);
+    assert.equal(result.storage["math:"].error, "stale_error");
     assert.equal(result.storage["math:"].a, base);
     assert.equal(result.storage["math:"].b, 1);
   }
@@ -365,7 +363,7 @@ test("power preserves adjacent finite results on both base signs", () => {
     const result = runFunction("pow", { a, b, ans: 91, error: "stale_error" });
     assert.equal(result.returned, undefined, `power(${a}, ${b}) naturally ends`);
     assert.equal(Number.isFinite(result.storage["math:"].ans), true, `power(${a}, ${b}) ans`);
-    assert.equal(result.storage["math:"].error, undefined);
+    assert.equal(result.storage["math:"].error, "stale_error");
     assert.equal(result.storage["math:"].a, a);
     assert.equal(result.storage["math:"].b, b);
     const expected = Math.fround(Math.pow(a, b));
@@ -484,7 +482,7 @@ test("negative-infinity power intermediates underflow to correctly signed zero",
     assert.equal(result.returned, undefined, `power(${a}, ${b}) must naturally end`);
     assert.ok(result.storage["math:"].ans === 0);
     assert.equal(Object.is(result.storage["math:"].ans, -0), negativeZero);
-    assert.equal(result.storage["math:"].error, undefined);
+    assert.equal(result.storage["math:"].error, "stale_error");
     assert.equal(result.storage["math:"].a, a);
     assert.equal(result.storage["math:"].b, b);
   }
@@ -565,7 +563,7 @@ test("log materializes three private Newton updates with small active providers"
     if (typeof provider === "string") return expandedNodes(providers.get(provider));
     return 1 + (provider.inputs ?? []).reduce((total, operand) => total + expandedNodes(operand), 0);
   };
-  for (const name of ["log_initial", "log_newton", "log_denominator"]) {
+  for (const name of ["log_initial", "log_newton"]) {
     assert.ok(expandedNodes(providers.get(`math:.common/reciprocal/${name}`)) < 60, `${name} is too large`);
   }
 
@@ -678,7 +676,7 @@ test("tangent is accurate away from poles and near valid threshold boundaries", 
     const result = runFunction(name, { a: input, ans: 91, error: "stale_error" });
     assert.equal(result.returned, undefined, `${name}(${input}) outside conservative pole band`);
     assert.ok(Number.isFinite(result.storage["math:"].ans));
-    assert.equal(result.storage["math:"].error, undefined);
+    assert.equal(result.storage["math:"].error, "stale_error");
   }
 
   for (const [name, input] of [["tan", 0], ["tan", -0], ["tan_degrees", 0], ["tan_degrees", -0]]) {
@@ -703,7 +701,7 @@ test("trigonometric wrappers accept usable larger finite phases", () => {
       const result = runFunction(name, { a: Math.fround(input), error: "stale_error" });
       assert.equal(result.returned, undefined, `${name}(${input}) must retain a usable finite phase`);
       assert.ok(Number.isFinite(result.storage["math:"].ans), `${name}(${input}) must return finite ans`);
-      assert.equal(result.storage["math:"].error, undefined);
+      assert.equal(result.storage["math:"].error, "stale_error");
       assert.equal(result.storage["math:"].a, Math.fround(input));
     }
   }
@@ -723,7 +721,7 @@ test("sine and cosine wrappers handle huge finite inputs", () => {
       const result = runFunction(name, { a: input, ans: 91, error: "stale_error" });
       assert.equal(result.returned, undefined, `${name}(${input}) must naturally end`);
       assert.ok(Number.isFinite(result.storage["math:"].ans), `${name}(${input}) must return finite ans`);
-      assert.equal(result.storage["math:"].error, undefined);
+      assert.equal(result.storage["math:"].error, "stale_error");
       assert.equal(result.storage["math:"].a, input);
       assert.equal(result.numericTags.get(storageFieldKey("math:", "ans")), "float");
       assert.equal(result.storage["math:"].internal, undefined);

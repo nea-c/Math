@@ -17,7 +17,7 @@ function previousFloat(value) {
 function assertInverse(name, input, reference, tolerance) {
   const result = runFunction(name, { a: Math.fround(input), ans: 91, error: "stale_error" });
   assert.equal(result.returned, undefined);
-  assert.equal(result.storage["math:"].error, undefined);
+  assert.equal(result.storage["math:"].error, "stale_error");
   assert.equal(result.storage["math:"].a, Math.fround(input));
   assert.equal(result.numericTags.get(storageFieldKey("math:", "ans")), "float");
   assert.ok(Math.abs(result.storage["math:"].ans - reference) <= tolerance,

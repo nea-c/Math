@@ -1,6 +1,3 @@
 data remove storage math: ans
-data modify storage math: internal.x set from storage math: a
-data modify storage math: internal.z set from storage math: min
-data modify storage math: internal.w set from storage math: max
-data modify storage math: ans set compute default float math:.common/clamp
+data modify storage math: ans set compute default float {"type":"minecraft:min","inputs":[{"type":"minecraft:max","inputs":[{"type":"minecraft:storage","storage":"math:","path":"a"},{"type":"minecraft:storage","storage":"math:","path":"min"}]},{"type":"minecraft:storage","storage":"math:","path":"max"}]}
 data remove storage math: internal

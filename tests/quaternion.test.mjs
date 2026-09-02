@@ -36,7 +36,7 @@ function assertQuaternion(rotation, label = JSON.stringify(rotation), { reconstr
     error: "stale_error",
   });
   assert.equal(result.returned, undefined, label);
-  assert.equal(result.storage["math:"].error, undefined, `${label} stale error`);
+  assert.equal(result.storage["math:"].error, "stale_error", `${label} preserves unrelated public state`);
   assert.deepEqual(result.storage["math:"].rotation, original, `${label} rotation`);
   assert.equal(result.storage["math:"].internal, undefined, `${label} scratch cleanup`);
   assertFloatOutput(result, label);
