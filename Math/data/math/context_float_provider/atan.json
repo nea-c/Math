@@ -1,0 +1,70 @@
+{
+  "type": "div",
+  "left": {
+    "type": "mul",
+    "inputs": [
+      {
+        "type": "storage",
+        "storage": "math:",
+        "path": "internal.x"
+      },
+      {
+        "type": "add",
+        "inputs": [
+          1,
+          {
+            "type": "mul",
+            "inputs": [
+              0.43157974,
+              {
+                "type": "pow",
+                "base": {
+                  "type": "storage",
+                  "storage": "math:",
+                  "path": "internal.x"
+                },
+                "exponent": 2
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "right": {
+    "type": "add",
+    "inputs": [
+      1,
+      {
+        "type": "mul",
+        "inputs": [
+          0.76491225,
+          {
+            "type": "pow",
+            "base": {
+              "type": "storage",
+              "storage": "math:",
+              "path": "internal.x"
+            },
+            "exponent": 2
+          }
+        ]
+      },
+      {
+        "type": "mul",
+        "inputs": [
+          0.05831938,
+          {
+            "type": "pow",
+            "base": {
+              "type": "storage",
+              "storage": "math:",
+              "path": "internal.x"
+            },
+            "exponent": 4
+          }
+        ]
+      }
+    ]
+  }
+}

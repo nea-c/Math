@@ -9,11 +9,9 @@
           "storage": "math:",
           "path": "a"
         },
-        "test": {
-          "max": -1.401298464324817e-45
-        }
+        "test": 0
       },
-      "value": -1
+      "value": 0
     },
     {
       "condition": {
@@ -24,11 +22,11 @@
           "path": "a"
         },
         "test": {
-          "min": 1.401298464324817e-45
+          "min": 0
         }
       },
       "value": 1
     }
   ],
-  "default": 0
+  "default": -1
 }

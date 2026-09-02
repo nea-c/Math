@@ -1,0 +1,26 @@
+{
+  "type": "float_value_check",
+  "value": {
+    "type": "number_dispatcher",
+    "cases": [
+      {
+        "condition": {
+          "type": "float_value_check",
+          "value": {
+            "type": "storage",
+            "storage": "math:",
+            "path": "internal.abs"
+          },
+          "test": {
+            "max": 0.5
+          }
+        },
+        "value": 0
+      }
+    ],
+    "default": 1
+  },
+  "test": {
+    "min": 1
+  }
+}
