@@ -1,8 +1,0 @@
-{
-  "type": "cos",
-  "input": {
-    "type": "storage",
-    "storage": "math:",
-    "path": "internal.x"
-  }
-}

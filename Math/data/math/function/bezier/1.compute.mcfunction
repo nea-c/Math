@@ -1,5 +1,5 @@
-execute if predicate math:.validation/.common/interpolation/time_at_or_below_start run return run data modify storage math: ans set from storage math: a
-execute if predicate math:.validation/.common/interpolation/time_at_or_after_end run return run data modify storage math: ans set from storage math: b
+execute if predicate math:interpolation/time_at_or_below_start run return run data modify storage math: ans set from storage math: a
+execute if predicate math:interpolation/time_at_or_after_end run return run data modify storage math: ans set from storage math: b
 data modify storage math: internal.w_bezier_u set compute default float {"type":"div","left":{"type":"storage","storage":"math:","path":"t"},"right":{"type":"storage","storage":"math:","path":"max"}}
 data modify storage math: internal.w_bezier_low set value 0.0f
 data modify storage math: internal.w_bezier_high set value 1.0f
