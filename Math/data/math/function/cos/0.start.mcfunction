@@ -1,3 +1,3 @@
 data remove storage math: ans
-data modify storage math: ans set compute default float {"type":"minecraft:cos","input":{"type":"minecraft:storage","storage":"math:","path":"a"}}
+data modify storage math: ans set compute default float {"type":"cos","input":{"type":"storage","storage":"math:","path":"a"}}
 data remove storage math: internal

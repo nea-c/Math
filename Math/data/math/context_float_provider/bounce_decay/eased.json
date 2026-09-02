@@ -7,12 +7,12 @@
       {
         "type": "storage",
         "storage": "math:",
-        "path": "internal.w_bounce_decay_factor"
+        "path": "internal.factor"
       },
       {
         "type": "storage",
         "storage": "math:",
-        "path": "internal.w_bounce_decay_wave"
+        "path": "internal.wave"
       }
     ]
   }

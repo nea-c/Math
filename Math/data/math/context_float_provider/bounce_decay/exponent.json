@@ -1,16 +1,20 @@
 {
-  "type": "minecraft:mul",
-  "inputs": [
-    -1,
-    {
-      "type": "minecraft:storage",
-      "storage": "math:",
-      "path": "decay"
-    },
-    {
-      "type": "minecraft:storage",
-      "storage": "math:",
-      "path": "internal.w_bounce_decay_u"
-    }
-  ]
+  "type": "pow",
+  "base": 2.7182818284590452353602874713527,
+  "exponent": {
+    "type": "mul",
+    "inputs": [
+      -1,
+      {
+        "type": "storage",
+        "storage": "math:",
+        "path": "decay"
+      },
+      {
+        "type": "storage",
+        "storage": "math:",
+        "path": "internal.time"
+      }
+    ]
+  }
 }

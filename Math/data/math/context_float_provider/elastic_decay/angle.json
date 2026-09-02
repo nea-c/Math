@@ -1,16 +1,19 @@
 {
-  "type": "minecraft:mul",
-  "inputs": [
-    6.2831854820251465,
-    {
-      "type": "minecraft:storage",
-      "storage": "math:",
-      "path": "oscillations"
-    },
-    {
-      "type": "minecraft:storage",
-      "storage": "math:",
-      "path": "internal.w_elastic_decay_u"
-    }
-  ]
+  "type": "cos",
+  "input": {
+    "type": "mul",
+    "inputs": [
+      6.2831854820251465,
+      {
+        "type": "storage",
+        "storage": "math:",
+        "path": "oscillations"
+      },
+      {
+        "type": "storage",
+        "storage": "math:",
+        "path": "internal.time"
+      }
+    ]
+  }
 }

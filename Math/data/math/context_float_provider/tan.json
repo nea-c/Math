@@ -1,0 +1,19 @@
+{
+  "type": "div",
+  "left": {
+    "type": "sin",
+    "input": {
+      "type": "storage",
+      "storage": "math:",
+      "path": "internal.x"
+    }
+  },
+  "right": {
+    "type": "cos",
+    "input": {
+      "type": "storage",
+      "storage": "math:",
+      "path": "internal.x"
+    }
+  }
+}

@@ -46,7 +46,7 @@ data get storage math: ans
 | `curve` | `bezier` の制御点 `[x1,y1,x2,y2]` |
 | `amplitude`, `period` | `elastic` の振幅倍率と1周期のtick数 |
 | `oscillations`, `damping` | `elastic_decay` の振動回数と減衰率 |
-| `bounces`, `decay` | `bounce_decay` の跳ねる回数と減衰率 |
+| `frequency`, `decay` | `bounce_decay` の跳ねる回数と減衰率 |
 | `rotation` | クォータニオン `[x,y,z,w]` |
 | `ans` | 計算結果 |
 

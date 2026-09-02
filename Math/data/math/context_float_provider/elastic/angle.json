@@ -1,32 +1,27 @@
 {
-  "type": "minecraft:mul",
-  "inputs": [
-    {
-      "type": "minecraft:add",
-      "inputs": [
-        {
-          "type": "minecraft:storage",
+  "type": "sin",
+  "input": {
+    "type": "mul",
+    "inputs": [
+      {
+        "type": "sub",
+        "left": {
+          "type": "storage",
           "storage": "math:",
           "path": "t"
         },
-        {
-          "type": "minecraft:mul",
-          "inputs": [
-            -1,
-            {
-              "type": "minecraft:storage",
-              "storage": "math:",
-              "path": "internal.w_elastic_phase"
-            }
-          ]
+        "right": {
+          "type": "storage",
+          "storage": "math:",
+          "path": "internal.w_elastic_phase"
         }
-      ]
-    },
-    6.2831854820251465,
-    {
-      "type": "minecraft:storage",
-      "storage": "math:",
-      "path": "internal.w_elastic_inverse_period"
-    }
-  ]
+      },
+      6.2831854820251465,
+      {
+        "type": "storage",
+        "storage": "math:",
+        "path": "internal.w_elastic_inverse_period"
+      }
+    ]
+  }
 }

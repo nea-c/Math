@@ -12,7 +12,7 @@
         {
           "type": "storage",
           "storage": "math:",
-          "path": "internal.w_bounce_eased"
+          "path": "internal.eased"
         },
         {
           "type": "sub",

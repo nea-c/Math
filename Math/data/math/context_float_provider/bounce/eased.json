@@ -7,10 +7,9 @@
         "value": {
           "type": "storage",
           "storage": "math:",
-          "path": "internal.w_bounce_u"
+          "path": "internal.time"
         },
         "test": {
-          "min": 0.3636363446712494,
           "max": 0.36363640427589417
         }
       },
@@ -21,12 +20,12 @@
           {
             "type": "storage",
             "storage": "math:",
-            "path": "internal.w_bounce_u"
+            "path": "internal.time"
           },
           {
             "type": "storage",
             "storage": "math:",
-            "path": "internal.w_bounce_u"
+            "path": "internal.time"
           }
         ]
       }
@@ -37,10 +36,9 @@
         "value": {
           "type": "storage",
           "storage": "math:",
-          "path": "internal.w_bounce_u"
+          "path": "internal.time"
         },
         "test": {
-          "min": 0.7272726893424988,
           "max": 0.7272728085517883
         }
       },
@@ -58,7 +56,7 @@
                   {
                     "type": "storage",
                     "storage": "math:",
-                    "path": "internal.w_bounce_u"
+                    "path": "internal.time"
                   },
                   -0.5454545617103577
                 ]
@@ -69,7 +67,7 @@
                   {
                     "type": "storage",
                     "storage": "math:",
-                    "path": "internal.w_bounce_u"
+                    "path": "internal.time"
                   },
                   -0.5454545617103577
                 ]
@@ -85,10 +83,9 @@
         "value": {
           "type": "storage",
           "storage": "math:",
-          "path": "internal.w_bounce_u"
+          "path": "internal.time"
         },
         "test": {
-          "min": 0.9090908765792847,
           "max": 0.9090909957885742
         }
       },
@@ -106,7 +103,7 @@
                   {
                     "type": "storage",
                     "storage": "math:",
-                    "path": "internal.w_bounce_u"
+                    "path": "internal.time"
                   },
                   -0.8181818127632141
                 ]
@@ -117,7 +114,7 @@
                   {
                     "type": "storage",
                     "storage": "math:",
-                    "path": "internal.w_bounce_u"
+                    "path": "internal.time"
                   },
                   -0.8181818127632141
                 ]
@@ -142,7 +139,7 @@
               {
                 "type": "storage",
                 "storage": "math:",
-                "path": "internal.w_bounce_u"
+                "path": "internal.time"
               },
               -0.9545454382896423
             ]
@@ -153,7 +150,7 @@
               {
                 "type": "storage",
                 "storage": "math:",
-                "path": "internal.w_bounce_u"
+                "path": "internal.time"
               },
               -0.9545454382896423
             ]

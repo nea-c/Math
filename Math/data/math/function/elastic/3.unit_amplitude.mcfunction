@@ -1,2 +1,2 @@
-data modify storage math: internal.x set compute default float math:.common/asin_positive/half_pi
-return run function math:elastic/2.phase
+data modify storage math: internal.x set value 1.5707963705062866f
+function math:elastic/2.phase

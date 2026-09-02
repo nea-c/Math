@@ -2,58 +2,35 @@
   "type": "sub",
   "left": 1,
   "right": {
-    "type": "mul",
-    "inputs": [
-      {
-        "type": "add",
-        "inputs": [
-          {
-            "type": "mul",
-            "inputs": [
-              2,
-              {
-                "type": "sub",
-                "left": {
+    "type": "pow",
+    "base": {
+      "type": "add",
+      "inputs": [
+        {
+          "type": "mul",
+          "inputs": [
+            2,
+            {
+              "type": "sub",
+              "left": {
+                "type": "storage",
+                "storage": "math:",
+                "path": "internal.x"
+              },
+              "right": {
+                "type": "floor",
+                "input": {
                   "type": "storage",
                   "storage": "math:",
                   "path": "internal.x"
-                },
-                "right": {
-                  "type": "storage",
-                  "storage": "math:",
-                  "path": "internal.z"
                 }
               }
-            ]
-          },
-          -1
-        ]
-      },
-      {
-        "type": "add",
-        "inputs": [
-          {
-            "type": "mul",
-            "inputs": [
-              2,
-              {
-                "type": "sub",
-                "left": {
-                  "type": "storage",
-                  "storage": "math:",
-                  "path": "internal.x"
-                },
-                "right": {
-                  "type": "storage",
-                  "storage": "math:",
-                  "path": "internal.z"
-                }
-              }
-            ]
-          },
-          -1
-        ]
-      }
-    ]
+            }
+          ]
+        },
+        -1
+      ]
+    },
+    "exponent": 2
   }
 }
