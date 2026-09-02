@@ -7,7 +7,7 @@
         "value": {
           "type": "storage",
           "storage": "math:",
-          "path": "internal.x"
+          "path": "a"
         },
         "test": {
           "max": -1.401298464324817e-45
@@ -21,7 +21,7 @@
         "value": {
           "type": "storage",
           "storage": "math:",
-          "path": "internal.x"
+          "path": "a"
         },
         "test": {
           "min": 1.401298464324817e-45
