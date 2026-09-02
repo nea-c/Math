@@ -1,3 +1,3 @@
 data remove storage math: ans
-function math:mod/1.compute
+data modify storage math: ans set compute default float {"type":"mod","left":{"type":"storage","storage":"math:","path":"a"},"right":{"type":"storage","storage":"math:","path":"b"}}
 data remove storage math: internal
