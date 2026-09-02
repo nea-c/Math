@@ -55,7 +55,7 @@ const COMMAND_BUDGETS = {
   log: { baseline: 26, boundary: 26 },
   div: { baseline: 3, boundary: 3 },
   sqrt: { baseline: 3, boundary: 3 },
-  bezier: { baseline: 128, boundary: 5 },
+  bezier: { baseline: 64, boundary: 5 },
   bounce: { baseline: 49, boundary: 5 },
   bounce_decay: { baseline: 60, boundary: 5 },
   remainder: { baseline: 3, boundary: 3 },

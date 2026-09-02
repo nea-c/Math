@@ -41,6 +41,7 @@ export const FUNCTION_PATHS = Object.freeze({
   atan2ScaleSubnormal: "atan2/2.scale_subnormal",
   bezierCompute: "bezier/1.compute",
   bezierSolve: "bezier/2.solve",
+  bezierStep: "bezier/3.step",
   bounceCompute: "bounce/1.compute",
   bounceScaleSubnormal: "bounce/2.scale_subnormal",
   bounceDecayCompute: "bounce_decay/1.compute",

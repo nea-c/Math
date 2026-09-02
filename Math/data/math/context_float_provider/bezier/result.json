@@ -15,25 +15,17 @@
           "path": "internal.w_bezier_y"
         },
         {
-          "type": "add",
-          "inputs": [
-            {
-              "type": "storage",
-              "storage": "math:",
-              "path": "b"
-            },
-            {
-              "type": "mul",
-              "inputs": [
-                -1,
-                {
-                  "type": "storage",
-                  "storage": "math:",
-                  "path": "a"
-                }
-              ]
-            }
-          ]
+          "type": "sub",
+          "left": {
+            "type": "storage",
+            "storage": "math:",
+            "path": "b"
+          },
+          "right": {
+            "type": "storage",
+            "storage": "math:",
+            "path": "a"
+          }
         }
       ]
     }

@@ -53,7 +53,7 @@ test("public calculations do not execute single-use forwarding helpers", () => {
 test("Bezier providers read public curve elements without internal aliases", () => {
   const paths = [
     ...storagePaths(graph.providers.get("math:bezier/midpoint")),
-    ...storagePaths(graph.providers.get("math:bezier/compare_x")),
+    ...storagePaths(graph.predicates.get("math:.validation/bezier/x_before_input")),
     ...storagePaths(graph.providers.get("math:bezier/y")),
   ];
   assert.deepEqual(

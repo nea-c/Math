@@ -1,78 +1,59 @@
 {
-  "type": "minecraft:add",
-  "inputs": [
-    1,
-    {
-      "type": "minecraft:mul",
-      "inputs": [
-        -1,
-        {
-          "type": "minecraft:add",
-          "inputs": [
-            {
-              "type": "minecraft:mul",
-              "inputs": [
-                2,
-                {
-                  "type": "minecraft:add",
-                  "inputs": [
-                    {
-                      "type": "minecraft:storage",
-                      "storage": "math:",
-                      "path": "internal.x"
-                    },
-                    {
-                      "type": "minecraft:mul",
-                      "inputs": [
-                        -1,
-                        {
-                          "type": "minecraft:storage",
-                          "storage": "math:",
-                          "path": "internal.z"
-                        }
-                      ]
-                    }
-                  ]
+  "type": "sub",
+  "left": 1,
+  "right": {
+    "type": "mul",
+    "inputs": [
+      {
+        "type": "add",
+        "inputs": [
+          {
+            "type": "mul",
+            "inputs": [
+              2,
+              {
+                "type": "sub",
+                "left": {
+                  "type": "storage",
+                  "storage": "math:",
+                  "path": "internal.x"
+                },
+                "right": {
+                  "type": "storage",
+                  "storage": "math:",
+                  "path": "internal.z"
                 }
-              ]
-            },
-            -1
-          ]
-        },
-        {
-          "type": "minecraft:add",
-          "inputs": [
-            {
-              "type": "minecraft:mul",
-              "inputs": [
-                2,
-                {
-                  "type": "minecraft:add",
-                  "inputs": [
-                    {
-                      "type": "minecraft:storage",
-                      "storage": "math:",
-                      "path": "internal.x"
-                    },
-                    {
-                      "type": "minecraft:mul",
-                      "inputs": [
-                        -1,
-                        {
-                          "type": "minecraft:storage",
-                          "storage": "math:",
-                          "path": "internal.z"
-                        }
-                      ]
-                    }
-                  ]
+              }
+            ]
+          },
+          -1
+        ]
+      },
+      {
+        "type": "add",
+        "inputs": [
+          {
+            "type": "mul",
+            "inputs": [
+              2,
+              {
+                "type": "sub",
+                "left": {
+                  "type": "storage",
+                  "storage": "math:",
+                  "path": "internal.x"
+                },
+                "right": {
+                  "type": "storage",
+                  "storage": "math:",
+                  "path": "internal.z"
                 }
-              ]
-            },
-            -1
-          ]
-        }
-      ]
-    }
-  ]
+              }
+            ]
+          },
+          -1
+        ]
+      }
+    ]
+  }
 }

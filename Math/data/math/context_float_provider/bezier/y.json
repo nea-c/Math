@@ -7,25 +7,21 @@
         3,
         {
           "type": "sub",
-          "inputs": [
-            1,
-            {
-              "type": "storage",
-              "storage": "math:",
-              "path": "internal.w_bezier_midpoint"
-            }
-          ]
+          "left": 1,
+          "right": {
+            "type": "storage",
+            "storage": "math:",
+            "path": "internal.w_bezier_midpoint"
+          }
         },
         {
           "type": "sub",
-          "inputs": [
-            1,
-            {
-              "type": "storage",
-              "storage": "math:",
-              "path": "internal.w_bezier_midpoint"
-            }
-          ]
+          "left": 1,
+          "right": {
+            "type": "storage",
+            "storage": "math:",
+            "path": "internal.w_bezier_midpoint"
+          }
         },
         {
           "type": "storage",
@@ -45,14 +41,12 @@
         3,
         {
           "type": "sub",
-          "inputs": [
-            1,
-            {
-              "type": "storage",
-              "storage": "math:",
-              "path": "internal.w_bezier_midpoint"
-            }
-          ]
+          "left": 1,
+          "right": {
+            "type": "storage",
+            "storage": "math:",
+            "path": "internal.w_bezier_midpoint"
+          }
         },
         {
           "type": "storage",

@@ -31,9 +31,10 @@ test("function layout defines the complete public API", () => {
 });
 
 test("function layout assigns representative owned and common helpers", () => {
-  assert.equal(Object.keys(FUNCTION_PATHS).length, 51);
+  assert.equal(Object.keys(FUNCTION_PATHS).length, 52);
   assert.equal(FUNCTION_PATHS.bezierCompute, "bezier/1.compute");
   assert.equal(FUNCTION_PATHS.bezierSolve, "bezier/2.solve");
+  assert.equal(FUNCTION_PATHS.bezierStep, "bezier/3.step");
   assert.equal(FUNCTION_PATHS.asinPositive, ".common/asin_positive/0.start");
   assert.equal(FUNCTION_PATHS.asin, ".common/asin/0.start");
   assert.equal(FUNCTION_PATHS.asinComplement, ".common/asin/2.complement");

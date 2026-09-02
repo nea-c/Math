@@ -1,27 +1,30 @@
 {
-  "type": "minecraft:add",
-  "inputs": [
-    {
-      "type": "minecraft:mul",
-      "inputs": [
-        {
-          "type": "minecraft:add",
-          "inputs": [
-            {
-              "type": "minecraft:storage",
-              "storage": "math:",
-              "path": "bounces"
-            },
-            0.5
-          ]
-        },
-        {
-          "type": "minecraft:storage",
-          "storage": "math:",
-          "path": "internal.w_bounce_decay_u"
-        }
-      ]
-    },
-    0.5
-  ]
+  "type": "floor",
+  "input": {
+    "type": "add",
+    "inputs": [
+      {
+        "type": "mul",
+        "inputs": [
+          {
+            "type": "add",
+            "inputs": [
+              {
+                "type": "storage",
+                "storage": "math:",
+                "path": "bounces"
+              },
+              0.5
+            ]
+          },
+          {
+            "type": "storage",
+            "storage": "math:",
+            "path": "internal.w_bounce_decay_u"
+          }
+        ]
+      },
+      0.5
+    ]
+  }
 }

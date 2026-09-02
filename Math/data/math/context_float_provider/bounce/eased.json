@@ -1,29 +1,30 @@
 {
-  "type": "minecraft:number_dispatcher",
+  "type": "number_dispatcher",
   "cases": [
     {
       "condition": {
-        "type": "minecraft:float_value_check",
+        "type": "float_value_check",
         "value": {
-          "type": "minecraft:storage",
+          "type": "storage",
           "storage": "math:",
-          "path": "internal.w_comparison.bounce_0"
+          "path": "internal.w_bounce_u"
         },
         "test": {
-          "max": 0
+          "min": 0.3636363446712494,
+          "max": 0.36363640427589417
         }
       },
       "value": {
-        "type": "minecraft:mul",
+        "type": "mul",
         "inputs": [
           7.5625,
           {
-            "type": "minecraft:storage",
+            "type": "storage",
             "storage": "math:",
             "path": "internal.w_bounce_u"
           },
           {
-            "type": "minecraft:storage",
+            "type": "storage",
             "storage": "math:",
             "path": "internal.w_bounce_u"
           }
@@ -32,29 +33,30 @@
     },
     {
       "condition": {
-        "type": "minecraft:float_value_check",
+        "type": "float_value_check",
         "value": {
-          "type": "minecraft:storage",
+          "type": "storage",
           "storage": "math:",
-          "path": "internal.w_comparison.bounce_1"
+          "path": "internal.w_bounce_u"
         },
         "test": {
-          "max": 0
+          "min": 0.7272726893424988,
+          "max": 0.7272728085517883
         }
       },
       "value": {
-        "type": "minecraft:add",
+        "type": "add",
         "inputs": [
           0.75,
           {
-            "type": "minecraft:mul",
+            "type": "mul",
             "inputs": [
               7.5625,
               {
-                "type": "minecraft:add",
+                "type": "add",
                 "inputs": [
                   {
-                    "type": "minecraft:storage",
+                    "type": "storage",
                     "storage": "math:",
                     "path": "internal.w_bounce_u"
                   },
@@ -62,10 +64,10 @@
                 ]
               },
               {
-                "type": "minecraft:add",
+                "type": "add",
                 "inputs": [
                   {
-                    "type": "minecraft:storage",
+                    "type": "storage",
                     "storage": "math:",
                     "path": "internal.w_bounce_u"
                   },
@@ -79,29 +81,30 @@
     },
     {
       "condition": {
-        "type": "minecraft:float_value_check",
+        "type": "float_value_check",
         "value": {
-          "type": "minecraft:storage",
+          "type": "storage",
           "storage": "math:",
-          "path": "internal.w_comparison.bounce_2"
+          "path": "internal.w_bounce_u"
         },
         "test": {
-          "max": 0
+          "min": 0.9090908765792847,
+          "max": 0.9090909957885742
         }
       },
       "value": {
-        "type": "minecraft:add",
+        "type": "add",
         "inputs": [
           0.9375,
           {
-            "type": "minecraft:mul",
+            "type": "mul",
             "inputs": [
               7.5625,
               {
-                "type": "minecraft:add",
+                "type": "add",
                 "inputs": [
                   {
-                    "type": "minecraft:storage",
+                    "type": "storage",
                     "storage": "math:",
                     "path": "internal.w_bounce_u"
                   },
@@ -109,10 +112,10 @@
                 ]
               },
               {
-                "type": "minecraft:add",
+                "type": "add",
                 "inputs": [
                   {
-                    "type": "minecraft:storage",
+                    "type": "storage",
                     "storage": "math:",
                     "path": "internal.w_bounce_u"
                   },
@@ -126,18 +129,18 @@
     }
   ],
   "default": {
-    "type": "minecraft:add",
+    "type": "add",
     "inputs": [
       0.984375,
       {
-        "type": "minecraft:mul",
+        "type": "mul",
         "inputs": [
           7.5625,
           {
-            "type": "minecraft:add",
+            "type": "add",
             "inputs": [
               {
-                "type": "minecraft:storage",
+                "type": "storage",
                 "storage": "math:",
                 "path": "internal.w_bounce_u"
               },
@@ -145,10 +148,10 @@
             ]
           },
           {
-            "type": "minecraft:add",
+            "type": "add",
             "inputs": [
               {
-                "type": "minecraft:storage",
+                "type": "storage",
                 "storage": "math:",
                 "path": "internal.w_bounce_u"
               },

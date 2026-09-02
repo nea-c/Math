@@ -413,15 +413,14 @@ function cubicBezier(parameter, firstControl, secondControl) {
   );
 }
 
-const bezierCurveX = cubicBezier(bezierMidpoint, bezierCurveX1, bezierCurveX2);
-emit("bezier/midpoint", product(0.5, sum(bezierLow, bezierHigh)));
-emit("bezier/x", bezierCurveX);
+const bezierMidpointValue = product(0.5, sum(bezierLow, bezierHigh));
+const bezierCurveX = cubicBezier(bezierMidpointValue, bezierCurveX1, bezierCurveX2);
+emit("bezier/midpoint", bezierMidpointValue);
 emit("bezier/y", cubicBezier(bezierMidpoint, bezierCurveY1, bezierCurveY2));
-emit("bezier/compare_x", floatComparison(subtractExpression(bezierCurveX, bezierInput), 0));
 emitPredicate("bezier/x_before_input", inlineValueCheck(
-  internalStorage("w_comparison.bezier_x"),
+  subtractExpression(bezierCurveX, bezierInput),
   undefined,
-  -1,
+  smallestNegativeFloat,
 ));
 emit("bezier/result", sum(publicA, product(
   internalStorage("w_bezier_y"),
@@ -1272,14 +1271,14 @@ emitFunction(FUNCTION_PATHS.bounceScaleSubnormal, [
 }
 
 {
-  const lines = [];
-  for (let iteration = 0; iteration < 20; iteration += 1) {
-    lines.push("data modify storage math:internal w_bezier_midpoint set compute default math:bezier/midpoint");
-    lines.push("data modify storage math:internal w_comparison.bezier_x set compute default math:bezier/compare_x");
-    lines.push("execute if predicate math:internal/bezier/x_before_input run data modify storage math:internal w_bezier_low set from storage math:internal w_bezier_midpoint");
-    lines.push("execute unless predicate math:internal/bezier/x_before_input run data modify storage math:internal w_bezier_high set from storage math:internal w_bezier_midpoint");
-  }
-  lines.push("return 1");
+  emitFunction(FUNCTION_PATHS.bezierStep, [
+    "execute if predicate math:internal/bezier/x_before_input run return run data modify storage math:internal w_bezier_low set compute default math:bezier/midpoint",
+    "data modify storage math:internal w_bezier_high set compute default math:bezier/midpoint",
+  ]);
+  const lines = Array.from(
+    { length: 20 },
+    () => `function ${functionId(FUNCTION_PATHS.bezierStep)}`,
+  );
   emitFunction(FUNCTION_PATHS.bezierSolve, lines);
 }
 
@@ -1291,10 +1290,7 @@ emitFunction(FUNCTION_PATHS.bounceScaleSubnormal, [
   lines.push(...stagePredicate("bezier/time_at_or_after_end"));
   lines.push("execute if predicate math:internal/bezier/time_at_or_after_end run data modify storage math: ans set from storage math: b");
   lines.push("execute if predicate math:internal/bezier/time_at_or_after_end run return 1");
-  lines.push("data modify storage math:internal x set from storage math: max");
-  lines.push("data modify storage math:internal y set from storage math: t");
-  lines.push(`function ${functionId(FUNCTION_PATHS.reciprocal)}`);
-  lines.push("data modify storage math:internal w_bezier_u set from storage math:internal x");
+  lines.push(computeInline("internal.w_bezier_u", divide(publicT, publicMax)));
   lines.push("data modify storage math:internal w_bezier_low set value 0.0f");
   lines.push("data modify storage math:internal w_bezier_high set value 1.0f");
   lines.push(`function ${functionId(FUNCTION_PATHS.bezierSolve)}`);

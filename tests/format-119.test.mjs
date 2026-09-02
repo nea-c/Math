@@ -123,8 +123,9 @@ test("bezier providers read curve inputs directly from public storage", () => {
   const source = fs.readFileSync(path.join(packRoot, "data", "math", "function", "bezier", "1.compute.mcfunction"), "utf8");
   assert.doesNotMatch(source, /internal\.w_bezier_[xy][12]/);
   assert.doesNotMatch(source, /math:bezier\/input\//);
-  const providers = ["midpoint.json", "compare_x.json", "y.json"]
+  const providers = ["midpoint.json", "y.json"]
     .map(name => fs.readFileSync(path.join(providerRoot, "bezier", name), "utf8"))
+    .concat(fs.readFileSync(path.join(packRoot, "data", "math", "predicate", ".validation", "bezier", "x_before_input.json"), "utf8"))
     .join("\n");
   for (let index = 0; index < 4; index += 1) assert.match(providers, new RegExp(`"path": "curve\\[${index}\\]"`));
 });

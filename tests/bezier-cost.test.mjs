@@ -176,10 +176,22 @@ test("bezier compute keeps its certified final bracket private and observable", 
   }
 });
 
-test("bezier avoids provider-dispatch overhead when updating its bracket", () => {
+test("bezier bracket solving finishes by natural function exit", () => {
+  const result = runImplementation(
+    "bezier/2.solve",
+    { curve: [0, 0, 1, 1] },
+    { w_bezier_u: 0.5, w_bezier_low: 0, w_bezier_high: 1 },
+  );
+  assert.equal(result.returned, undefined);
+  assert.ok(result.storage["math:"].internal.w_bezier_low <= 0.5);
+  assert.ok(result.storage["math:"].internal.w_bezier_high >= 0.5);
+});
+
+test("bezier uses native division and one direct predicate per bracket update", () => {
   const cost = staticFunctionCost("bezier/0.start", loadGeneratedGraph(), { recursionLimit: 320 });
-  assert.ok(cost.commands <= 191, JSON.stringify(cost));
-  assert.ok(cost.providerNodes < 6_240, JSON.stringify(cost));
+  assert.equal(cost.calls.commands.some(path => path.startsWith(".common/reciprocal/")), false);
+  assert.ok(cost.commands <= 80, JSON.stringify(cost));
+  assert.ok(cost.providerNodes <= 400, JSON.stringify(cost));
 });
 
 test("safeguarded Newton feasibility gate retains bisection when no safe win exists", (t) => {
