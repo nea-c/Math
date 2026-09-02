@@ -57,15 +57,6 @@ function inlineCommandProvider(text, id, replacement) {
   return next;
 }
 
-function replaceReference(value, id, replacement) {
-  if (value === id) return replacement;
-  if (Array.isArray(value)) return value.map(child => replaceReference(child, id, replacement));
-  if (!value || typeof value !== "object") return value;
-  return Object.fromEntries(
-    Object.entries(value).map(([key, child]) => [key, replaceReference(child, id, replacement)]),
-  );
-}
-
 function pruneUnreachableProviders(files) {
   const providers = new Map();
   for (const file of files) {

@@ -258,7 +258,7 @@ function validatePackGraph(packRoot, { onReference } = {}) {
       const value = tokens[index];
       try {
         const inline = JSON.parse(value);
-        if (typeof inline === "number" || (inline && typeof inline === "object" && !Array.isArray(inline))) {
+        if (inline && typeof inline === "object" && !Array.isArray(inline)) {
           walkProvider(inline, source, `${location}.inline`);
           return;
         }
@@ -510,6 +510,7 @@ test("pack graph validator detects controlled dangling registry references", () 
       "data/math/function/fixture/root.mcfunction:12: dangling context_float_provider math:missing/data_merge",
       "data/math/function/fixture/root.mcfunction:13: dangling context_float_provider math:missing/data_prepend",
       "data/math/function/fixture/root.mcfunction:14: dangling context_float_provider math:missing/data_set",
+      "data/math/function/fixture/root.mcfunction:15: invalid context_float_provider reference 1.25",
       "data/math/function/fixture/root.mcfunction:16.inline.inputs[0]: dangling context_float_provider math:missing/inline_ref",
       "data/math/context_float_provider/fixture/aggregate.json:inputs[0]: dangling context_float_provider math:missing/input",
       "data/math/context_float_provider/fixture/conditional.json:conditions: dangling predicate math:missing/conditional_condition",
@@ -742,7 +743,7 @@ test("redundancy audit uses compact inline provider bytes, not pretty JSON bytes
 test("simple public wrappers read public storage inline and leave no eligible provider resource", () => {
   const inputPaths = new Map([
     ["add", ["a", "b"]], ["sub", ["a", "b"]], ["mul", ["a", "b"]], ["abs", ["a"]],
-    ["min", ["a", "b"]], ["max", ["a", "b"]], ["square", ["a", "a"]], ["cube", ["a", "a", "a"]],
+    ["min", ["a", "b"]], ["max", ["a", "b"]], ["square", ["a"]], ["cube", ["a"]],
     ["rad", ["a"]], ["deg", ["a"]], ["lerp", ["a", "a", "b", "t"]], ["floor", ["a"]],
     ["ceil", ["a"]], ["round", ["a"]], ["truncate", ["a"]], ["clamp", ["a", "min", "max"]],
   ]);

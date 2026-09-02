@@ -1,3 +1,3 @@
 data remove storage math: ans
-data modify storage math: ans set compute default float {"type":"minecraft:mul","inputs":[{"type":"minecraft:storage","storage":"math:","path":"a"},{"type":"minecraft:storage","storage":"math:","path":"a"},{"type":"minecraft:storage","storage":"math:","path":"a"}]}
+data modify storage math: ans set compute default float {"type":"minecraft:pow","base":{"type":"minecraft:storage","storage":"math:","path":"a"},"exponent":3}
 data remove storage math: internal

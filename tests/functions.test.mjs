@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { resolvePublicFunctionTag, runFunction, storageFieldKey } from "./mcfunction-test-harness.mjs";
 
 test("public function tags resolve exactly one implementation", () => {
@@ -50,6 +51,22 @@ test("public functions expose ans only and clean scratch", () => {
     for (const field of ["a", "b", "min", "max", "t"]) {
       assert.deepEqual(storage["math:"][field], publicInput[field], `${name} preserves ${field}`);
     }
+  }
+});
+
+test("square and cube retain native power binary32 semantics", () => {
+  const input = 5.909620801611629e-14;
+  assert.equal(runFunction("cube", { a: input }).storage["math:"].ans, 2.063846391242234e-40);
+
+  for (const [name, exponent] of [["square", 2], ["cube", 3]]) {
+    const source = fs.readFileSync(`Math/data/math/function/${name}/0.start.mcfunction`, "utf8");
+    const match = source.match(/set compute default float (\{.*\})/);
+    assert.ok(match, `${name} must contain an inline provider`);
+    assert.deepEqual(JSON.parse(match[1]), {
+      type: "minecraft:pow",
+      base: { type: "minecraft:storage", storage: "math:", path: "a" },
+      exponent,
+    });
   }
 });
 
