@@ -53,14 +53,14 @@ const COMMAND_BUDGETS = {
   tan: { baseline: 10, boundary: 10 },
   tan_degrees: { baseline: 11, boundary: 11 },
   log: { baseline: 27, boundary: 27 },
-  div: { baseline: 5, boundary: 4 },
-  sqrt: { baseline: 8, boundary: 7 },
-  bezier: { baseline: 135, boundary: 11 },
+  div: { baseline: 4, boundary: 4 },
+  sqrt: { baseline: 6, boundary: 5 },
+  bezier: { baseline: 133, boundary: 9 },
   bounce: { baseline: 51, boundary: 5 },
   bounce_decay: { baseline: 62, boundary: 5 },
   remainder: { baseline: 5, boundary: 5 },
   mod: { baseline: 129, boundary: 127 },
-  pow: { baseline: 11, boundary: 14 },
+  pow: { baseline: 11, boundary: 11 },
   asin: { baseline: 227, boundary: 11 },
   asin_degrees: { baseline: 228, boundary: 12 },
   acos: { baseline: 234, boundary: 7 },
@@ -84,7 +84,7 @@ const QUATERNION_PATH_BUDGETS = {
   identity: [{ rotation: [0, 0, 0, 1] }, 190],
   ordinary90: [{ rotation: [0, Math.fround(Math.SQRT1_2), 0, Math.fround(Math.SQRT1_2)] }, 1_000],
   nonunit: [{ rotation: [1, -2, 3, -4] }, 1_000],
-  invalidZero: [{ rotation: [0, 0, 0, 0] }, 35],
+  invalidZero: [{ rotation: [0, 0, 0, 0] }, 120],
 };
 
 test("runtime cost expands referenced providers", () => {
@@ -302,7 +302,7 @@ test("honest static log and div costs stay within measured head budgets", () => 
 
 test("adaptive square root improves its Task 3 representative cost and preserves the boundary", () => {
   assert.ok(runFunction("sqrt", { a: 3 }).commandsExecuted < 96);
-  assert.equal(runFunction("sqrt", { a: 0 }).commandsExecuted, 7);
+  assert.equal(runFunction("sqrt", { a: 0 }).commandsExecuted, 5);
 });
 
 test("active divide providers do not exceed the honestly recomputed Task 1 node maximum", () => {

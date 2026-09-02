@@ -103,6 +103,21 @@ test("reciprocal and divide distinguish small nonzero divisors from zero", () =>
   assert.equal(divide.storage["math:"].error, "stale_error");
 });
 
+test("non-finite arithmetic uses vanilla's zero output", () => {
+  for (const [name, input] of [
+    ["sqrt", { a: -1 }],
+    ["div", { a: 5, b: 0 }],
+    ["mod", { a: 5, b: 0 }],
+    ["pow", { a: 0, b: -1 }],
+    ["pow", { a: -2, b: 0.5 }],
+  ]) {
+    const result = runFunction(name, { ...input, ans: 91, error: "stale_error" });
+    assert.equal(result.returned, undefined, `${name} must naturally end`);
+    assert.equal(result.storage["math:"].ans, 0, `${name} must retain vanilla's non-finite output`);
+    assert.equal(result.storage["math:"].error, "stale_error", `${name} must not report a library error`);
+  }
+});
+
 test("reciprocal accepts finite results at the exact binary32 overflow boundary", () => {
   const threshold = Math.fround(2 ** -128 + 2 ** -149);
   const view = new DataView(new ArrayBuffer(4));

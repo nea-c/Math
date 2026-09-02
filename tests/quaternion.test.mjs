@@ -103,3 +103,16 @@ test("four-dimensional and vector normalization stay safe across the binary32 ra
     if (expectedAxis) assert.deepEqual(result.storage["math:"].ans.axis, expectedAxis);
   }
 });
+
+test("quaternion conversion leaves zero and component arity handling to vanilla providers", () => {
+  for (const rotation of [
+    [0, 0, 0, 0],
+    [1, 0, 0],
+    [0, 0, 0, 1, 9],
+  ]) {
+    const result = runFunction("quaternion_to_axis_angle", { rotation, error: "stale_error" });
+    assert.equal(result.returned, undefined);
+    assert.equal(typeof result.storage["math:"].ans, "object");
+    assert.equal(result.storage["math:"].error, "stale_error");
+  }
+});

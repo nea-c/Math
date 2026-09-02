@@ -33,3 +33,15 @@ test("bezier clamps elapsed time to exact endpoints and preserves inputs", () =>
     }
   }
 });
+
+test("bezier leaves curve arity handling to vanilla storage providers", () => {
+  for (const curve of [
+    [0.25, 0.1, 0.25],
+    [0.25, 0.1, 0.25, 1, 9],
+  ]) {
+    const result = runFunction("bezier", { t: 5, max: 10, a: 0, b: 1, curve, error: "stale_error" });
+    assert.equal(result.returned, undefined);
+    assert.equal(typeof result.storage["math:"].ans, "number");
+    assert.equal(result.storage["math:"].error, "stale_error");
+  }
+});

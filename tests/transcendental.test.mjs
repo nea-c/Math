@@ -187,7 +187,6 @@ test("log exp and power generated graphs use responsibility subdirectories", () 
   }
   for (const predicate of [
     "exp/underflows_to_zero.json",
-    "power/exponent_integer.json",
   ]) {
     assert.ok(fs.existsSync(path.join("Math/data/math/predicate/.validation", predicate)), `missing ${predicate}`);
   }

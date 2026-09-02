@@ -1,5 +1,3 @@
-execute unless data storage math: curve[3] run return 1
-execute if data storage math: curve[4] run return 1
 data modify storage math: internal.w_bezier_x1 set from storage math: curve[0]
 data modify storage math: internal.w_bezier_y1 set from storage math: curve[1]
 data modify storage math: internal.w_bezier_x2 set from storage math: curve[2]

@@ -327,8 +327,9 @@ function runWithStorage(name, publicInput, internalInput, initialPublicTags = ne
     }
     match = command.match(/^data modify storage (\S+) (\S+) set compute default float (\S+)$/);
     if (match) {
+      const evaluated = evaluateProvider(commandProvider(match[3]), providers, new Map(Object.entries(storage)));
       setTypedPath(storage[match[1]] ??= {}, numericTags, match[1], match[2], {
-        value: evaluateProvider(commandProvider(match[3]), providers, new Map(Object.entries(storage))),
+        value: Number.isFinite(evaluated) ? evaluated : 0,
         numericTags: new Map([["", "float"]]),
       });
       return undefined;

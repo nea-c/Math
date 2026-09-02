@@ -826,12 +826,6 @@ emitPredicate("asin_positive/before_target", inlineValueCheck(
 ));
 emitStagedPredicate("inverse_trigonometry/x_negative", x, undefined, smallestNegativeFloat);
 emitStagedPredicate("inverse_trigonometry/use_complement", x, 0.995, undefined);
-emitStagedPredicate(
-  "quaternion_to_axis_angle/maximum_zero",
-  internalStorage("w_quaternion_maximum"),
-  0,
-  0,
-);
 for (let index = 0; index < 4; index += 1) {
   emitStagedPredicate(
     `quaternion_to_axis_angle/scaled_${index}_positive_maximum`,
@@ -873,8 +867,6 @@ emitPredicate("inverse_trigonometry/square_before_target", inlineValueCheck(
   -1,
 ));
 emitStagedPredicate("exp/underflows_to_zero", x, undefined, maximumZeroExpInput);
-emitStagedPredicate("power/exponent_negative", y, undefined, smallestNegativeFloat);
-emitStagedPredicate("power/exponent_integer", sum(publicB, product(-1, z)), 0, 0);
 emitStagedPredicate("rounding/remainder/can_subtract_y", sum(x, product(-1, y)), 0, undefined);
 // With x >= y, x - y is exact while x < 2y (Sterbenz's lemma), and cannot
 // round back down to y once x > 2y. This avoids the lossy 0.5*x subnormal
@@ -1311,8 +1303,6 @@ emitFunction(FUNCTION_PATHS.bezierFinish, [
 
 {
   const lines = [];
-  lines.push("execute unless data storage math: curve[3] run return 1");
-  lines.push("execute if data storage math: curve[4] run return 1");
   for (const [field, index] of [["x1", 0], ["y1", 1], ["x2", 2], ["y2", 3]]) {
     lines.push(`data modify storage math:internal w_bezier_${field} set from storage math: curve[${index}]`);
   }
@@ -1364,11 +1354,6 @@ for (const [name, literal] of [
 
 emitFunction(FUNCTION_PATHS.floor, [
   "data modify storage math:internal z set compute default math:common/rounding/floor",
-  "return 1",
-]);
-
-emitFunction(FUNCTION_PATHS.truncate, [
-  "data modify storage math:internal z set compute default math:common/rounding/truncate",
   "return 1",
 ]);
 
@@ -1469,8 +1454,6 @@ function exactRemainderLines() {
 {
   const lines = [];
   lines.push("data modify storage math:internal x set from storage math: a");
-  lines.push("data modify storage math:internal w_comparison.x_sign set compute default math:internal/comparison/x_zero");
-  lines.push("execute if predicate math:internal/range/negative run return 1");
   lines.push("execute if data storage math:internal {x:0.0f} run data modify storage math: ans set value 0.0f");
   lines.push("execute if data storage math:internal {x:0.0f} run return 1");
   lines.push("data modify storage math: ans set compute default math:square_root/00");
@@ -1486,14 +1469,10 @@ function internalSquareRootLines(inputProvider, outputPath) {
 
 {
   const lines = [];
-  lines.push("execute unless data storage math: rotation[3] run return 1");
-  lines.push("execute if data storage math: rotation[4] run return 1");
   for (let index = 0; index < 4; index += 1) {
     lines.push(`data modify storage math:internal w_quaternion_component_${index} set compute default math:quaternion_to_axis_angle/input/rotation_${index}`);
   }
   lines.push("data modify storage math:internal w_quaternion_maximum set compute default math:quaternion_to_axis_angle/normalize/maximum");
-  lines.push(...stagePredicate("quaternion_to_axis_angle/maximum_zero"));
-  lines.push("execute if predicate math:internal/quaternion_to_axis_angle/maximum_zero run return 1");
   lines.push(`function ${functionId(FUNCTION_PATHS.quaternionNormalize)}`);
   emitControlledPublicFunction("quaternion_to_axis_angle", FUNCTION_PATHS.quaternionCompute, lines);
 }
@@ -1653,17 +1632,11 @@ emitFunction(FUNCTION_PATHS.powerNegativeOdd, nativePowerResultLines);
 emitFunction(FUNCTION_PATHS.powerZero, [
   "execute if data storage math:internal {y:0.0f} run data modify storage math: ans set value 1.0f",
   "execute if data storage math:internal {y:0.0f} run return 1",
-  ...stagePredicate("power/exponent_negative"),
-  "execute if predicate math:internal/power/exponent_negative run return 1",
   "data modify storage math: ans set value 0.0f",
   "return 1",
 ]);
 
 emitFunction(FUNCTION_PATHS.powerNegative, [
-  "data modify storage math:internal x set from storage math:internal y",
-  `function ${functionId(FUNCTION_PATHS.truncate)}`,
-  ...stagePredicate("power/exponent_integer"),
-  "execute unless predicate math:internal/power/exponent_integer run return 1",
   `function ${functionId(FUNCTION_PATHS.powerNegativeOdd)}`,
 ]);
 
@@ -1705,7 +1678,6 @@ emitFunction(FUNCTION_PATHS.powerNegative, [
 
 {
   const lines = [];
-  lines.push("execute if data storage math: {b:0.0f} run return 1");
   lines.push(computeInline("ans", divide(publicA, publicB)));
   emitControlledPublicFunction("div", FUNCTION_PATHS.divideCompute, lines);
 }
@@ -1822,8 +1794,8 @@ emitFunction(FUNCTION_PATHS.moduloNegativeB, [
 
 {
   const lines = [];
+  lines.push(`execute if data storage math: {b:0.0f} run return run ${computeInline("ans", modulo(publicA, publicB))}`);
   lines.push("data modify storage math:internal x set from storage math: b");
-  lines.push(...stopOnZeroLines());
   lines.push(...exactRemainderLines());
   lines.push(...stagePredicate("rounding/remainder/zero"));
   lines.push("execute if predicate math:internal/rounding/remainder/zero run data modify storage math: ans set value 0.0f");
