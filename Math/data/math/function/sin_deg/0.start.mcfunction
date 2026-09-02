@@ -1,3 +1,3 @@
 data remove storage math: ans
-function math:sin_deg/1.compute
+data modify storage math: ans set compute default float {"type":"minecraft:sin","input":{"type":"minecraft:mul","inputs":[{"type":"minecraft:storage","storage":"math:","path":"a"},0.01745329238474369]}}
 data remove storage math: internal

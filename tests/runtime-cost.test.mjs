@@ -214,6 +214,12 @@ test("tangent shared phase executes fewer commands than the Task 1 baselines", (
   assert.ok(runFunction("tan_deg", { a: 45 }).commandsExecuted < 94);
 });
 
+test("public sine and cosine wrappers execute only their direct entry commands", () => {
+  for (const name of ["sin", "cos", "sin_deg", "cos_deg"]) {
+    assert.equal(runFunction(name, { a: 30 }).commandsExecuted, 3, name);
+  }
+});
+
 test("inverse trigonometric public wrappers call their shared implementations", () => {
   for (const [name, common] of [
     ["asin", ".common/asin/0.start"],

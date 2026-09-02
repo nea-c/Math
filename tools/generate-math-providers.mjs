@@ -43,6 +43,7 @@ const maximumZeroExpInput = Math.fround(-103.97208404541016);
 const pi = Math.fround(Math.PI);
 const halfPi = Math.fround(Math.PI / 2);
 const tau = Math.fround(Math.PI * 2);
+const radiansPerDegree = Math.fround(Math.PI / 180);
 const generatedFiles = [];
 
 const renamedSharedProviders = new Map([
@@ -1762,28 +1763,21 @@ function tangentResultLines() {
   ];
 }
 
-function trigWrapper(name, computePath, kernelPath, isTangent, degrees, zeroResult) {
-  const lines = [];
-  lines.push("data modify storage math:internal x set from storage math: a");
-  if (degrees) lines.push("data modify storage math:internal x set compute default math:common/conversion/rad");
-  lines.push(`execute if data storage math:internal {x:0.0f} run data modify storage math: ans set ${zeroResult}`);
-  lines.push("execute if data storage math:internal {x:0.0f} run return 1");
-  if (isTangent) {
-    lines.push(`function ${functionId(kernelPath)}`);
-    lines.push(...tangentResultLines());
-  } else {
-    lines.push(`function ${functionId(kernelPath)}`);
-    lines.push("data modify storage math: ans set compute default math:common/input/x");
-  }
+function tangentWrapper(name, computePath, degrees) {
+  const lines = ["data modify storage math:internal x set from storage math: a"];
+  if (degrees) lines.push("data modify storage math:internal x set compute default math:.common/rad");
+  lines.push("execute if data storage math:internal {x:0.0f} run return run data modify storage math: ans set compute default float math:.common/input/x");
+  lines.push(`function ${functionId(FUNCTION_PATHS.tan)}`);
+  lines.push(...tangentResultLines());
   emitControlledPublicFunction(name, computePath, lines);
 }
 
-trigWrapper("sin", FUNCTION_PATHS.sineCompute, FUNCTION_PATHS.sin, false, false, "compute default math:common/input/x");
-trigWrapper("sin_deg", FUNCTION_PATHS.sineDegCompute, FUNCTION_PATHS.sin, false, true, "compute default math:common/input/x");
-trigWrapper("cos", FUNCTION_PATHS.cosineCompute, FUNCTION_PATHS.cos, false, false, "value 1.0f");
-trigWrapper("cos_deg", FUNCTION_PATHS.cosineDegCompute, FUNCTION_PATHS.cos, false, true, "value 1.0f");
-trigWrapper("tan", FUNCTION_PATHS.tangentCompute, FUNCTION_PATHS.tan, true, false, "compute default math:common/input/x");
-trigWrapper("tan_deg", FUNCTION_PATHS.tangentDegCompute, FUNCTION_PATHS.tan, true, true, "compute default math:common/input/x");
+emitDirectPublicFunction("sin", [computeInline("ans", sine(publicA))]);
+emitDirectPublicFunction("cos", [computeInline("ans", cosine(publicA))]);
+emitDirectPublicFunction("sin_deg", [computeInline("ans", sine(product(publicA, radiansPerDegree)))]);
+emitDirectPublicFunction("cos_deg", [computeInline("ans", cosine(product(publicA, radiansPerDegree)))]);
+tangentWrapper("tan", FUNCTION_PATHS.tangentCompute, false);
+tangentWrapper("tan_deg", FUNCTION_PATHS.tangentDegCompute, true);
 
 {
   const lines = [];

@@ -44,8 +44,6 @@ export const FUNCTION_PATHS = Object.freeze({
   bounceCompute: "bounce/1.compute",
   bounceScaleSubnormal: "bounce/2.scale_subnormal",
   bounceDecayCompute: "bounce_decay/1.compute",
-  cosineCompute: "cos/1.compute",
-  cosineDegCompute: "cos_deg/1.compute",
   elasticCompute: "elastic/1.compute",
   elasticPhase: "elastic/2.phase",
   elasticUnitAmplitude: "elastic/3.unit_amplitude",
@@ -58,8 +56,6 @@ export const FUNCTION_PATHS = Object.freeze({
   quaternionVector: "quaternion_to_axis_angle/2.vector",
   quaternionFinish: "quaternion_to_axis_angle/3.finish",
   quaternionScalar: "quaternion_to_axis_angle/4.scalar",
-  sineCompute: "sin/1.compute",
-  sineDegCompute: "sin_deg/1.compute",
   tangentCompute: "tan/1.compute",
   tangentDegCompute: "tan_deg/1.compute",
 });
