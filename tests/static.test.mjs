@@ -13,6 +13,23 @@ const directWrappers = [
   "div", "reciprocal", "remainder", "sqrt", "pow",
 ];
 
+test("retired degrees API names are absent", () => {
+  const roots = ["README.md", "tools", "tests", "Math/data/math/function", "Math/data/math/tags/function"];
+  const retired = ["sin", "cos", "tan", "asin", "acos", "atan", "atan2"].map(base => `${base}_degrees`);
+  const filesBelow = (entryPath) => {
+    if (fs.statSync(entryPath).isFile()) return [entryPath];
+    return fs.readdirSync(entryPath, { withFileTypes: true }).flatMap((entry) => {
+      const child = path.join(entryPath, entry.name);
+      return entry.isDirectory() ? filesBelow(child) : [child];
+    });
+  };
+  const matches = roots.flatMap(filesBelow).filter((file) => {
+    const source = fs.readFileSync(file, "utf8");
+    return retired.some((name) => source.includes(name));
+  });
+  assert.deepEqual(matches, []);
+});
+
 function providerIdFromManifestPath(relativePath) {
   const prefix = "Math/data/math/context_float_provider/";
   return `math:${relativePath.slice(prefix.length, -".json".length)}`;

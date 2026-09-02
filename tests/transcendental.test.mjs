@@ -584,9 +584,9 @@ test("native sine and cosine preserve signed zero", () => {
     ["sin", -0, -0, true],
     ["cos", 0, 1],
     ["cos", -0, 1],
-    ["sin_degrees", 0, 0],
-    ["sin_degrees", -0, -0, true],
-    ["cos_degrees", 0, 1],
+    ["sin_deg", 0, 0],
+    ["sin_deg", -0, -0, true],
+    ["cos_deg", 0, 1],
   ]) {
     const actual = assertSuccessfulUnary(name, input);
     assert.equal(actual, expected, `${name}(${input}) exact result`);
@@ -633,8 +633,8 @@ test("degree sine and cosine meet the guaranteed domain including quadrant-adjac
   let worstCos;
   for (const value of values) {
     const radians = value * Math.PI / 180;
-    const sinError = assertTrigValue("sin_degrees", value, () => Math.sin(radians));
-    const cosError = assertTrigValue("cos_degrees", value, () => Math.cos(radians));
+    const sinError = assertTrigValue("sin_deg", value, () => Math.sin(radians));
+    const cosError = assertTrigValue("cos_deg", value, () => Math.cos(radians));
     if (sinError > maximumSinError) [maximumSinError, worstSin] = [sinError, value];
     if (cosError > maximumCosError) [maximumCosError, worstCos] = [cosError, value];
   }
@@ -649,7 +649,7 @@ test("tangent is accurate away from poles and near valid threshold boundaries", 
   let worstCase;
   for (const [name, minimum, maximum, seed, degrees] of [
     ["tan", -100, 100, 0x299f31d0, false],
-    ["tan_degrees", -5000, 5000, 0x082efa98, true],
+    ["tan_deg", -5000, 5000, 0x082efa98, true],
   ]) {
     for (const input of deterministicAngles(minimum, maximum, 2_000, seed)) {
       const radians = degrees ? input * Math.PI / 180 : input;
@@ -668,8 +668,8 @@ test("tangent is accurate away from poles and near valid threshold boundaries", 
   for (const [name, input] of [
     ["tan", Math.fround(Math.PI / 2 - 0.00004)],
     ["tan", Math.fround(Math.PI / 2 + 0.00004)],
-    ["tan_degrees", Math.fround(90 - 0.00004 * 180 / Math.PI)],
-    ["tan_degrees", Math.fround(90 + 0.00004 * 180 / Math.PI)],
+    ["tan_deg", Math.fround(90 - 0.00004 * 180 / Math.PI)],
+    ["tan_deg", Math.fround(90 + 0.00004 * 180 / Math.PI)],
   ]) {
     const result = runFunction(name, { a: input, ans: 91, error: "stale_error" });
     assert.equal(result.returned, undefined, `${name}(${input}) outside conservative pole band`);
@@ -677,7 +677,7 @@ test("tangent is accurate away from poles and near valid threshold boundaries", 
     assert.equal(result.storage["math:"].error, "stale_error");
   }
 
-  for (const [name, input] of [["tan", 0], ["tan", -0], ["tan_degrees", 0], ["tan_degrees", -0]]) {
+  for (const [name, input] of [["tan", 0], ["tan", -0], ["tan_deg", 0], ["tan_deg", -0]]) {
     const actual = assertSuccessfulUnary(name, input);
     assert.equal(actual, input);
     assert.equal(Object.is(actual, -0), Object.is(input, -0));
@@ -691,9 +691,9 @@ test("trigonometric wrappers accept usable larger finite phases", () => {
     ["sin", [1_000, -1_000, 1_000_000]],
     ["cos", [1_000, -1_000, 1_000_000]],
     ["tan", [1_000, -1_000, 1_000_000]],
-    ["sin_degrees", [10_000, -10_000, 1_000_000]],
-    ["cos_degrees", [10_000, -10_000, 1_000_000]],
-    ["tan_degrees", [10_000, -10_000, 1_000_000]],
+    ["sin_deg", [10_000, -10_000, 1_000_000]],
+    ["cos_deg", [10_000, -10_000, 1_000_000]],
+    ["tan_deg", [10_000, -10_000, 1_000_000]],
   ]) {
     for (const input of inputs) {
       const result = runFunction(name, { a: Math.fround(input), error: "stale_error" });
@@ -714,7 +714,7 @@ test("sine and cosine wrappers handle huge finite inputs", () => {
     finiteLimit,
     -finiteLimit,
   ];
-  for (const name of ["sin", "cos", "sin_degrees", "cos_degrees"]) {
+  for (const name of ["sin", "cos", "sin_deg", "cos_deg"]) {
     for (const input of hugeInputs) {
       const result = runFunction(name, { a: input, ans: 91, error: "stale_error" });
       assert.equal(result.returned, undefined, `${name}(${input}) must naturally end`);

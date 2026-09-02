@@ -35,7 +35,7 @@ test("atan returns principal angles in radians and degrees", () => {
     [-1000, -1.5697963, -89.9427],
   ]) {
     assertSuccess("atan", { a: input }, radians, radiansTolerance);
-    assertSuccess("atan_degrees", { a: input }, degrees, degreesTolerance);
+    assertSuccess("atan_deg", { a: input }, degrees, degreesTolerance);
   }
 });
 
@@ -52,16 +52,16 @@ test("atan2 returns the correct quadrant and exact origin convention", () => {
     [-1e-12, -1, -3.1415927, -180],
   ]) {
     assertSuccess("atan2", { a, b }, radians, radiansTolerance);
-    assertSuccess("atan2_degrees", { a, b }, degrees, degreesTolerance);
+    assertSuccess("atan2_deg", { a, b }, degrees, degreesTolerance);
   }
 });
 
 test("atan functions accept every numeric NBT type and return floats", () => {
   for (const [name, snbt, expected] of [
     ["atan", "{a:1b}", Math.fround(Math.PI / 4)],
-    ["atan_degrees", "{a:1.0d}", 45],
+    ["atan_deg", "{a:1.0d}", 45],
     ["atan2", "{a:1s,b:-1l}", Math.fround(3 * Math.PI / 4)],
-    ["atan2_degrees", "{a:-1.0d,b:-1b}", -135],
+    ["atan2_deg", "{a:-1.0d,b:-1b}", -135],
     ["atan2", "{a:0.0d,b:0}", 0],
   ]) {
     const result = runFunctionFromSnbt(name, snbt);
@@ -98,7 +98,7 @@ test("atan meets its accuracy guarantees on boundary and deterministic binary32 
   let maximumDegreesError = 0;
   for (const a of samples) {
     const radians = runFunction("atan", { a }).storage["math:"].ans;
-    const degrees = runFunction("atan_degrees", { a }).storage["math:"].ans;
+    const degrees = runFunction("atan_deg", { a }).storage["math:"].ans;
     maximumRadiansError = Math.max(maximumRadiansError, Math.abs(radians - Math.atan(a)));
     maximumDegreesError = Math.max(maximumDegreesError, Math.abs(degrees - Math.atan(a) * 180 / Math.PI));
   }
@@ -147,7 +147,7 @@ test("atan2 meets its accuracy guarantees across scales and quadrants", () => {
   for (const [a, b] of samples) {
     const reference = a === 0 && b === 0 ? 0 : Math.atan2(a, b);
     const radians = runFunction("atan2", { a, b }).storage["math:"].ans;
-    const degrees = runFunction("atan2_degrees", { a, b }).storage["math:"].ans;
+    const degrees = runFunction("atan2_deg", { a, b }).storage["math:"].ans;
     maximumRadiansError = Math.max(maximumRadiansError, Math.abs(radians - reference));
     maximumDegreesError = Math.max(maximumDegreesError, Math.abs(degrees - reference * 180 / Math.PI));
   }

@@ -995,9 +995,9 @@ function inverseTrigonometryPublicLines(sharedFunction, degrees = false) {
 }
 
 emitDirectPublicFunction("asin", inverseTrigonometryPublicLines(FUNCTION_PATHS.asin));
-emitDirectPublicFunction("asin_degrees", inverseTrigonometryPublicLines(FUNCTION_PATHS.asin, true));
+emitDirectPublicFunction("asin_deg", inverseTrigonometryPublicLines(FUNCTION_PATHS.asin, true));
 emitDirectPublicFunction("acos", inverseTrigonometryPublicLines(FUNCTION_PATHS.acos));
-emitDirectPublicFunction("acos_degrees", inverseTrigonometryPublicLines(FUNCTION_PATHS.acos, true));
+emitDirectPublicFunction("acos_deg", inverseTrigonometryPublicLines(FUNCTION_PATHS.acos, true));
 
 emitFunction(FUNCTION_PATHS.atanReciprocal, [
   "data modify storage math:internal y set value 1.0f",
@@ -1039,7 +1039,7 @@ function atanPublicLines(degrees = false) {
 }
 
 emitDirectPublicFunction("atan", atanPublicLines());
-emitDirectPublicFunction("atan_degrees", atanPublicLines(true));
+emitDirectPublicFunction("atan_deg", atanPublicLines(true));
 
 function atan2PublicLines(degrees = false) {
   const lines = [];
@@ -1074,7 +1074,7 @@ emitFunction(FUNCTION_PATHS.atan2ScaleSubnormal, [
 ]);
 
 emitControlledPublicFunction("atan2", FUNCTION_PATHS.atan2Compute, atan2PublicLines());
-emitControlledPublicFunction("atan2_degrees", FUNCTION_PATHS.atan2DegreesCompute, atan2PublicLines(true));
+emitControlledPublicFunction("atan2_deg", FUNCTION_PATHS.atan2DegCompute, atan2PublicLines(true));
 
 const elasticAmplitude = internalStorage("w_elastic_amplitude");
 const elasticPhase = internalStorage("w_elastic_phase");
@@ -1778,12 +1778,12 @@ function trigWrapper(name, computePath, kernelPath, isTangent, degrees, zeroResu
   emitControlledPublicFunction(name, computePath, lines);
 }
 
-for (const degrees of [false, true]) {
-  const suffix = degrees ? "_degrees" : "";
-  trigWrapper(`sin${suffix}`, degrees ? FUNCTION_PATHS.sineDegreesCompute : FUNCTION_PATHS.sineCompute, FUNCTION_PATHS.sin, false, degrees, "compute default math:common/input/x");
-  trigWrapper(`cos${suffix}`, degrees ? FUNCTION_PATHS.cosineDegreesCompute : FUNCTION_PATHS.cosineCompute, FUNCTION_PATHS.cos, false, degrees, "value 1.0f");
-  trigWrapper(`tan${suffix}`, degrees ? FUNCTION_PATHS.tangentDegreesCompute : FUNCTION_PATHS.tangentCompute, FUNCTION_PATHS.tan, true, degrees, "compute default math:common/input/x");
-}
+trigWrapper("sin", FUNCTION_PATHS.sineCompute, FUNCTION_PATHS.sin, false, false, "compute default math:common/input/x");
+trigWrapper("sin_deg", FUNCTION_PATHS.sineDegCompute, FUNCTION_PATHS.sin, false, true, "compute default math:common/input/x");
+trigWrapper("cos", FUNCTION_PATHS.cosineCompute, FUNCTION_PATHS.cos, false, false, "value 1.0f");
+trigWrapper("cos_deg", FUNCTION_PATHS.cosineDegCompute, FUNCTION_PATHS.cos, false, true, "value 1.0f");
+trigWrapper("tan", FUNCTION_PATHS.tangentCompute, FUNCTION_PATHS.tan, true, false, "compute default math:common/input/x");
+trigWrapper("tan_deg", FUNCTION_PATHS.tangentDegCompute, FUNCTION_PATHS.tan, true, true, "compute default math:common/input/x");
 
 {
   const lines = [];

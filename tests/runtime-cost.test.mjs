@@ -7,7 +7,7 @@ const graph = loadGeneratedGraph();
 
 const BASELINE_INPUTS = {
   tan: { a: 1 },
-  tan_degrees: { a: 45 },
+  tan_deg: { a: 45 },
   log: { a: 3 },
   div: { a: 7, b: 3 },
   sqrt: { a: 3 },
@@ -18,18 +18,18 @@ const BASELINE_INPUTS = {
   mod: { a: -12345.5, b: 7 },
   pow: { a: 3, b: 2.5 },
   asin: { a: 0.5 },
-  asin_degrees: { a: 0.5 },
+  asin_deg: { a: 0.5 },
   acos: { a: 0.5 },
-  acos_degrees: { a: 0.5 },
+  acos_deg: { a: 0.5 },
   atan: { a: 3 },
-  atan_degrees: { a: 3 },
+  atan_deg: { a: 3 },
   atan2: { a: 1, b: -2 },
-  atan2_degrees: { a: 1, b: -2 },
+  atan2_deg: { a: 1, b: -2 },
 };
 
 const BOUNDARY_INPUTS = {
   tan: { a: Math.PI / 2 },
-  tan_degrees: { a: 90 },
+  tan_deg: { a: 90 },
   log: { a: 0 },
   div: { a: 7, b: 0 },
   sqrt: { a: 0 },
@@ -40,18 +40,18 @@ const BOUNDARY_INPUTS = {
   mod: { a: -12345.5, b: -7 },
   pow: { a: -2, b: 0.5 },
   asin: { a: 1 },
-  asin_degrees: { a: 1 },
+  asin_deg: { a: 1 },
   acos: { a: -1 },
-  acos_degrees: { a: -1 },
+  acos_deg: { a: -1 },
   atan: { a: 0 },
-  atan_degrees: { a: 0 },
+  atan_deg: { a: 0 },
   atan2: { a: 0, b: 0 },
-  atan2_degrees: { a: 0, b: 0 },
+  atan2_deg: { a: 0, b: 0 },
 };
 
 const COMMAND_BUDGETS = {
   tan: { baseline: 10, boundary: 10 },
-  tan_degrees: { baseline: 11, boundary: 11 },
+  tan_deg: { baseline: 11, boundary: 11 },
   log: { baseline: 26, boundary: 26 },
   div: { baseline: 3, boundary: 3 },
   sqrt: { baseline: 3, boundary: 3 },
@@ -62,13 +62,13 @@ const COMMAND_BUDGETS = {
   mod: { baseline: 130, boundary: 129 },
   pow: { baseline: 3, boundary: 3 },
   asin: { baseline: 220, boundary: 9 },
-  asin_degrees: { baseline: 221, boundary: 10 },
+  asin_deg: { baseline: 221, boundary: 10 },
   acos: { baseline: 227, boundary: 7 },
-  acos_degrees: { baseline: 228, boundary: 8 },
+  acos_deg: { baseline: 228, boundary: 8 },
   atan: { baseline: 37, boundary: 7 },
-  atan_degrees: { baseline: 38, boundary: 8 },
+  atan_deg: { baseline: 38, boundary: 8 },
   atan2: { baseline: 70, boundary: 9 },
-  atan2_degrees: { baseline: 71, boundary: 9 },
+  atan2_deg: { baseline: 71, boundary: 9 },
 };
 
 const POWER_PATH_INPUTS = {
@@ -211,19 +211,19 @@ test("runtime command budgets are deterministic for normal and boundary inputs",
 
 test("tangent shared phase executes fewer commands than the Task 1 baselines", () => {
   assert.ok(runFunction("tan", { a: 1 }).commandsExecuted < 93);
-  assert.ok(runFunction("tan_degrees", { a: 45 }).commandsExecuted < 94);
+  assert.ok(runFunction("tan_deg", { a: 45 }).commandsExecuted < 94);
 });
 
 test("inverse trigonometric public wrappers call their shared implementations", () => {
   for (const [name, common] of [
     ["asin", ".common/asin/0.start"],
-    ["asin_degrees", ".common/asin/0.start"],
+    ["asin_deg", ".common/asin/0.start"],
     ["acos", ".common/acos/0.start"],
-    ["acos_degrees", ".common/acos/0.start"],
+    ["acos_deg", ".common/acos/0.start"],
     ["atan", ".common/atan/0.start"],
-    ["atan_degrees", ".common/atan/0.start"],
+    ["atan_deg", ".common/atan/0.start"],
     ["atan2", ".common/atan/0.start"],
-    ["atan2_degrees", ".common/atan/0.start"],
+    ["atan2_deg", ".common/atan/0.start"],
   ]) {
     assert.ok(runFunction(name, BASELINE_INPUTS[name]).functionCalls.has(common), `${name} must call ${common}`);
   }
@@ -262,9 +262,9 @@ test("large-angle trigonometry stays below its recursive-remainder phase baselin
     ["sin", 1_911],
     ["cos", 1_914],
     ["tan", 1_932],
-    ["sin_degrees", 1_826],
-    ["cos_degrees", 1_829],
-    ["tan_degrees", 1_847],
+    ["sin_deg", 1_826],
+    ["cos_deg", 1_829],
+    ["tan_deg", 1_847],
   ]) {
     assert.ok(
       runFunction(name, { a: finiteLimit }).commandsExecuted < phaseBaseline,

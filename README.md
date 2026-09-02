@@ -100,17 +100,17 @@ data get storage math: ans
 | `#math:sin` | `a` | ラジアン | `a`が有限 |
 | `#math:cos` | `a` | ラジアン | `a`が有限 |
 | `#math:tan` | `a` | ラジアン | `a`が有限で、正接が定義され安全に有限floatで表現できる |
-| `#math:sin_degrees` | `a` | 度 | `a`が有限 |
-| `#math:cos_degrees` | `a` | 度 | `a`が有限 |
-| `#math:tan_degrees` | `a` | 度 | `a`が有限で、正接が定義され安全に有限floatで表現できる |
+| `#math:sin_deg` | `a` | 度 | `a`が有限 |
+| `#math:cos_deg` | `a` | 度 | `a`が有限 |
+| `#math:tan_deg` | `a` | 度 | `a`が有限で、正接が定義され安全に有限floatで表現できる |
 | `#math:asin` | `a` | 結果をラジアンで返す | `a`が有限、`-1 <= a <= 1` |
 | `#math:acos` | `a` | 結果をラジアンで返す | `a`が有限、`-1 <= a <= 1` |
 | `#math:atan` | `a` | 結果をラジアンで返す | `a`が有限 |
 | `#math:atan2` | `a`, `b` | `a=y`, `b=x` として結果をラジアンで返す | `a`, `b`が有限。`atan2(0,0)`は`0.0f` |
-| `#math:asin_degrees` | `a` | 結果を度で返す | `a`が有限、`-1 <= a <= 1` |
-| `#math:acos_degrees` | `a` | 結果を度で返す | `a`が有限、`-1 <= a <= 1` |
-| `#math:atan_degrees` | `a` | 結果を度で返す | `a`が有限 |
-| `#math:atan2_degrees` | `a`, `b` | `a=y`, `b=x` として結果を度で返す | `a`, `b`が有限。`atan2(0,0)`は`0.0f` |
+| `#math:asin_deg` | `a` | 結果を度で返す | `a`が有限、`-1 <= a <= 1` |
+| `#math:acos_deg` | `a` | 結果を度で返す | `a`が有限、`-1 <= a <= 1` |
+| `#math:atan_deg` | `a` | 結果を度で返す | `a`が有限 |
+| `#math:atan2_deg` | `a`, `b` | `a=y`, `b=x` として結果を度で返す | `a`, `b`が有限。`atan2(0,0)`は`0.0f` |
 
 `asin` と `acos` の入力範囲は `-1` 以上 `1` 以下です。`atan2(0,0)` は `0.0f` を返します。
 
@@ -118,7 +118,7 @@ data get storage math: ans
 # atan2(y=1, x=-1)を度で求める
 data modify storage math: a set value 1.0f
 data modify storage math: b set value -1.0f
-function #math:atan2_degrees
+function #math:atan2_deg
 data get storage math: ans
 ```
 

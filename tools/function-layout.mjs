@@ -1,9 +1,9 @@
 export const PUBLIC_FUNCTION_NAMES = Object.freeze([
-  "abs", "acos", "acos_degrees", "add", "asin", "asin_degrees", "atan", "atan2", "atan2_degrees", "atan_degrees", "bezier", "bounce", "bounce_decay", "ceil", "clamp", "cos", "cos_degrees", "cube",
+  "abs", "acos", "acos_deg", "add", "asin", "asin_deg", "atan", "atan2", "atan2_deg", "atan_deg", "bezier", "bounce", "bounce_decay", "ceil", "clamp", "cos", "cos_deg", "cube",
   "deg", "div", "e", "elastic", "elastic_decay", "exp", "floor", "lerp", "log", "max",
   "min", "mod", "mul", "pi", "pow", "rad", "reciprocal",
-  "quaternion_to_axis_angle", "remainder", "round", "sign", "sin", "sin_degrees", "square",
-  "sqrt", "sub", "tan", "tan_degrees", "tau", "truncate",
+  "quaternion_to_axis_angle", "remainder", "round", "sign", "sin", "sin_deg", "square",
+  "sqrt", "sub", "tan", "tan_deg", "tau", "truncate",
 ]);
 
 export const PUBLIC_FUNCTION_PATHS = Object.freeze(Object.fromEntries(
@@ -37,7 +37,7 @@ export const FUNCTION_PATHS = Object.freeze({
   inverseTrigonometrySquareRoot: ".common/inverse_trigonometry/0.start",
   inverseTrigonometrySquareRootStep: ".common/inverse_trigonometry/1.step",
   atan2Compute: "atan2/1.compute",
-  atan2DegreesCompute: "atan2_degrees/1.compute",
+  atan2DegCompute: "atan2_deg/1.compute",
   atan2ScaleSubnormal: "atan2/2.scale_subnormal",
   bezierCompute: "bezier/1.compute",
   bezierSolve: "bezier/2.solve",
@@ -45,7 +45,7 @@ export const FUNCTION_PATHS = Object.freeze({
   bounceScaleSubnormal: "bounce/2.scale_subnormal",
   bounceDecayCompute: "bounce_decay/1.compute",
   cosineCompute: "cos/1.compute",
-  cosineDegreesCompute: "cos_degrees/1.compute",
+  cosineDegCompute: "cos_deg/1.compute",
   elasticCompute: "elastic/1.compute",
   elasticPhase: "elastic/2.phase",
   elasticUnitAmplitude: "elastic/3.unit_amplitude",
@@ -59,9 +59,9 @@ export const FUNCTION_PATHS = Object.freeze({
   quaternionFinish: "quaternion_to_axis_angle/3.finish",
   quaternionScalar: "quaternion_to_axis_angle/4.scalar",
   sineCompute: "sin/1.compute",
-  sineDegreesCompute: "sin_degrees/1.compute",
+  sineDegCompute: "sin_deg/1.compute",
   tangentCompute: "tan/1.compute",
-  tangentDegreesCompute: "tan_degrees/1.compute",
+  tangentDegCompute: "tan_deg/1.compute",
 });
 
 export function functionId(path) {

@@ -17,15 +17,17 @@ test("function layout defines the complete public API", () => {
   assert.equal(PUBLIC_FUNCTION_PATHS.elastic_decay, "elastic_decay/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.add, "add/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.div, "div/0.start");
-  assert.equal(PUBLIC_FUNCTION_PATHS.tan_degrees, "tan_degrees/0.start");
+  for (const name of ["sin_deg", "cos_deg", "tan_deg", "asin_deg", "acos_deg", "atan_deg", "atan2_deg"]) {
+    assert.equal(PUBLIC_FUNCTION_PATHS[name], `${name}/0.start`);
+  }
+  for (const name of ["sin", "cos", "tan", "asin", "acos", "atan", "atan2"].map(base => `${base}_degrees`)) {
+    assert.equal(Object.hasOwn(PUBLIC_FUNCTION_PATHS, name), false);
+    assert.throws(() => publicTag(name), /Unknown public function/);
+  }
   assert.equal(PUBLIC_FUNCTION_PATHS.asin, "asin/0.start");
-  assert.equal(PUBLIC_FUNCTION_PATHS.asin_degrees, "asin_degrees/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.acos, "acos/0.start");
-  assert.equal(PUBLIC_FUNCTION_PATHS.acos_degrees, "acos_degrees/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.atan, "atan/0.start");
-  assert.equal(PUBLIC_FUNCTION_PATHS.atan_degrees, "atan_degrees/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.atan2, "atan2/0.start");
-  assert.equal(PUBLIC_FUNCTION_PATHS.atan2_degrees, "atan2_degrees/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.quaternion_to_axis_angle, "quaternion_to_axis_angle/0.start");
   assert.deepEqual(publicTag("div"), { values: ["math:div/0.start"] });
 });
@@ -41,6 +43,13 @@ test("function layout assigns representative owned and common helpers", () => {
   assert.equal(FUNCTION_PATHS.atan, ".common/atan/0.start");
   assert.equal(FUNCTION_PATHS.atanPiFour, ".common/atan/2.pi_four");
   assert.equal(FUNCTION_PATHS.inverseTrigonometrySquareRoot, ".common/inverse_trigonometry/0.start");
+  assert.equal(FUNCTION_PATHS.atan2DegCompute, "atan2_deg/1.compute");
+  assert.equal(FUNCTION_PATHS.sineDegCompute, "sin_deg/1.compute");
+  assert.equal(FUNCTION_PATHS.cosineDegCompute, "cos_deg/1.compute");
+  assert.equal(FUNCTION_PATHS.tangentDegCompute, "tan_deg/1.compute");
+  for (const retired of ["atan2", "sine", "cosine", "tangent"].map(base => `${base}DegreesCompute`)) {
+    assert.equal(Object.hasOwn(FUNCTION_PATHS, retired), false);
+  }
   assert.equal(FUNCTION_PATHS.quaternionNormalize, "quaternion_to_axis_angle/1.normalize");
   assert.equal(FUNCTION_PATHS.quaternionVector, "quaternion_to_axis_angle/2.vector");
   assert.equal(FUNCTION_PATHS.quaternionFinish, "quaternion_to_axis_angle/3.finish");
