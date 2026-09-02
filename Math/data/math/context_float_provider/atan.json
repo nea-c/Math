@@ -1,70 +1,91 @@
 {
-  "type": "div",
-  "left": {
-    "type": "mul",
-    "inputs": [
-      {
-        "type": "storage",
-        "storage": "math:",
-        "path": "internal.x"
-      },
-      {
-        "type": "add",
-        "inputs": [
-          1,
-          {
-            "type": "mul",
-            "inputs": [
-              0.43157974,
-              {
-                "type": "pow",
-                "base": {
-                  "type": "storage",
-                  "storage": "math:",
-                  "path": "internal.x"
-                },
-                "exponent": 2
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  "right": {
-    "type": "add",
-    "inputs": [
-      1,
-      {
-        "type": "mul",
-        "inputs": [
-          0.76491225,
-          {
-            "type": "pow",
-            "base": {
-              "type": "storage",
-              "storage": "math:",
-              "path": "internal.x"
+  "type": "mul",
+  "inputs": [
+    {
+      "type": "storage",
+      "storage": "math:",
+      "path": "internal.x"
+    },
+    {
+      "type": "add",
+      "inputs": [
+        0.9998660,
+        {
+          "type": "mul",
+          "inputs": [
+            {
+              "type": "pow",
+              "base": {
+                "type": "storage",
+                "storage": "math:",
+                "path": "internal.x"
+              },
+              "exponent": 2
             },
-            "exponent": 2
-          }
-        ]
-      },
-      {
-        "type": "mul",
-        "inputs": [
-          0.05831938,
-          {
-            "type": "pow",
-            "base": {
-              "type": "storage",
-              "storage": "math:",
-              "path": "internal.x"
-            },
-            "exponent": 4
-          }
-        ]
-      }
-    ]
-  }
+            {
+              "type": "add",
+              "inputs": [
+                -0.3302995,
+                {
+                  "type": "mul",
+                  "inputs": [
+                    {
+                      "type": "pow",
+                      "base": {
+                        "type": "storage",
+                        "storage": "math:",
+                        "path": "internal.x"
+                      },
+                      "exponent": 2
+                    },
+                    {
+                      "type": "add",
+                      "inputs": [
+                        0.1801410,
+                        {
+                          "type": "mul",
+                          "inputs": [
+                            {
+                              "type": "pow",
+                              "base": {
+                                "type": "storage",
+                                "storage": "math:",
+                                "path": "internal.x"
+                              },
+                              "exponent": 2
+                            },
+                            {
+                              "type": "add",
+                              "inputs": [
+                                -0.0851330,
+                                {
+                                  "type": "mul",
+                                  "inputs": [
+                                    0.0208351,
+                                    {
+                                      "type": "pow",
+                                      "base": {
+                                        "type": "storage",
+                                        "storage": "math:",
+                                        "path": "internal.x"
+                                      },
+                                      "exponent": 2
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

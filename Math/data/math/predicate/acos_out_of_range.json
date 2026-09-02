@@ -1,5 +1,5 @@
 {
-  "type": "float_value_check",
+  "type": "int_value_check",
   "value": {
     "type": "number_dispatcher",
     "cases": [
@@ -9,18 +9,17 @@
           "value": {
             "type": "storage",
             "storage": "math:",
-            "path": "internal.abs"
+            "path": "a"
           },
           "test": {
-            "max": 0.5
+            "min": -1,
+            "max": 1
           }
         },
-        "value": 0
+        "value": 1
       }
     ],
-    "default": 1
+    "default": 0
   },
-  "test": {
-    "min": 1
-  }
+  "test": 0
 }

@@ -1,5 +1,4 @@
 data remove storage math: ans
-data modify storage math: internal.x set compute default float math:.common/input/a
-function math:.common/acos/0.start
-data modify storage math: ans set from storage math: internal.x
+function math:acos/1.compute
+data modify storage math: ans set compute default float {type:"mul",inputs:[{type:"storage",storage:"math:",path:"internal.result"},1]}
 data remove storage math: internal
