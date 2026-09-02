@@ -151,18 +151,15 @@ function inlineSmallSingleUseProviders(files, maxInlineBytes) {
     const candidate = [...providers].find(([id, file]) => (
       !unsupportedTextReferences.has(id)
       && !unsupportedCommandConsumers.has(id)
-      && jsonConsumers.get(id).length + commandConsumers.get(id).length === 1
+      && jsonConsumers.get(id).length === 0
+      && commandConsumers.get(id).length === 1
       && Buffer.byteLength(JSON.stringify(file.value)) <= inlineLimit
     ));
     if (!candidate) return optimized;
 
     const [id, provider] = candidate;
-    const jsonConsumer = jsonConsumers.get(id)[0];
     const commandConsumer = commandConsumers.get(id)[0];
     optimized = optimized.filter(file => file !== provider).map(file => {
-      if (file === jsonConsumer) {
-        return { ...file, value: replaceReference(file.value, id, provider.value) };
-      }
       if (file === commandConsumer) {
         return { ...file, text: inlineCommandProvider(file.text, id, provider.value) };
       }

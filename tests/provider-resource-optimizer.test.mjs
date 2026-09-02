@@ -2,17 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { optimizeProviderResources } from "../tools/provider-resource-optimizer.mjs";
 
-test("small providers with one JSON consumer are inlined through command roots", () => {
-  const storage = {
-    type: "minecraft:storage",
-    storage: "math:internal",
-    path: "x",
-  };
+test("small providers with one JSON consumer remain external through command roots", () => {
   const files = [
     {
       kind: "json",
       relativePath: "Math/data/math/context_float_provider/leaf.json",
-      value: storage,
+      value: { type: "minecraft:constant", value: 1 },
     },
     {
       kind: "json",
@@ -29,11 +24,35 @@ test("small providers with one JSON consumer are inlined through command roots",
   const optimized = optimizeProviderResources(files, { maxInlineBytes: 128 });
 
   assert.deepEqual(optimized, [
+    files[0],
     {
       ...files[2],
-      text: `data modify storage math: ans set compute default float ${JSON.stringify({ type: "minecraft:abs", input: storage })}\n`,
+      text: `data modify storage math: ans set compute default float ${JSON.stringify({ type: "minecraft:abs", input: "math:leaf" })}\n`,
     },
   ]);
+});
+
+test("small providers with a JSON consumer remain external", () => {
+  const provider = {
+    kind: "json",
+    relativePath: "Math/data/math/context_float_provider/leaf.json",
+    value: { type: "minecraft:constant", value: 1 },
+  };
+  const jsonConsumer = {
+    kind: "json",
+    relativePath: "Math/data/math/context_float_provider/root.json",
+    value: { type: "minecraft:abs", input: "math:leaf" },
+  };
+  const command = {
+    kind: "function",
+    relativePath: "Math/data/math/function/example.mcfunction",
+    text: "data modify storage math: ans set compute default float math:root\n",
+  };
+
+  assert.deepEqual(optimizeProviderResources([provider, jsonConsumer, command], { maxInlineBytes: 128 }), [provider, {
+    ...command,
+    text: `data modify storage math: ans set compute default float ${JSON.stringify({ type: "minecraft:abs", input: "math:leaf" })}\n`,
+  }]);
 });
 
 test("guarded compute-command consumers are recognized", () => {

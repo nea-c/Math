@@ -86,3 +86,40 @@ git diff --check
 ### Self-review and concerns
 
 The parser only attempts JSON decoding for provider arguments; unresolved resource IDs continue through the existing registry-reference path. Inline objects are traversed by the existing provider walker, preserving nested dependency checks. The full static suite, generator check, and whitespace check are green. Git line-ending warnings remain environmental only.
+
+## Review fix: disallow JSON-consumer provider inlining
+
+### RED
+
+Added regression coverage requiring a small provider referenced once by another provider JSON to remain external:
+
+```powershell
+node --test tests/provider-resource-optimizer.test.mjs
+# 7 passed, 1 failed: small providers with a JSON consumer remain external
+```
+
+The failure showed the optimizer incorrectly removed both providers and inlined the JSON-consumer chain into the command.
+
+### GREEN and verification
+
+The optimizer candidate now requires zero JSON consumers, exactly one supported compute-command consumer, no unsupported text references, and the existing 128-byte limit. JSON inlining code was removed. Generated outputs were regenerated, including restored provider documents that are legitimately JSON-consumed.
+
+```powershell
+node --test tests/provider-resource-optimizer.test.mjs
+# 8 passed, 0 failed
+node --test tests/static.test.mjs
+# 24 passed, 0 failed
+node tools/generate-math-providers.mjs --check
+# exit 0
+git diff --check
+# exit 0
+```
+
+### Files and self-review
+
+- Updated `tools/provider-resource-optimizer.mjs` and optimizer tests.
+- Committed all affected generated context-float-provider, predicate, function, tag, and manifest outputs.
+- Confirmed compute-command-only inlining remains covered and JSON-consumer providers stay external.
+- Worktree is clean after the follow-up commit.
+
+Concerns: none.
