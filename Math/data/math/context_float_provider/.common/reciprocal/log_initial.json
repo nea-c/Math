@@ -1,13 +1,13 @@
 {
-  "type": "minecraft:add",
+  "type": "add",
   "inputs": [
     2.8235294818878174,
     {
-      "type": "minecraft:mul",
+      "type": "mul",
       "inputs": [
         -1.8823529481887817,
         {
-          "type": "minecraft:storage",
+          "type": "storage",
           "storage": "math:",
           "path": "internal.w_log_mantissa"
         }

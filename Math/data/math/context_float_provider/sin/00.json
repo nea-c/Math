@@ -1,7 +1,7 @@
 {
-  "type": "minecraft:sin",
+  "type": "sin",
   "input": {
-    "type": "minecraft:storage",
+    "type": "storage",
     "storage": "math:",
     "path": "internal.x"
   }

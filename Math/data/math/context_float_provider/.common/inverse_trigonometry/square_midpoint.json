@@ -1,17 +1,17 @@
 {
-  "type": "minecraft:mul",
+  "type": "mul",
   "inputs": [
     0.5,
     {
-      "type": "minecraft:add",
+      "type": "add",
       "inputs": [
         {
-          "type": "minecraft:storage",
+          "type": "storage",
           "storage": "math:",
           "path": "internal.w_inverse_trigonometry_square_low"
         },
         {
-          "type": "minecraft:storage",
+          "type": "storage",
           "storage": "math:",
           "path": "internal.w_inverse_trigonometry_square_high"
         }

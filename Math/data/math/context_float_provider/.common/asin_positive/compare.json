@@ -1,23 +1,23 @@
 {
-  "type": "minecraft:number_dispatcher",
+  "type": "number_dispatcher",
   "cases": [
     {
       "condition": {
-        "type": "minecraft:float_value_check",
+        "type": "float_value_check",
         "value": {
-          "type": "minecraft:add",
+          "type": "add",
           "inputs": [
             {
-              "type": "minecraft:storage",
+              "type": "storage",
               "storage": "math:",
               "path": "internal.w_asin_sine"
             },
             {
-              "type": "minecraft:mul",
+              "type": "mul",
               "inputs": [
                 -1,
                 {
-                  "type": "minecraft:storage",
+                  "type": "storage",
                   "storage": "math:",
                   "path": "internal.w_asin_target"
                 }
@@ -33,21 +33,21 @@
     },
     {
       "condition": {
-        "type": "minecraft:float_value_check",
+        "type": "float_value_check",
         "value": {
-          "type": "minecraft:add",
+          "type": "add",
           "inputs": [
             {
-              "type": "minecraft:storage",
+              "type": "storage",
               "storage": "math:",
               "path": "internal.w_asin_sine"
             },
             {
-              "type": "minecraft:mul",
+              "type": "mul",
               "inputs": [
                 -1,
                 {
-                  "type": "minecraft:storage",
+                  "type": "storage",
                   "storage": "math:",
                   "path": "internal.w_asin_target"
                 }

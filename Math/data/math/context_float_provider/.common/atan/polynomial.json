@@ -1,80 +1,80 @@
 {
-  "type": "minecraft:mul",
+  "type": "mul",
   "inputs": [
     {
-      "type": "minecraft:storage",
+      "type": "storage",
       "storage": "math:",
       "path": "internal.x"
     },
     {
-      "type": "minecraft:add",
+      "type": "add",
       "inputs": [
         1,
         {
-          "type": "minecraft:mul",
+          "type": "mul",
           "inputs": [
             {
-              "type": "minecraft:storage",
+              "type": "storage",
               "storage": "math:",
               "path": "internal.w_atan_square"
             },
             {
-              "type": "minecraft:add",
+              "type": "add",
               "inputs": [
                 -0.3333333432674408,
                 {
-                  "type": "minecraft:mul",
+                  "type": "mul",
                   "inputs": [
                     {
-                      "type": "minecraft:storage",
+                      "type": "storage",
                       "storage": "math:",
                       "path": "internal.w_atan_square"
                     },
                     {
-                      "type": "minecraft:add",
+                      "type": "add",
                       "inputs": [
                         0.20000000298023224,
                         {
-                          "type": "minecraft:mul",
+                          "type": "mul",
                           "inputs": [
                             {
-                              "type": "minecraft:storage",
+                              "type": "storage",
                               "storage": "math:",
                               "path": "internal.w_atan_square"
                             },
                             {
-                              "type": "minecraft:add",
+                              "type": "add",
                               "inputs": [
                                 -0.1428571492433548,
                                 {
-                                  "type": "minecraft:mul",
+                                  "type": "mul",
                                   "inputs": [
                                     {
-                                      "type": "minecraft:storage",
+                                      "type": "storage",
                                       "storage": "math:",
                                       "path": "internal.w_atan_square"
                                     },
                                     {
-                                      "type": "minecraft:add",
+                                      "type": "add",
                                       "inputs": [
                                         0.1111111119389534,
                                         {
-                                          "type": "minecraft:mul",
+                                          "type": "mul",
                                           "inputs": [
                                             {
-                                              "type": "minecraft:storage",
+                                              "type": "storage",
                                               "storage": "math:",
                                               "path": "internal.w_atan_square"
                                             },
                                             {
-                                              "type": "minecraft:add",
+                                              "type": "add",
                                               "inputs": [
                                                 -0.09090909361839294,
                                                 {
-                                                  "type": "minecraft:mul",
+                                                  "type": "mul",
                                                   "inputs": [
                                                     {
-                                                      "type": "minecraft:storage",
+                                                      "type": "storage",
                                                       "storage": "math:",
                                                       "path": "internal.w_atan_square"
                                                     },

@@ -1,7 +1,7 @@
 {
-  "type": "minecraft:sqrt",
+  "type": "sqrt",
   "input": {
-    "type": "minecraft:storage",
+    "type": "storage",
     "storage": "math:",
     "path": "internal.x"
   }

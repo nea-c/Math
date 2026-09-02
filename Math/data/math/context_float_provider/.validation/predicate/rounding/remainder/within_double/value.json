@@ -1,25 +1,25 @@
 {
-  "type": "minecraft:number_dispatcher",
+  "type": "number_dispatcher",
   "cases": [
     {
       "condition": {
-        "type": "minecraft:float_value_check",
+        "type": "float_value_check",
         "value": {
-          "type": "minecraft:sub",
+          "type": "sub",
           "left": {
-            "type": "minecraft:storage",
+            "type": "storage",
             "storage": "math:",
             "path": "internal.y"
           },
           "right": {
-            "type": "minecraft:sub",
+            "type": "sub",
             "left": {
-              "type": "minecraft:storage",
+              "type": "storage",
               "storage": "math:",
               "path": "internal.x"
             },
             "right": {
-              "type": "minecraft:storage",
+              "type": "storage",
               "storage": "math:",
               "path": "internal.y"
             }

@@ -1,17 +1,17 @@
 {
-  "type": "minecraft:add",
+  "type": "add",
   "inputs": [
     {
-      "type": "minecraft:storage",
+      "type": "storage",
       "storage": "math:",
       "path": "internal.w"
     },
     {
-      "type": "minecraft:mul",
+      "type": "mul",
       "inputs": [
         -0.6931471824645996,
         {
-          "type": "minecraft:storage",
+          "type": "storage",
           "storage": "math:",
           "path": "internal.z"
         }

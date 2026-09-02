@@ -1,12 +1,12 @@
 {
-  "type": "minecraft:add",
+  "type": "add",
   "inputs": [
     "math:log/polynomial/00",
     {
-      "type": "minecraft:mul",
+      "type": "mul",
       "inputs": [
         {
-          "type": "minecraft:storage",
+          "type": "storage",
           "storage": "math:",
           "path": "internal.w"
         },

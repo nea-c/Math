@@ -1,13 +1,13 @@
 {
-  "type": "minecraft:max",
+  "type": "max",
   "inputs": [
     {
-      "type": "minecraft:storage",
+      "type": "storage",
       "storage": "math:",
       "path": "internal.w_atan2_absolute_a"
     },
     {
-      "type": "minecraft:storage",
+      "type": "storage",
       "storage": "math:",
       "path": "internal.w_atan2_absolute_b"
     }

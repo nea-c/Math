@@ -1,13 +1,13 @@
 {
-  "type": "minecraft:mul",
+  "type": "mul",
   "inputs": [
     {
-      "type": "minecraft:storage",
+      "type": "storage",
       "storage": "math:",
       "path": "internal.w_quaternion_scaled_raw_2"
     },
     {
-      "type": "minecraft:storage",
+      "type": "storage",
       "storage": "math:",
       "path": "internal.w_quaternion_inverse_maximum_mantissa"
     }

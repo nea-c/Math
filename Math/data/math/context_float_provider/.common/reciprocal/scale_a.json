@@ -1,13 +1,13 @@
 {
-  "type": "minecraft:mul",
+  "type": "mul",
   "inputs": [
     {
-      "type": "minecraft:storage",
+      "type": "storage",
       "storage": "math:",
       "path": "internal.y"
     },
     {
-      "type": "minecraft:storage",
+      "type": "storage",
       "storage": "math:",
       "path": "internal.w_normalize_multiplier_a"
     }

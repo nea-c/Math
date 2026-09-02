@@ -1,7 +1,7 @@
 {
-  "type": "minecraft:float_value_check",
+  "type": "float_value_check",
   "value": {
-    "type": "minecraft:storage",
+    "type": "storage",
     "storage": "math:",
     "path": "internal.w_comparison.predicate.atan2_maximum_zero"
   },

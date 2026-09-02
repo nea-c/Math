@@ -1,17 +1,17 @@
 {
-  "type": "minecraft:add",
+  "type": "add",
   "inputs": [
     {
-      "type": "minecraft:storage",
+      "type": "storage",
       "storage": "math:",
       "path": "internal.w_inverse_trigonometry_half_pi"
     },
     {
-      "type": "minecraft:mul",
+      "type": "mul",
       "inputs": [
         -1,
         {
-          "type": "minecraft:storage",
+          "type": "storage",
           "storage": "math:",
           "path": "internal.x"
         }

@@ -1,11 +1,11 @@
 {
-  "type": "minecraft:number_dispatcher",
+  "type": "number_dispatcher",
   "cases": [
     {
       "condition": {
-        "type": "minecraft:float_value_check",
+        "type": "float_value_check",
         "value": {
-          "type": "minecraft:storage",
+          "type": "storage",
           "storage": "math:",
           "path": "internal.w_remainder_shift"
         },
@@ -14,13 +14,13 @@
         }
       },
       "value": {
-        "type": "minecraft:number_dispatcher",
+        "type": "number_dispatcher",
         "cases": [
           {
             "condition": {
-              "type": "minecraft:float_value_check",
+              "type": "float_value_check",
               "value": {
-                "type": "minecraft:storage",
+                "type": "storage",
                 "storage": "math:",
                 "path": "internal.w_remainder_shift"
               },
@@ -29,13 +29,13 @@
               }
             },
             "value": {
-              "type": "minecraft:number_dispatcher",
+              "type": "number_dispatcher",
               "cases": [
                 {
                   "condition": {
-                    "type": "minecraft:float_value_check",
+                    "type": "float_value_check",
                     "value": {
-                      "type": "minecraft:storage",
+                      "type": "storage",
                       "storage": "math:",
                       "path": "internal.w_remainder_shift"
                     },
@@ -44,13 +44,13 @@
                     }
                   },
                   "value": {
-                    "type": "minecraft:number_dispatcher",
+                    "type": "number_dispatcher",
                     "cases": [
                       {
                         "condition": {
-                          "type": "minecraft:float_value_check",
+                          "type": "float_value_check",
                           "value": {
-                            "type": "minecraft:storage",
+                            "type": "storage",
                             "storage": "math:",
                             "path": "internal.w_remainder_shift"
                           },
@@ -66,13 +66,13 @@
                 }
               ],
               "default": {
-                "type": "minecraft:number_dispatcher",
+                "type": "number_dispatcher",
                 "cases": [
                   {
                     "condition": {
-                      "type": "minecraft:float_value_check",
+                      "type": "float_value_check",
                       "value": {
-                        "type": "minecraft:storage",
+                        "type": "storage",
                         "storage": "math:",
                         "path": "internal.w_remainder_shift"
                       },
@@ -84,13 +84,13 @@
                   }
                 ],
                 "default": {
-                  "type": "minecraft:number_dispatcher",
+                  "type": "number_dispatcher",
                   "cases": [
                     {
                       "condition": {
-                        "type": "minecraft:float_value_check",
+                        "type": "float_value_check",
                         "value": {
-                          "type": "minecraft:storage",
+                          "type": "storage",
                           "storage": "math:",
                           "path": "internal.w_remainder_shift"
                         },
@@ -108,13 +108,13 @@
           }
         ],
         "default": {
-          "type": "minecraft:number_dispatcher",
+          "type": "number_dispatcher",
           "cases": [
             {
               "condition": {
-                "type": "minecraft:float_value_check",
+                "type": "float_value_check",
                 "value": {
-                  "type": "minecraft:storage",
+                  "type": "storage",
                   "storage": "math:",
                   "path": "internal.w_remainder_shift"
                 },
@@ -123,13 +123,13 @@
                 }
               },
               "value": {
-                "type": "minecraft:number_dispatcher",
+                "type": "number_dispatcher",
                 "cases": [
                   {
                     "condition": {
-                      "type": "minecraft:float_value_check",
+                      "type": "float_value_check",
                       "value": {
-                        "type": "minecraft:storage",
+                        "type": "storage",
                         "storage": "math:",
                         "path": "internal.w_remainder_shift"
                       },
@@ -141,13 +141,13 @@
                   }
                 ],
                 "default": {
-                  "type": "minecraft:number_dispatcher",
+                  "type": "number_dispatcher",
                   "cases": [
                     {
                       "condition": {
-                        "type": "minecraft:float_value_check",
+                        "type": "float_value_check",
                         "value": {
-                          "type": "minecraft:storage",
+                          "type": "storage",
                           "storage": "math:",
                           "path": "internal.w_remainder_shift"
                         },
@@ -164,13 +164,13 @@
             }
           ],
           "default": {
-            "type": "minecraft:number_dispatcher",
+            "type": "number_dispatcher",
             "cases": [
               {
                 "condition": {
-                  "type": "minecraft:float_value_check",
+                  "type": "float_value_check",
                   "value": {
-                    "type": "minecraft:storage",
+                    "type": "storage",
                     "storage": "math:",
                     "path": "internal.w_remainder_shift"
                   },
@@ -182,13 +182,13 @@
               }
             ],
             "default": {
-              "type": "minecraft:number_dispatcher",
+              "type": "number_dispatcher",
               "cases": [
                 {
                   "condition": {
-                    "type": "minecraft:float_value_check",
+                    "type": "float_value_check",
                     "value": {
-                      "type": "minecraft:storage",
+                      "type": "storage",
                       "storage": "math:",
                       "path": "internal.w_remainder_shift"
                     },
@@ -207,13 +207,13 @@
     }
   ],
   "default": {
-    "type": "minecraft:number_dispatcher",
+    "type": "number_dispatcher",
     "cases": [
       {
         "condition": {
-          "type": "minecraft:float_value_check",
+          "type": "float_value_check",
           "value": {
-            "type": "minecraft:storage",
+            "type": "storage",
             "storage": "math:",
             "path": "internal.w_remainder_shift"
           },
@@ -222,13 +222,13 @@
           }
         },
         "value": {
-          "type": "minecraft:number_dispatcher",
+          "type": "number_dispatcher",
           "cases": [
             {
               "condition": {
-                "type": "minecraft:float_value_check",
+                "type": "float_value_check",
                 "value": {
-                  "type": "minecraft:storage",
+                  "type": "storage",
                   "storage": "math:",
                   "path": "internal.w_remainder_shift"
                 },
@@ -237,13 +237,13 @@
                 }
               },
               "value": {
-                "type": "minecraft:number_dispatcher",
+                "type": "number_dispatcher",
                 "cases": [
                   {
                     "condition": {
-                      "type": "minecraft:float_value_check",
+                      "type": "float_value_check",
                       "value": {
-                        "type": "minecraft:storage",
+                        "type": "storage",
                         "storage": "math:",
                         "path": "internal.w_remainder_shift"
                       },
@@ -255,13 +255,13 @@
                   }
                 ],
                 "default": {
-                  "type": "minecraft:number_dispatcher",
+                  "type": "number_dispatcher",
                   "cases": [
                     {
                       "condition": {
-                        "type": "minecraft:float_value_check",
+                        "type": "float_value_check",
                         "value": {
-                          "type": "minecraft:storage",
+                          "type": "storage",
                           "storage": "math:",
                           "path": "internal.w_remainder_shift"
                         },
@@ -278,13 +278,13 @@
             }
           ],
           "default": {
-            "type": "minecraft:number_dispatcher",
+            "type": "number_dispatcher",
             "cases": [
               {
                 "condition": {
-                  "type": "minecraft:float_value_check",
+                  "type": "float_value_check",
                   "value": {
-                    "type": "minecraft:storage",
+                    "type": "storage",
                     "storage": "math:",
                     "path": "internal.w_remainder_shift"
                   },
@@ -296,13 +296,13 @@
               }
             ],
             "default": {
-              "type": "minecraft:number_dispatcher",
+              "type": "number_dispatcher",
               "cases": [
                 {
                   "condition": {
-                    "type": "minecraft:float_value_check",
+                    "type": "float_value_check",
                     "value": {
-                      "type": "minecraft:storage",
+                      "type": "storage",
                       "storage": "math:",
                       "path": "internal.w_remainder_shift"
                     },
@@ -320,13 +320,13 @@
       }
     ],
     "default": {
-      "type": "minecraft:number_dispatcher",
+      "type": "number_dispatcher",
       "cases": [
         {
           "condition": {
-            "type": "minecraft:float_value_check",
+            "type": "float_value_check",
             "value": {
-              "type": "minecraft:storage",
+              "type": "storage",
               "storage": "math:",
               "path": "internal.w_remainder_shift"
             },
@@ -335,13 +335,13 @@
             }
           },
           "value": {
-            "type": "minecraft:number_dispatcher",
+            "type": "number_dispatcher",
             "cases": [
               {
                 "condition": {
-                  "type": "minecraft:float_value_check",
+                  "type": "float_value_check",
                   "value": {
-                    "type": "minecraft:storage",
+                    "type": "storage",
                     "storage": "math:",
                     "path": "internal.w_remainder_shift"
                   },
@@ -353,13 +353,13 @@
               }
             ],
             "default": {
-              "type": "minecraft:number_dispatcher",
+              "type": "number_dispatcher",
               "cases": [
                 {
                   "condition": {
-                    "type": "minecraft:float_value_check",
+                    "type": "float_value_check",
                     "value": {
-                      "type": "minecraft:storage",
+                      "type": "storage",
                       "storage": "math:",
                       "path": "internal.w_remainder_shift"
                     },
@@ -376,13 +376,13 @@
         }
       ],
       "default": {
-        "type": "minecraft:number_dispatcher",
+        "type": "number_dispatcher",
         "cases": [
           {
             "condition": {
-              "type": "minecraft:float_value_check",
+              "type": "float_value_check",
               "value": {
-                "type": "minecraft:storage",
+                "type": "storage",
                 "storage": "math:",
                 "path": "internal.w_remainder_shift"
               },
@@ -394,13 +394,13 @@
           }
         ],
         "default": {
-          "type": "minecraft:number_dispatcher",
+          "type": "number_dispatcher",
           "cases": [
             {
               "condition": {
-                "type": "minecraft:float_value_check",
+                "type": "float_value_check",
                 "value": {
-                  "type": "minecraft:storage",
+                  "type": "storage",
                   "storage": "math:",
                   "path": "internal.w_remainder_shift"
                 },

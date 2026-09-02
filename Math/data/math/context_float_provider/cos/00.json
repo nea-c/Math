@@ -1,7 +1,7 @@
 {
-  "type": "minecraft:cos",
+  "type": "cos",
   "input": {
-    "type": "minecraft:storage",
+    "type": "storage",
     "storage": "math:",
     "path": "internal.x"
   }

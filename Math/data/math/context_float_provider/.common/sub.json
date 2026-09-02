@@ -1,12 +1,12 @@
 {
-  "type": "minecraft:sub",
+  "type": "sub",
   "left": {
-    "type": "minecraft:storage",
+    "type": "storage",
     "storage": "math:",
     "path": "internal.x"
   },
   "right": {
-    "type": "minecraft:storage",
+    "type": "storage",
     "storage": "math:",
     "path": "internal.y"
   }

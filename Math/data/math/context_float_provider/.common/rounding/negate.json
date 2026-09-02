@@ -1,7 +1,7 @@
 {
-  "type": "minecraft:negate",
+  "type": "negate",
   "input": {
-    "type": "minecraft:storage",
+    "type": "storage",
     "storage": "math:",
     "path": "internal.x"
   }

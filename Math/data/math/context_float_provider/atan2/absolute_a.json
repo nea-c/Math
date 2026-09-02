@@ -1,17 +1,17 @@
 {
-  "type": "minecraft:max",
+  "type": "max",
   "inputs": [
     {
-      "type": "minecraft:storage",
+      "type": "storage",
       "storage": "math:",
       "path": "a"
     },
     {
-      "type": "minecraft:mul",
+      "type": "mul",
       "inputs": [
         -1,
         {
-          "type": "minecraft:storage",
+          "type": "storage",
           "storage": "math:",
           "path": "a"
         }

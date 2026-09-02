@@ -1,7 +1,7 @@
 {
-  "type": "minecraft:float_value_check",
+  "type": "float_value_check",
   "value": {
-    "type": "minecraft:storage",
+    "type": "storage",
     "storage": "math:",
     "path": "internal.w_comparison.predicate.quaternion_to_axis_angle_scaled_1_positive_maximum"
   },
