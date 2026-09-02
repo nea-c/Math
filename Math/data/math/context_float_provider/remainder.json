@@ -1,0 +1,34 @@
+{
+  "type": "sub",
+  "left": {
+    "type": "storage",
+    "storage": "math:",
+    "path": "a"
+  },
+  "right": {
+    "type": "mul",
+    "inputs": [
+      {
+        "type": "truncate",
+        "input": {
+          "type": "div",
+          "left": {
+            "type": "storage",
+            "storage": "math:",
+            "path": "a"
+          },
+          "right": {
+            "type": "storage",
+            "storage": "math:",
+            "path": "b"
+          }
+        }
+      },
+      {
+        "type": "storage",
+        "storage": "math:",
+        "path": "b"
+      }
+    ]
+  }
+}

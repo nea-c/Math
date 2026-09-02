@@ -1,3 +1,3 @@
 data remove storage math: ans
-data modify storage math: ans set compute default float {"type":"mod","left":{"type":"storage","storage":"math:","path":"a"},"right":{"type":"storage","storage":"math:","path":"b"}}
+data modify storage math: ans set compute default float math:remainder
 data remove storage math: internal
