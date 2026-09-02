@@ -104,12 +104,18 @@ test("common exact providers evaluate hand-checked arithmetic and conversions", 
     ["math:.common/sub", { x: 1.25, y: -0.5 }, 1.75],
     ["math:.common/mul", { x: 1.25, y: -0.5 }, -0.625],
     ["math:.common/abs", { x: -3.5 }, 3.5],
-    ["math:.common/rad", { x: 180 }, Math.fround(Math.PI)],
     ["math:.common/deg", { x: Math.PI }, 180],
   ];
   for (const [id, internal, expected] of cases) {
     assert.equal(run(id, internal), Math.fround(expected));
   }
+
+  const radians = runFunction("rad", { a: 180 });
+  assert.equal(radians.storage["math:"].ans, Math.fround(Math.PI));
+  assert.match(
+    fs.readFileSync("Math/data/math/function/rad/0.start.mcfunction", "utf8"),
+    /"type":"minecraft:mul"/,
+  );
 });
 test("staged reciprocal normalization covers the binary32 exponent range", () => {
   const cases = [

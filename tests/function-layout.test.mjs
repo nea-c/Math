@@ -33,7 +33,7 @@ test("function layout defines the complete public API", () => {
 });
 
 test("function layout assigns representative owned and common helpers", () => {
-  assert.equal(Object.keys(FUNCTION_PATHS).length, 51);
+  assert.equal(Object.keys(FUNCTION_PATHS).length, 47);
   assert.equal(FUNCTION_PATHS.bezierCompute, "bezier/1.compute");
   assert.equal(FUNCTION_PATHS.bezierSolve, "bezier/2.solve");
   assert.equal(FUNCTION_PATHS.asinPositive, ".common/asin_positive/0.start");
@@ -44,8 +44,8 @@ test("function layout assigns representative owned and common helpers", () => {
   assert.equal(FUNCTION_PATHS.atanPiFour, ".common/atan/2.pi_four");
   assert.equal(FUNCTION_PATHS.inverseTrigonometrySquareRoot, ".common/inverse_trigonometry/0.start");
   assert.equal(FUNCTION_PATHS.atan2DegCompute, "atan2_deg/1.compute");
-  assert.equal(FUNCTION_PATHS.sineDegCompute, "sin_deg/1.compute");
-  assert.equal(FUNCTION_PATHS.cosineDegCompute, "cos_deg/1.compute");
+  assert.equal(Object.hasOwn(FUNCTION_PATHS, "sineDegCompute"), false);
+  assert.equal(Object.hasOwn(FUNCTION_PATHS, "cosineDegCompute"), false);
   assert.equal(FUNCTION_PATHS.tangentDegCompute, "tan_deg/1.compute");
   for (const retired of ["atan2", "sine", "cosine", "tangent"].map(base => `${base}DegreesCompute`)) {
     assert.equal(Object.hasOwn(FUNCTION_PATHS, retired), false);
