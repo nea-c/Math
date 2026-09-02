@@ -1,11 +1,271 @@
 {
   "type": "minecraft:float_value_check",
   "value": {
-    "type": "minecraft:storage",
-    "storage": "math:",
-    "path": "internal.w_comparison.bezier_x"
+    "type": "minecraft:sub",
+    "left": {
+      "type": "minecraft:add",
+      "inputs": [
+        {
+          "type": "minecraft:mul",
+          "inputs": [
+            3,
+            {
+              "type": "minecraft:add",
+              "inputs": [
+                1,
+                {
+                  "type": "minecraft:mul",
+                  "inputs": [
+                    -1,
+                    {
+                      "type": "minecraft:mul",
+                      "inputs": [
+                        0.5,
+                        {
+                          "type": "minecraft:add",
+                          "inputs": [
+                            {
+                              "type": "minecraft:storage",
+                              "storage": "math:",
+                              "path": "internal.w_bezier_low"
+                            },
+                            {
+                              "type": "minecraft:storage",
+                              "storage": "math:",
+                              "path": "internal.w_bezier_high"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "minecraft:add",
+              "inputs": [
+                1,
+                {
+                  "type": "minecraft:mul",
+                  "inputs": [
+                    -1,
+                    {
+                      "type": "minecraft:mul",
+                      "inputs": [
+                        0.5,
+                        {
+                          "type": "minecraft:add",
+                          "inputs": [
+                            {
+                              "type": "minecraft:storage",
+                              "storage": "math:",
+                              "path": "internal.w_bezier_low"
+                            },
+                            {
+                              "type": "minecraft:storage",
+                              "storage": "math:",
+                              "path": "internal.w_bezier_high"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "minecraft:mul",
+              "inputs": [
+                0.5,
+                {
+                  "type": "minecraft:add",
+                  "inputs": [
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:",
+                      "path": "internal.w_bezier_low"
+                    },
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:",
+                      "path": "internal.w_bezier_high"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "minecraft:storage",
+              "storage": "math:",
+              "path": "curve[0]"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:mul",
+          "inputs": [
+            3,
+            {
+              "type": "minecraft:add",
+              "inputs": [
+                1,
+                {
+                  "type": "minecraft:mul",
+                  "inputs": [
+                    -1,
+                    {
+                      "type": "minecraft:mul",
+                      "inputs": [
+                        0.5,
+                        {
+                          "type": "minecraft:add",
+                          "inputs": [
+                            {
+                              "type": "minecraft:storage",
+                              "storage": "math:",
+                              "path": "internal.w_bezier_low"
+                            },
+                            {
+                              "type": "minecraft:storage",
+                              "storage": "math:",
+                              "path": "internal.w_bezier_high"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "minecraft:mul",
+              "inputs": [
+                0.5,
+                {
+                  "type": "minecraft:add",
+                  "inputs": [
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:",
+                      "path": "internal.w_bezier_low"
+                    },
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:",
+                      "path": "internal.w_bezier_high"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "minecraft:mul",
+              "inputs": [
+                0.5,
+                {
+                  "type": "minecraft:add",
+                  "inputs": [
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:",
+                      "path": "internal.w_bezier_low"
+                    },
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:",
+                      "path": "internal.w_bezier_high"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "minecraft:storage",
+              "storage": "math:",
+              "path": "curve[2]"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:mul",
+          "inputs": [
+            {
+              "type": "minecraft:mul",
+              "inputs": [
+                0.5,
+                {
+                  "type": "minecraft:add",
+                  "inputs": [
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:",
+                      "path": "internal.w_bezier_low"
+                    },
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:",
+                      "path": "internal.w_bezier_high"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "minecraft:mul",
+              "inputs": [
+                0.5,
+                {
+                  "type": "minecraft:add",
+                  "inputs": [
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:",
+                      "path": "internal.w_bezier_low"
+                    },
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:",
+                      "path": "internal.w_bezier_high"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "minecraft:mul",
+              "inputs": [
+                0.5,
+                {
+                  "type": "minecraft:add",
+                  "inputs": [
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:",
+                      "path": "internal.w_bezier_low"
+                    },
+                    {
+                      "type": "minecraft:storage",
+                      "storage": "math:",
+                      "path": "internal.w_bezier_high"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "right": {
+      "type": "minecraft:storage",
+      "storage": "math:",
+      "path": "internal.w_bezier_u"
+    }
   },
   "test": {
-    "max": -1
+    "max": -1.401298464324817e-45
   }
 }

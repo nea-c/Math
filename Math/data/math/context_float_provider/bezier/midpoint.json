@@ -1,21 +1,15 @@
 {
-  "type": "minecraft:mul",
+  "type": "avg",
   "inputs": [
-    0.5,
     {
-      "type": "minecraft:add",
-      "inputs": [
-        {
-          "type": "minecraft:storage",
-          "storage": "math:",
-          "path": "internal.w_bezier_low"
-        },
-        {
-          "type": "minecraft:storage",
-          "storage": "math:",
-          "path": "internal.w_bezier_high"
-        }
-      ]
+      "type": "storage",
+      "storage": "math:",
+      "path": "internal.w_bezier_low"
+    },
+    {
+      "type": "storage",
+      "storage": "math:",
+      "path": "internal.w_bezier_high"
     }
   ]
 }

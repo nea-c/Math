@@ -1,33 +1,33 @@
 {
-  "type": "minecraft:add",
+  "type": "add",
   "inputs": [
     {
-      "type": "minecraft:storage",
+      "type": "storage",
       "storage": "math:",
       "path": "a"
     },
     {
-      "type": "minecraft:mul",
+      "type": "mul",
       "inputs": [
         {
-          "type": "minecraft:storage",
+          "type": "storage",
           "storage": "math:",
           "path": "internal.w_bezier_y"
         },
         {
-          "type": "minecraft:add",
+          "type": "add",
           "inputs": [
             {
-              "type": "minecraft:storage",
+              "type": "storage",
               "storage": "math:",
               "path": "b"
             },
             {
-              "type": "minecraft:mul",
+              "type": "mul",
               "inputs": [
                 -1,
                 {
-                  "type": "minecraft:storage",
+                  "type": "storage",
                   "storage": "math:",
                   "path": "a"
                 }
