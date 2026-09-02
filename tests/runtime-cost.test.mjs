@@ -50,25 +50,25 @@ const BOUNDARY_INPUTS = {
 };
 
 const COMMAND_BUDGETS = {
-  tan: { baseline: 12, boundary: 12 },
-  tan_degrees: { baseline: 13, boundary: 13 },
-  log: { baseline: 30, boundary: 30 },
+  tan: { baseline: 10, boundary: 10 },
+  tan_degrees: { baseline: 11, boundary: 11 },
+  log: { baseline: 27, boundary: 27 },
   div: { baseline: 5, boundary: 4 },
-  sqrt: { baseline: 9, boundary: 8 },
-  bezier: { baseline: 140, boundary: 12 },
-  bounce: { baseline: 56, boundary: 6 },
-  bounce_decay: { baseline: 70, boundary: 6 },
+  sqrt: { baseline: 8, boundary: 7 },
+  bezier: { baseline: 135, boundary: 11 },
+  bounce: { baseline: 51, boundary: 5 },
+  bounce_decay: { baseline: 62, boundary: 5 },
   remainder: { baseline: 5, boundary: 5 },
-  mod: { baseline: 136, boundary: 134 },
-  pow: { baseline: 15, boundary: 18 },
-  asin: { baseline: 252, boundary: 14 },
-  asin_degrees: { baseline: 253, boundary: 15 },
-  acos: { baseline: 263, boundary: 8 },
-  acos_degrees: { baseline: 264, boundary: 9 },
-  atan: { baseline: 42, boundary: 7 },
-  atan_degrees: { baseline: 43, boundary: 8 },
-  atan2: { baseline: 75, boundary: 10 },
-  atan2_degrees: { baseline: 76, boundary: 10 },
+  mod: { baseline: 129, boundary: 127 },
+  pow: { baseline: 11, boundary: 14 },
+  asin: { baseline: 227, boundary: 11 },
+  asin_degrees: { baseline: 228, boundary: 12 },
+  acos: { baseline: 234, boundary: 7 },
+  acos_degrees: { baseline: 235, boundary: 8 },
+  atan: { baseline: 41, boundary: 7 },
+  atan_degrees: { baseline: 42, boundary: 8 },
+  atan2: { baseline: 72, boundary: 9 },
+  atan2_degrees: { baseline: 73, boundary: 9 },
 };
 
 const POWER_PATH_BUDGETS = {
@@ -302,7 +302,7 @@ test("honest static log and div costs stay within measured head budgets", () => 
 
 test("adaptive square root improves its Task 3 representative cost and preserves the boundary", () => {
   assert.ok(runFunction("sqrt", { a: 3 }).commandsExecuted < 96);
-  assert.equal(runFunction("sqrt", { a: 0 }).commandsExecuted, 8);
+  assert.equal(runFunction("sqrt", { a: 0 }).commandsExecuted, 7);
 });
 
 test("active divide providers do not exceed the honestly recomputed Task 1 node maximum", () => {

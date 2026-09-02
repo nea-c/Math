@@ -393,6 +393,11 @@ function runWithStorage(name, publicInput, internalInput, initialPublicTags = ne
       const matches = getPath(storage[match[2]], match[3]) !== undefined;
       return (match[1] === "if" ? matches : !matches) ? execute(match[4]) : undefined;
     }
+    match = command.match(/^return run (data modify storage .+)$/);
+    if (match) {
+      execute(match[1]);
+      return 1;
+    }
     match = command.match(/^return run function (\S+)$/);
     if (match) {
       return runCommands(functionPath(match[1])) ?? 0;

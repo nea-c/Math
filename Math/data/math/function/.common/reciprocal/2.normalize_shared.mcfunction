@@ -7,5 +7,4 @@ data modify storage math: internal.x set from storage math: internal.w_normalize
 data modify storage math: internal.y set compute default float math:.common/reciprocal/scale_a
 function math:.common/reciprocal/4.finish
 data modify storage math: internal.x set compute default float math:.common/reciprocal/scale_b
-data modify storage math: internal.x set compute default float math:.common/reciprocal/apply_sign
-return 1
+return run data modify storage math: internal.x set compute default float math:.common/reciprocal/apply_sign

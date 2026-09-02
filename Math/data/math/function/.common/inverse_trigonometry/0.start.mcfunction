@@ -18,5 +18,4 @@ function math:.common/inverse_trigonometry/1.step
 function math:.common/inverse_trigonometry/1.step
 function math:.common/inverse_trigonometry/1.step
 function math:.common/inverse_trigonometry/1.step
-data modify storage math: internal.x set compute default float math:.common/inverse_trigonometry/square_midpoint
-return 1
+return run data modify storage math: internal.x set compute default float math:.common/inverse_trigonometry/square_midpoint

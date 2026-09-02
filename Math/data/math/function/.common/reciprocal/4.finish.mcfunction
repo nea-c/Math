@@ -4,5 +4,4 @@ data modify storage math: internal.w_reciprocal_estimate set compute default flo
 data modify storage math: internal.w_reciprocal_estimate set compute default float math:.common/reciprocal/newton
 data modify storage math: internal.w_reciprocal_estimate set compute default float math:.common/reciprocal/newton
 data modify storage math: internal.x set compute default float math:.common/reciprocal/normalized
-data modify storage math: internal.x set compute default float math:.common/mul
-return 1
+return run data modify storage math: internal.x set compute default float math:.common/mul

@@ -96,8 +96,26 @@ function emitPredicate(relativePath, value) {
   generatedFiles.push({ kind: "json", relativePath: `Math/data/math/predicate/.validation/${relativePath}.json`, value });
 }
 
+function compactFunctionReturns(lines) {
+  const compacted = [];
+  for (const line of lines) {
+    const successReturn = line.match(/^(execute (?:if|unless) .+? run )return 1$/);
+    const previous = compacted.at(-1);
+    if (successReturn && previous?.startsWith(successReturn[1])) {
+      compacted[compacted.length - 1] = `${successReturn[1]}return run ${previous.slice(successReturn[1].length)}`;
+    } else {
+      compacted.push(line);
+    }
+  }
+
+  if (compacted.at(-1) === "return 1" && /^(?:data modify|function) /.test(compacted.at(-2) ?? "")) {
+    compacted.splice(-2, 2, `return run ${compacted.at(-2)}`);
+  }
+  return compacted;
+}
+
 function emitFunction(path, lines) {
-  const migratedLines = lines.map(line => line
+  const migratedLines = compactFunctionReturns(lines.map(line => line
     .replaceAll(/compute default (?!float\b)/g, "compute default float ")
     .replaceAll(/storage math:internal ([A-Za-z0-9_.\[\]-]+)/g, "storage math: internal.$1")
     .replaceAll(/storage math:internal \{([^{}]+)\}/g, "storage math: {internal:{$1}}")
@@ -105,7 +123,7 @@ function emitFunction(path, lines) {
       reference => canonicalProviderReference(reference))
     .replaceAll(/(compute default float )math:internal\/comparison\//g, "$1math:.validation/")
     .replaceAll(/(compute default float )math:internal\/reciprocal\//g, "$1math:.common/reciprocal/")
-    .replaceAll(/(predicate )math:internal\//g, "$1math:.validation/"));
+    .replaceAll(/(predicate )math:internal\//g, "$1math:.validation/")));
   generatedFiles.push({ kind: "function", relativePath: `Math/data/math/function/${path}.mcfunction`, text: `${migratedLines.join("\n")}\n` });
 }
 

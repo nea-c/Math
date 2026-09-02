@@ -1,6 +1,6 @@
 const providerPathPattern = /^Math\/data\/([^/]+)\/context_float_provider\/(.+)\.json$/;
 const resourceLocationPattern = /(?:^|[^a-z0-9_.-])([a-z0-9_.-]+:[a-z0-9_./-]+)/g;
-const computeProviderPattern = /^((?:execute .* run )?data modify storage \S+ \S+ set compute default float )([a-z0-9_.-]+:[a-z0-9_./-]+)$/gm;
+const computeProviderPattern = /^((?:execute .* run )?(?:return run )?data modify storage \S+ \S+ set compute default float )([a-z0-9_.-]+:[a-z0-9_./-]+)$/gm;
 
 function providerId(file) {
   const match = providerPathPattern.exec(file.relativePath);

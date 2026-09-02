@@ -17,5 +17,4 @@ function math:.common/asin_positive/2.step
 function math:.common/asin_positive/2.step
 function math:.common/asin_positive/2.step
 function math:.common/asin_positive/2.step
-function math:.common/asin_positive/2.step
-return 1
+return run function math:.common/asin_positive/2.step

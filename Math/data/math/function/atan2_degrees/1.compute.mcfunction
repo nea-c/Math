@@ -3,8 +3,7 @@ data modify storage math: internal.w_atan2_absolute_b set compute default float 
 data modify storage math: internal.w_atan2_minimum set compute default float math:atan2/minimum
 data modify storage math: internal.w_atan2_maximum set compute default float math:atan2/maximum
 data modify storage math: internal.w_comparison.predicate.atan2_maximum_zero set compute default float math:.validation/predicate/atan2/maximum_zero/value
-execute if predicate math:.validation/atan2/maximum_zero run data modify storage math: ans set value 0.0f
-execute if predicate math:.validation/atan2/maximum_zero run return 1
+execute if predicate math:.validation/atan2/maximum_zero run return run data modify storage math: ans set value 0.0f
 data modify storage math: internal.w_comparison.predicate.atan2_a_dominant set compute default float math:.validation/predicate/atan2/a_dominant/value
 data modify storage math: internal.w_comparison.predicate.atan2_a_negative set compute default float math:.validation/predicate/atan2/a_negative/value
 data modify storage math: internal.w_comparison.predicate.atan2_b_negative set compute default float math:.validation/predicate/atan2/b_negative/value

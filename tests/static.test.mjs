@@ -701,6 +701,37 @@ test("generated functions omit obsolete validation control flow", () => {
   }
 });
 
+test("generated functions compact successful early exits", () => {
+  const manifest = JSON.parse(fs.readFileSync("tools/generated-math-files.json", "utf8"));
+  for (const relativePath of manifest.files) {
+    if (!relativePath.endsWith(".mcfunction")) continue;
+    const lines = fs.readFileSync(relativePath, "utf8").trimEnd().split(/\r?\n/);
+    if (lines.at(-1) === "return 1") {
+      assert.doesNotMatch(
+        lines.at(-2) ?? "",
+        /^(?:data modify|function) /,
+        `${relativePath} returns a fixed success instead of its final command`,
+      );
+    }
+
+    for (let index = 1; index < lines.length; index += 1) {
+      const successReturn = lines[index].match(/^execute (if|unless) (.+) run return 1$/);
+      if (!successReturn) continue;
+      const previousGuard = lines[index - 1].match(/^execute (if|unless) (.+) run /);
+      assert.equal(
+        previousGuard?.[1] === successReturn[1] && previousGuard?.[2] === successReturn[2],
+        false,
+        `${relativePath}:${index + 1} repeats a guard instead of returning its preceding command`,
+      );
+    }
+  }
+
+  assert.match(
+    fs.readFileSync("Math/data/math/function/sqrt/1.compute.mcfunction", "utf8"),
+    /^execute if data storage math: \{internal:\{x:0\.0f\}\} run return run data modify storage math: ans set value 0\.0f$/m,
+  );
+});
+
 test("generated resources use one math storage with nested internal scratch", () => {
   const manifest = JSON.parse(fs.readFileSync("tools/generated-math-files.json", "utf8"));
   for (const relativePath of manifest.files) {

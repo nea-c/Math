@@ -86,7 +86,7 @@ test("common binary32 normalization classifies every exponent and its adjacent m
       );
     }
   }
-  assert.deepEqual([...commandCounts], [8], "normalization command depth is fixed across exponents");
+  assert.deepEqual([...commandCounts], [7], "normalization command depth is fixed across exponents");
 });
 
 test("common binary32 normalization uses balanced bounded lookups", () => {
