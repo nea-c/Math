@@ -1,8 +1,0 @@
-{
-  "type": "sqrt",
-  "input": {
-    "type": "storage",
-    "storage": "math:",
-    "path": "internal.x"
-  }
-}

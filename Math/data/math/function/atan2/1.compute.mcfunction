@@ -1,20 +1,20 @@
-data modify storage math: internal.w_atan2_absolute_a set compute default float math:atan2/absolute_a
-data modify storage math: internal.w_atan2_absolute_b set compute default float math:atan2/absolute_b
-data modify storage math: internal.w_atan2_minimum set compute default float math:atan2/minimum
-data modify storage math: internal.w_atan2_maximum set compute default float math:atan2/maximum
-data modify storage math: internal.w_comparison.predicate.atan2_maximum_zero set compute default float math:.validation/predicate/atan2/maximum_zero/value
-execute if predicate math:.validation/atan2/maximum_zero run return run data modify storage math: ans set value 0.0f
-data modify storage math: internal.w_comparison.predicate.atan2_a_dominant set compute default float math:.validation/predicate/atan2/a_dominant/value
-data modify storage math: internal.w_comparison.predicate.atan2_a_negative set compute default float math:.validation/predicate/atan2/a_negative/value
-data modify storage math: internal.w_comparison.predicate.atan2_b_negative set compute default float math:.validation/predicate/atan2/b_negative/value
-data modify storage math: internal.w_comparison.predicate.atan2_maximum_subnormal set compute default float math:.validation/predicate/atan2/maximum_subnormal/value
-execute if predicate math:.validation/atan2/maximum_subnormal run function math:atan2/2.scale_subnormal
-data modify storage math: internal.x set from storage math: internal.w_atan2_maximum
-data modify storage math: internal.y set value 1.0f
-function math:.common/reciprocal/0.start
-data modify storage math: internal.x set compute default float math:atan2/ratio
-function math:.common/atan/0.start
-execute if predicate math:.validation/atan2/a_dominant run data modify storage math: internal.x set compute default float math:atan2/from_y_axis
-execute if predicate math:.validation/atan2/b_negative run data modify storage math: internal.x set compute default float math:atan2/from_negative_x
-execute if predicate math:.validation/atan2/a_negative run data modify storage math: internal.x set compute default float math:.common/rounding/negate
-data modify storage math: ans set from storage math: internal.x
+
+execute if predicate {type:"float_value_check",value:{type:"storage",storage:"math:",path:"b"},test:0} run return run function math:atan2/2.x_zero
+
+
+data modify storage math: internal.a_abs set compute default float {type:"abs",input:{type:"storage",storage:"math:",path:"a"}}
+data modify storage math: internal.b_abs set compute default float {type:"abs",input:{type:"storage",storage:"math:",path:"b"}}
+data modify storage math: internal.x set compute default float {type:"div",left:{type:"min",inputs:[{type:"storage",storage:"math:",path:"internal.a_abs"},{type:"storage",storage:"math:",path:"internal.b_abs"}]},right:{type:"max",inputs:[{type:"storage",storage:"math:",path:"internal.a_abs"},{type:"storage",storage:"math:",path:"internal.b_abs"}]}}
+data modify storage math: internal.result set compute default float math:atan
+
+execute unless predicate {type:"float_value_check",value:{type:"storage",storage:"math:",path:"internal.a_abs"},test:{max:{type:"storage",storage:"math:",path:"internal.b_abs"}}} run \
+  data modify storage math: internal.result set compute default float {type:"sub",left:1.5707963267948966192313216916398,right:{type:"storage",storage:"math:",path:"internal.result"}}
+
+
+execute unless predicate {type:"float_value_check",value:{type:"storage",storage:"math:",path:"b"},test:{min:0}} run \
+  data modify storage math: internal.result set compute default float {type:"sub",left:3.1415926535897932384626433832795,right:{type:"storage",storage:"math:",path:"internal.result"}}
+
+
+execute unless predicate {type:"float_value_check",value:{type:"storage",storage:"math:",path:"a"},test:{min:0}} run \
+  data modify storage math: internal.result set compute default float {type:"mul",inputs:[-1,{type:"storage",storage:"math:",path:"internal.result"}]}
+
