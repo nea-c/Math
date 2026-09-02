@@ -10,6 +10,7 @@ import { PUBLIC_FUNCTION_NAMES, PUBLIC_FUNCTION_PATHS } from "../tools/function-
 const directWrappers = [
   "add", "sub", "mul", "abs", "min", "max", "square", "cube",
   "rad", "deg", "lerp", "floor", "ceil", "round", "truncate", "clamp",
+  "div", "reciprocal", "remainder", "sqrt", "pow",
 ];
 
 function providerIdFromManifestPath(relativePath) {
@@ -725,11 +726,6 @@ test("generated functions compact successful early exits", () => {
       );
     }
   }
-
-  assert.match(
-    fs.readFileSync("Math/data/math/function/sqrt/1.compute.mcfunction", "utf8"),
-    /^execute if data storage math: \{internal:\{x:0\.0f\}\} run return run data modify storage math: ans set value 0\.0f$/m,
-  );
 });
 
 test("generated resources use one math storage with nested internal scratch", () => {
@@ -777,6 +773,8 @@ test("simple public wrappers read public storage inline and leave no eligible pr
     ["min", ["a", "b"]], ["max", ["a", "b"]], ["square", ["a"]], ["cube", ["a"]],
     ["rad", ["a"]], ["deg", ["a"]], ["lerp", ["a", "a", "b", "t"]], ["floor", ["a"]],
     ["ceil", ["a"]], ["round", ["a"]], ["truncate", ["a"]], ["clamp", ["a", "min", "max"]],
+    ["div", ["a", "b"]], ["reciprocal", ["a"]], ["remainder", ["a", "b"]],
+    ["sqrt", ["a"]], ["pow", ["a", "b"]],
   ]);
   const functionRoot = "Math/data/math/function";
   for (const name of directWrappers) {
@@ -795,9 +793,6 @@ test("simple public wrappers read public storage inline and leave no eligible pr
 
 test("stateful wrappers retain scratch that later calls or branches reuse", () => {
   const retained = [
-    ["reciprocal/0.start", "internal.x set from storage math: a"],
-    ["remainder/0.start", "internal.y set from storage math: b"],
-    ["pow/1.compute", "internal.x set from storage math: a"],
     ["sin/1.compute", "internal.x set from storage math: a"],
     ["elastic/1.compute", "internal.x set from storage math: internal.w_elastic_amplitude"],
     ["bounce/1.compute", "internal.w_bounce_scaled_t set from storage math: t"],
@@ -844,12 +839,15 @@ test("easing, inverse-sine, and quaternion assets are generator-owned", () => {
     "Math/data/math/tags/function/bounce.json",
     "Math/data/math/tags/function/bounce_decay.json",
     "Math/data/math/function/quaternion_to_axis_angle/0.start.mcfunction",
-    "Math/data/math/function/quaternion_to_axis_angle/1.compute.mcfunction",
     "Math/data/math/tags/function/quaternion_to_axis_angle.json",
   ]) assert.ok(manifest.files.includes(file), `${file} must be generated`);
-  const quaternionCompute = fs.readFileSync("Math/data/math/function/quaternion_to_axis_angle/1.compute.mcfunction", "utf8");
-  assert.match(quaternionCompute, /set compute default float \{"type":"minecraft:storage","storage":"math:","path":"rotation\[0\]"\}/,
-    "quaternion input provider must remain represented in its generated consumer");
+  assert.equal(manifest.files.includes("Math/data/math/function/quaternion_to_axis_angle/1.compute.mcfunction"), false);
+  const quaternionMaximum = fs.readFileSync(
+    "Math/data/math/context_float_provider/quaternion_to_axis_angle/normalize/maximum.json",
+    "utf8",
+  );
+  assert.match(quaternionMaximum, /"path": "rotation\[0\]"/,
+    "quaternion input must be read directly by its generated provider");
 });
 
 test("generated value-check predicates use the format 119 float type discriminator", () => {

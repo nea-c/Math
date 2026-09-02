@@ -55,7 +55,7 @@
                   {
                     "type": "minecraft:storage",
                     "storage": "math:",
-                    "path": "internal.w_bezier_x1"
+                    "path": "curve[0]"
                   }
                 ]
               },
@@ -93,7 +93,7 @@
                   {
                     "type": "minecraft:storage",
                     "storage": "math:",
-                    "path": "internal.w_bezier_x2"
+                    "path": "curve[2]"
                   }
                 ]
               },
@@ -185,7 +185,7 @@
                   {
                     "type": "minecraft:storage",
                     "storage": "math:",
-                    "path": "internal.w_bezier_x1"
+                    "path": "curve[0]"
                   }
                 ]
               },
@@ -223,7 +223,7 @@
                   {
                     "type": "minecraft:storage",
                     "storage": "math:",
-                    "path": "internal.w_bezier_x2"
+                    "path": "curve[2]"
                   }
                 ]
               },

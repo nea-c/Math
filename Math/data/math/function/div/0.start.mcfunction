@@ -1,3 +1,3 @@
 data remove storage math: ans
-function math:div/1.compute
+data modify storage math: ans set compute default float {"type":"minecraft:div","left":{"type":"minecraft:storage","storage":"math:","path":"a"},"right":{"type":"minecraft:storage","storage":"math:","path":"b"}}
 data remove storage math: internal

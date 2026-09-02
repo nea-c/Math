@@ -42,4 +42,4 @@ data modify storage math: internal.w_quaternion_normalized_0 set compute default
 data modify storage math: internal.w_quaternion_normalized_1 set compute default float math:quaternion_to_axis_angle/normalize/normalized_1
 data modify storage math: internal.w_quaternion_normalized_2 set compute default float math:quaternion_to_axis_angle/normalize/normalized_2
 data modify storage math: internal.w_quaternion_normalized_3 set compute default float math:quaternion_to_axis_angle/normalize/normalized_3
-return run function math:quaternion_to_axis_angle/3.vector
+return run function math:quaternion_to_axis_angle/2.vector

@@ -1,4 +1,7 @@
-function math:.common/log/1.prepare
+function math:.common/normalize_binary32/0.start
+data modify storage math: internal.w_comparison.log_center set compute default float math:log/normalize/compare_center/00
+data modify storage math: internal.z set compute default float math:log/normalize/centered_mantissa/00
+data modify storage math: internal.w set compute default float math:log/normalize/centered_exponent/00
 data modify storage math: internal.z set compute default float {"type":"minecraft:add","inputs":[{"type":"minecraft:storage","storage":"math:","path":"internal.z"},-1]}
 data modify storage math: internal.x set compute default float {"type":"minecraft:add","inputs":[{"type":"minecraft:storage","storage":"math:","path":"internal.z"},2]}
 data modify storage math: internal.w_log_mantissa set compute default float {"type":"minecraft:mul","inputs":[0.25,{"type":"minecraft:storage","storage":"math:","path":"internal.x"}]}

@@ -5,8 +5,7 @@ execute if predicate math:.validation/bounce_decay/time_at_or_after_end run retu
 data modify storage math: internal.w_bounce_scaled_t set from storage math: t
 data modify storage math: internal.x set from storage math: max
 data modify storage math: internal.w_comparison.predicate.bounce_duration_subnormal set compute default float math:.validation/predicate/bounce/duration_subnormal/value
-execute if predicate math:.validation/bounce/duration_subnormal run data modify storage math: internal.w_bounce_scaled_t set compute default float math:bounce/scaled_t
-execute if predicate math:.validation/bounce/duration_subnormal run data modify storage math: internal.x set compute default float math:bounce/scaled_max
+execute if predicate math:.validation/bounce/duration_subnormal run function math:bounce/2.scale_subnormal
 data modify storage math: internal.y set value 1.0f
 function math:.common/reciprocal/0.start
 data modify storage math: internal.w_bounce_decay_u set compute default float math:bounce_decay/u
@@ -16,4 +15,5 @@ data modify storage math: internal.w_bounce_decay_wave set compute default float
 data modify storage math: internal.x set compute default float math:bounce_decay/exponent
 function math:.common/exp/0.start
 data modify storage math: internal.w_bounce_decay_factor set from storage math: internal.x
-function math:bounce_decay/2.finish
+data modify storage math: internal.w_bounce_decay_eased set compute default float math:bounce_decay/eased
+data modify storage math: ans set compute default float math:bounce_decay/result

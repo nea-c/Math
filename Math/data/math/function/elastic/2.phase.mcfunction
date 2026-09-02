@@ -13,4 +13,5 @@ data modify storage math: internal.w_elastic_inverse_period set from storage mat
 data modify storage math: internal.x set compute default float math:elastic/angle
 function math:.common/sin/0.start
 data modify storage math: internal.w_elastic_sine set from storage math: internal.x
-function math:elastic/3.finish
+data modify storage math: internal.w_elastic_eased set compute default float math:elastic/eased
+data modify storage math: ans set compute default float math:elastic/result

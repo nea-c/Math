@@ -99,7 +99,7 @@ test("retained shared calculation providers use private names", () => {
   for (const obsolete of ["arithmetic", "comparison", "constant", "conversion"]) {
     assert.equal(fs.existsSync(path.join(providerRoot, ".common", obsolete)), false, `obsolete provider group ${obsolete} remains`);
   }
-  assert.equal(fs.existsSync(path.join(providerRoot, "pow")), true, "pow provider directory is missing");
+  assert.equal(fs.existsSync(path.join(providerRoot, "pow")), false, "unused pow provider directory remains");
   assert.equal(fs.existsSync(path.join(providerRoot, "sqrt")), true, "sqrt provider directory is missing");
   assert.equal(fs.existsSync(path.join(providerRoot, "power")), false, "obsolete power provider directory remains");
   assert.equal(fs.existsSync(path.join(providerRoot, "square_root")), false, "obsolete square_root provider directory remains");
@@ -118,13 +118,15 @@ test("constant functions assign float literals without providers", () => {
   }
 });
 
-test("bezier copies curve inputs directly from storage", () => {
+test("bezier providers read curve inputs directly from public storage", () => {
   assert.equal(fs.existsSync(path.join(providerRoot, "bezier", "input")), false, "obsolete Bezier input providers remain");
   const source = fs.readFileSync(path.join(packRoot, "data", "math", "function", "bezier", "1.compute.mcfunction"), "utf8");
-  for (const [target, index] of [["x1", 0], ["y1", 1], ["x2", 2], ["y2", 3]]) {
-    assert.match(source, new RegExp(`data modify storage math: internal\\.w_bezier_${target} set from storage math: curve\\[${index}\\]`));
-  }
+  assert.doesNotMatch(source, /internal\.w_bezier_[xy][12]/);
   assert.doesNotMatch(source, /math:bezier\/input\//);
+  const providers = ["midpoint.json", "compare_x.json", "y.json"]
+    .map(name => fs.readFileSync(path.join(providerRoot, "bezier", name), "utf8"))
+    .join("\n");
+  for (let index = 0; index < 4; index += 1) assert.match(providers, new RegExp(`"path": "curve\\[${index}\\]"`));
 });
 
 test("generated commands select float provider evaluation explicitly", () => {
@@ -145,18 +147,16 @@ test("native operations back directly supported public calculations", () => {
     [".common/abs.json", "minecraft:abs"],
     [".common/sub.json", "minecraft:sub"],
     [".common/mul.json", "minecraft:mul"],
-    ["remainder/00.json", "minecraft:mod"],
     ["sin/00.json", "minecraft:sin"],
     ["cos/00.json", "minecraft:cos"],
     ["sqrt/00.json", "minecraft:sqrt"],
-    ["pow/positive/00.json", "minecraft:pow"],
   ]);
   for (const [relative, expectedType] of expectedTypes) {
     const provider = JSON.parse(fs.readFileSync(path.join(providerRoot, relative), "utf8"));
     assert.equal(provider.type, expectedType, relative);
   }
 
-  const division = fs.readFileSync(path.join(packRoot, "data", "math", "function", "div", "1.compute.mcfunction"), "utf8");
+  const division = fs.readFileSync(path.join(packRoot, "data", "math", "function", "div", "0.start.mcfunction"), "utf8");
   const inline = division.match(/set compute default float (\{.*\})/);
   assert.ok(inline, "division must use an inline provider at its command boundary");
   assert.equal(JSON.parse(inline[1]).type, "minecraft:div");

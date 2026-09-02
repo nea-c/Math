@@ -31,27 +31,24 @@ test("function layout defines the complete public API", () => {
 });
 
 test("function layout assigns representative owned and common helpers", () => {
-  assert.equal(Object.keys(FUNCTION_PATHS).length, 62);
+  assert.equal(Object.keys(FUNCTION_PATHS).length, 51);
   assert.equal(FUNCTION_PATHS.bezierCompute, "bezier/1.compute");
   assert.equal(FUNCTION_PATHS.bezierSolve, "bezier/2.solve");
-  assert.equal(FUNCTION_PATHS.bezierFinish, "bezier/3.finish");
   assert.equal(FUNCTION_PATHS.asinPositive, ".common/asin_positive/0.start");
   assert.equal(FUNCTION_PATHS.asin, ".common/asin/0.start");
+  assert.equal(FUNCTION_PATHS.asinComplement, ".common/asin/2.complement");
   assert.equal(FUNCTION_PATHS.acos, ".common/acos/0.start");
   assert.equal(FUNCTION_PATHS.atan, ".common/atan/0.start");
-  assert.equal(FUNCTION_PATHS.atanEvaluate, ".common/atan/1.evaluate");
+  assert.equal(FUNCTION_PATHS.atanPiFour, ".common/atan/2.pi_four");
   assert.equal(FUNCTION_PATHS.inverseTrigonometrySquareRoot, ".common/inverse_trigonometry/0.start");
-  assert.equal(FUNCTION_PATHS.quaternionCompute, "quaternion_to_axis_angle/1.compute");
-  assert.equal(FUNCTION_PATHS.quaternionNormalize, "quaternion_to_axis_angle/2.normalize");
-  assert.equal(FUNCTION_PATHS.quaternionVector, "quaternion_to_axis_angle/3.vector");
-  assert.equal(FUNCTION_PATHS.quaternionFinish, "quaternion_to_axis_angle/4.finish");
-  assert.equal(FUNCTION_PATHS.quaternionScalar, "quaternion_to_axis_angle/5.scalar");
+  assert.equal(FUNCTION_PATHS.quaternionNormalize, "quaternion_to_axis_angle/1.normalize");
+  assert.equal(FUNCTION_PATHS.quaternionVector, "quaternion_to_axis_angle/2.vector");
+  assert.equal(FUNCTION_PATHS.quaternionFinish, "quaternion_to_axis_angle/3.finish");
+  assert.equal(FUNCTION_PATHS.quaternionScalar, "quaternion_to_axis_angle/4.scalar");
   assert.equal(FUNCTION_PATHS.elasticCompute, "elastic/1.compute");
   assert.equal(FUNCTION_PATHS.elasticPhase, "elastic/2.phase");
-  assert.equal(FUNCTION_PATHS.elasticFinish, "elastic/3.finish");
-  assert.equal(FUNCTION_PATHS.elasticDecayFinish, "elastic_decay/2.finish");
-  assert.equal(FUNCTION_PATHS.bounceFinish, "bounce/2.finish");
-  assert.equal(FUNCTION_PATHS.bounceDecayFinish, "bounce_decay/2.finish");
+  assert.equal(FUNCTION_PATHS.elasticUnitAmplitude, "elastic/3.unit_amplitude");
+  assert.equal(FUNCTION_PATHS.bounceScaleSubnormal, "bounce/2.scale_subnormal");
   assert.equal(FUNCTION_PATHS.reciprocal, ".common/reciprocal/0.start");
   assert.equal(FUNCTION_PATHS.normalizeBinary32, ".common/normalize_binary32/0.start");
   for (const retired of [
@@ -73,6 +70,22 @@ test("function layout assigns representative owned and common helpers", () => {
     "powerBoundaryPositive",
     "powerBoundaryNegative",
     "powerClassifyOverflow",
+    "divideCompute",
+    "squareRootCompute",
+    "powerCompute",
+    "powerZero",
+    "powerNegative",
+    "powerPositive",
+    "powerNegativeOdd",
+    "quaternionCompute",
+    "bezierFinish",
+    "bounceFinish",
+    "bounceDecayFinish",
+    "elasticFinish",
+    "elasticDecayFinish",
+    "asinPositiveSolve",
+    "atanEvaluate",
+    "logPrepare",
   ]) {
     assert.equal(Object.hasOwn(FUNCTION_PATHS, retired), false, `${retired} must stay retired`);
   }

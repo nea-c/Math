@@ -8,8 +8,7 @@ data modify storage math: internal.w_comparison.predicate.atan2_a_dominant set c
 data modify storage math: internal.w_comparison.predicate.atan2_a_negative set compute default float math:.validation/predicate/atan2/a_negative/value
 data modify storage math: internal.w_comparison.predicate.atan2_b_negative set compute default float math:.validation/predicate/atan2/b_negative/value
 data modify storage math: internal.w_comparison.predicate.atan2_maximum_subnormal set compute default float math:.validation/predicate/atan2/maximum_subnormal/value
-execute if predicate math:.validation/atan2/maximum_subnormal run data modify storage math: internal.w_atan2_minimum set compute default float math:atan2/scaled_minimum
-execute if predicate math:.validation/atan2/maximum_subnormal run data modify storage math: internal.w_atan2_maximum set compute default float math:atan2/scaled_maximum
+execute if predicate math:.validation/atan2/maximum_subnormal run function math:atan2/2.scale_subnormal
 data modify storage math: internal.x set from storage math: internal.w_atan2_maximum
 data modify storage math: internal.y set value 1.0f
 function math:.common/reciprocal/0.start

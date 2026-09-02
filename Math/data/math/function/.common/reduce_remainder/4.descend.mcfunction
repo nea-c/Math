@@ -3,4 +3,4 @@ execute if predicate math:.validation/rounding/remainder/can_subtract_y run data
 execute unless predicate math:.validation/rounding/remainder/shift_positive run return 1
 data modify storage math: internal.y set compute default float math:.common/rounding/half_y
 data modify storage math: internal.w_remainder_remaining_shift set compute default float math:.common/reduce_remainder/decrement_remaining_shift
-return run function math:.common/reduce_remainder/6.descend
+return run function math:.common/reduce_remainder/4.descend

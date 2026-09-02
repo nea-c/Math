@@ -4,7 +4,7 @@
     {
       "type": "minecraft:storage",
       "storage": "math:",
-      "path": "internal.w_quaternion_component_2"
+      "path": "rotation[2]"
     },
     {
       "type": "minecraft:storage",

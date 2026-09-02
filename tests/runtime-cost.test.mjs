@@ -52,32 +52,32 @@ const BOUNDARY_INPUTS = {
 const COMMAND_BUDGETS = {
   tan: { baseline: 10, boundary: 10 },
   tan_degrees: { baseline: 11, boundary: 11 },
-  log: { baseline: 27, boundary: 27 },
-  div: { baseline: 4, boundary: 4 },
-  sqrt: { baseline: 6, boundary: 5 },
-  bezier: { baseline: 133, boundary: 9 },
-  bounce: { baseline: 51, boundary: 5 },
-  bounce_decay: { baseline: 62, boundary: 5 },
-  remainder: { baseline: 5, boundary: 5 },
-  mod: { baseline: 129, boundary: 127 },
-  pow: { baseline: 11, boundary: 11 },
-  asin: { baseline: 227, boundary: 11 },
-  asin_degrees: { baseline: 228, boundary: 12 },
-  acos: { baseline: 234, boundary: 7 },
-  acos_degrees: { baseline: 235, boundary: 8 },
-  atan: { baseline: 41, boundary: 7 },
-  atan_degrees: { baseline: 42, boundary: 8 },
-  atan2: { baseline: 72, boundary: 9 },
-  atan2_degrees: { baseline: 73, boundary: 9 },
+  log: { baseline: 26, boundary: 26 },
+  div: { baseline: 3, boundary: 3 },
+  sqrt: { baseline: 3, boundary: 3 },
+  bezier: { baseline: 128, boundary: 5 },
+  bounce: { baseline: 49, boundary: 5 },
+  bounce_decay: { baseline: 60, boundary: 5 },
+  remainder: { baseline: 3, boundary: 3 },
+  mod: { baseline: 130, boundary: 129 },
+  pow: { baseline: 3, boundary: 3 },
+  asin: { baseline: 220, boundary: 9 },
+  asin_degrees: { baseline: 221, boundary: 10 },
+  acos: { baseline: 227, boundary: 7 },
+  acos_degrees: { baseline: 228, boundary: 8 },
+  atan: { baseline: 37, boundary: 7 },
+  atan_degrees: { baseline: 38, boundary: 8 },
+  atan2: { baseline: 70, boundary: 9 },
+  atan2_degrees: { baseline: 71, boundary: 9 },
 };
 
-const POWER_PATH_BUDGETS = {
-  ordinary: [{ a: 3, b: 2.5 }, 62],
-  negativeInteger: [{ a: -2, b: 3 }, 98],
-  finiteBoundary: [{ a: Math.fround(6_981_463_572_480), b: 3 }, 136],
-  overflowBoundary: [{ a: Math.fround(6_981_464_096_768), b: 3 }, 115],
-  underflow: [{ a: -2, b: -151 }, 92],
-  nonfiniteResult: [{ a: Math.fround(3.4028234663852886e38), b: 2 }, 47],
+const POWER_PATH_INPUTS = {
+  ordinary: { a: 3, b: 2.5 },
+  negativeInteger: { a: -2, b: 3 },
+  finiteBoundary: { a: Math.fround(6_981_463_572_480), b: 3 },
+  overflowBoundary: { a: Math.fround(6_981_464_096_768), b: 3 },
+  underflow: { a: -2, b: -151 },
+  nonfiniteResult: { a: Math.fround(3.4028234663852886e38), b: 2 },
 };
 
 const QUATERNION_PATH_BUDGETS = {
@@ -106,8 +106,8 @@ test("harness exposes dynamically executed command count", () => {
 });
 
 test("harness counts only the controlled branch that executes", () => {
-  const normal = runFunction("sqrt", { a: 3 });
-  const boundary = runFunction("sqrt", { a: 0 });
+  const normal = runFunction("bounce", BASELINE_INPUTS.bounce);
+  const boundary = runFunction("bounce", BOUNDARY_INPUTS.bounce);
   assert.ok(normal.commandsExecuted > boundary.commandsExecuted);
 });
 
@@ -252,7 +252,7 @@ test("quaternion conversion keeps deterministic path budgets and shares inverse 
 });
 
 test("native remainder removes the custom reduction work while mod keeps floor semantics", () => {
-  assert.equal(runFunction("remainder", BASELINE_INPUTS.remainder).commandsExecuted, 5);
+  assert.equal(runFunction("remainder", BASELINE_INPUTS.remainder).commandsExecuted, 3);
   assert.ok(runFunction("mod", BASELINE_INPUTS.mod).commandsExecuted <= 140);
 });
 
@@ -273,15 +273,15 @@ test("large-angle trigonometry stays below its recursive-remainder phase baselin
   }
 });
 
-test("shared normalization reduces representative log and divide command counts", () => {
+test("log normalization and native division stay within representative command counts", () => {
   assert.ok(runFunction("log", { a: 3 }).commandsExecuted < 40);
   assert.ok(runFunction("div", { a: 7, b: 3 }).commandsExecuted < 91);
 });
 
-test("power keeps explicit ordinary, negative, boundary, underflow, and nonfinite budgets", () => {
-  for (const [name, [input, budget]] of Object.entries(POWER_PATH_BUDGETS)) {
+test("native power uses one compute command for every numeric path", () => {
+  for (const [name, input] of Object.entries(POWER_PATH_INPUTS)) {
     const commands = runFunction("pow", input).commandsExecuted;
-    assert.ok(commands <= budget, `power ${name} used ${commands} commands; budget ${budget}`);
+    assert.equal(commands, 3, `power ${name} command count`);
   }
 });
 
@@ -300,9 +300,9 @@ test("honest static log and div costs stay within measured head budgets", () => 
   assert.ok(divide.providerNodes <= 20);
 });
 
-test("adaptive square root improves its Task 3 representative cost and preserves the boundary", () => {
-  assert.ok(runFunction("sqrt", { a: 3 }).commandsExecuted < 96);
-  assert.equal(runFunction("sqrt", { a: 0 }).commandsExecuted, 5);
+test("native square root uses one compute command for ordinary and boundary inputs", () => {
+  assert.equal(runFunction("sqrt", { a: 3 }).commandsExecuted, 3);
+  assert.equal(runFunction("sqrt", { a: 0 }).commandsExecuted, 3);
 });
 
 test("active divide providers do not exceed the honestly recomputed Task 1 node maximum", () => {

@@ -12,4 +12,5 @@ data modify storage math: internal.w_elastic_decay_factor set from storage math:
 data modify storage math: internal.x set compute default float math:elastic_decay/angle
 function math:.common/cos/0.start
 data modify storage math: internal.w_elastic_decay_cosine set from storage math: internal.x
-function math:elastic_decay/2.finish
+data modify storage math: internal.w_elastic_decay_eased set compute default float math:elastic_decay/eased
+data modify storage math: ans set compute default float math:elastic_decay/result

@@ -104,11 +104,11 @@ test("square root generated graph uses the native sqrt provider", () => {
   assert.equal(fs.existsSync("Math/data/math/function/sqrt/2.refine.mcfunction"), false);
 });
 
-test("square root returns exact signed-zero inputs", () => {
+test("square root preserves native signed-zero inputs", () => {
   for (const input of [0, -0]) {
     const { storage, numericTags, returned } = runFunction("sqrt", { a: input, ans: 91, error: "stale_error" });
     assert.equal(returned, undefined);
-    assert.equal(storage["math:"].ans, 0);
+    assert.equal(Object.is(storage["math:"].ans, input), true);
     assert.equal(storage["math:"].error, "stale_error");
     assert.equal(storage["math:"].a, input);
     assert.equal(numericTags.get(storageFieldKey("math:", "ans")), "float");
@@ -171,7 +171,7 @@ test("square root stays within tolerance for 50,000 deterministic positive binar
   assert.ok(maximumRelativeError <= 0.00001, `maximum relative error ${maximumRelativeError} at ${worstInput}`);
 });
 
-test("log exp and power generated graphs use responsibility subdirectories", () => {
+test("log and exp generated graphs use responsibility subdirectories", () => {
   for (const provider of [
     "log/00.json",
     "log/normalize/compare_center/00.json",
@@ -181,7 +181,6 @@ test("log exp and power generated graphs use responsibility subdirectories", () 
     "exp/reduce/remainder/00.json",
     "exp/polynomial/00.json",
     "exp/scale/00.json",
-    "pow/positive/00.json",
   ]) {
     assert.ok(fs.existsSync(path.join("Math/data/math/context_float_provider", provider)), `missing ${provider}`);
   }

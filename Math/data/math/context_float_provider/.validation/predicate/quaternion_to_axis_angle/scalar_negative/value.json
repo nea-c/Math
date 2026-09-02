@@ -7,7 +7,7 @@
         "value": {
           "type": "minecraft:storage",
           "storage": "math:",
-          "path": "internal.w_quaternion_component_3"
+          "path": "rotation[3]"
         },
         "test": {
           "max": -1.401298464324817e-45

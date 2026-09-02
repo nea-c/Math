@@ -305,7 +305,7 @@ test("divide stays within one min-subnormal ULP on a 12,288-case boundary grid",
 
 test("div computes directly from public storage with an inline native provider", () => {
   assert.equal(fs.existsSync(path.join(providerRoot, ".common/div.json")), false);
-  const text = fs.readFileSync("Math/data/math/function/div/1.compute.mcfunction", "utf8");
+  const text = fs.readFileSync("Math/data/math/function/div/0.start.mcfunction", "utf8");
   assert.doesNotMatch(text, /storage math: internal\.[xy] set from storage math: [ab]/);
   assert.match(text, /set compute default float \{"type":"minecraft:div"/);
   assert.match(text, /"storage":"math:","path":"a"/);
