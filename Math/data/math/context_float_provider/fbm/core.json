@@ -1,0 +1,1 @@
+{"type":"max","inputs":[-1.0,{"type":"min","inputs":[1.0,{"type":"div","left":{"type":"add","inputs":["math:fbm/octave_0","math:fbm/octave_1","math:fbm/octave_2","math:fbm/octave_3","math:fbm/octave_4","math:fbm/octave_5"]},"right":1.96875}]}]}

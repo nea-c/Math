@@ -1,12 +1,12 @@
 
 data modify storage _ _ set value {}
-data modify storage _ _.x set value 16
+data modify storage _ _.x set value 1
 data modify storage _ _.z_tmp set from storage _ _.x
 
 
 forceload add ~-1 ~-1 ~1 ~1
 
-scoreboard players set #div value 20
+scoreboard players set #div value 60
 scoreboard players add #perlin value 1
 execute unless score #perlin value matches -1.. run return fail
 execute if score #perlin value matches -1 run return run kill @e[type=item_display,tag=perlin_debug]

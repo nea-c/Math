@@ -1,7 +1,0 @@
-{
-  "type": "add",
-  "inputs": [
-    "math:perlin/cell/y0",
-    1.0
-  ]
-}

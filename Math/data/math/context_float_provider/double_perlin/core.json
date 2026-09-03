@@ -1,0 +1,1 @@
+{"type":"minecraft:max","inputs":[-1.0,{"type":"minecraft:min","inputs":[1.0,{"type":"minecraft:mul","inputs":[{"type":"minecraft:add","inputs":["math:double_perlin/half0","math:double_perlin/half1"]},0.5]}]}]}

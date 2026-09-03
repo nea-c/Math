@@ -1,9 +1,0 @@
-{
-  "type": "floor",
-  "input": {
-    "type": "storage",
-    "storage": "math:",
-    "path": "a",
-    "fallback": 0.0
-  }
-}

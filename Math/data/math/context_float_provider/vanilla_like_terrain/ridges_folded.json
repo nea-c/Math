@@ -1,0 +1,1 @@
+{"type":"minecraft:sub","left":1.0,"right":{"type":"minecraft:mul","inputs":[3.0,{"type":"minecraft:abs","input":{"type":"minecraft:sub","left":{"type":"minecraft:abs","input":"math:vanilla_like_terrain/ridges"},"right":0.6666666666666666}}]}}

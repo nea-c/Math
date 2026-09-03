@@ -1,0 +1,1 @@
+{"type":"minecraft:add","inputs":[-0.48,{"type":"minecraft:mul","inputs":["math:vanilla_like_terrain/continents",0.42]},{"type":"minecraft:mul","inputs":["math:vanilla_like_terrain/erosion",-0.08]},{"type":"minecraft:mul","inputs":["math:vanilla_like_terrain/ridges_folded",0.1]}]}

@@ -1,0 +1,1 @@
+{"type":"add","inputs":["math:perlin/x00",{"type":"mul","inputs":["math:perlin/v",{"type":"sub","left":"math:perlin/x10","right":"math:perlin/x00"}]}]}

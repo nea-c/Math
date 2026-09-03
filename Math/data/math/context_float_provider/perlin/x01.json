@@ -1,0 +1,1 @@
+{"type":"add","inputs":["math:perlin/g001",{"type":"mul","inputs":["math:perlin/u",{"type":"sub","left":"math:perlin/g101","right":"math:perlin/g001"}]}]}
