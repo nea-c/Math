@@ -9,4 +9,5 @@ data modify storage math: internal.noise.terrain.noodle_y_gate set compute defau
 data modify storage math: internal.noise.terrain.noodle_gate set compute default float math:.common/noise/terrain/noodle_gate
 data modify storage math: internal.noise.terrain.final_density set compute default float math:.common/noise/terrain/final_density
 data modify storage math: internal.noise.terrain.normalized_density set compute default float math:.common/noise/terrain/normalized_density
-data modify storage math: ans set from storage math: internal.noise.terrain.normalized_density
+data modify storage math: internal.noise.work.value set from storage math: internal.noise.terrain.normalized_density
+data modify storage math: ans set compute default float math:.common/noise/remap
