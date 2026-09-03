@@ -19,7 +19,7 @@ data modify storage math: min set value -50
 data modify storage math: max set value 20
 function #math:vanilla_like_surface
 
-data modify storage _ _.y set compute default float {type:"mul",inputs:[{type:"storage",storage:"math:",path:"ans"},2]}
+data modify storage _ _.y set from storage math: ans
 
 fill ~ -64 ~ ~ 319 ~ air strict
 function math_debug:noise/marker/2.m with storage _ _

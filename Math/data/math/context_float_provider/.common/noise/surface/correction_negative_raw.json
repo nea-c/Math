@@ -1,0 +1,1 @@
+{"type":"max","inputs":[-8.0,{"type":"min","inputs":[8.0,{"type":"div","left":{"type":"mul","inputs":[{"type":"storage","storage":"math:","path":"internal.noise.surface.density","fallback":0.0},128.0]},"right":{"type":"storage","storage":"math:","path":"internal.noise.terrain.factor","fallback":1.0}}]}]}
