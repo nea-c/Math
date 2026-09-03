@@ -1,1 +1,5 @@
-{"values":["math:simplex_noise/0.start"]}
+{
+  "values": [
+    "math:simplex_noise/0.start"
+  ]
+}

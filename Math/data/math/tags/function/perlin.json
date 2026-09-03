@@ -1,1 +1,5 @@
-{"values":["math:perlin/0.start"]}
+{
+  "values": [
+    "math:perlin/0.start"
+  ]
+}
