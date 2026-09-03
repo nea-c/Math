@@ -1,0 +1,1 @@
+{"type":"minecraft:mul","inputs":[{"type":"minecraft:storage","storage":"math:","path":"internal.noise.base_y","fallback":0.0},{"type":"minecraft:storage","storage":"math:","path":"internal.noise.terrain.scale_y","fallback":1.0}]}

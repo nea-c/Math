@@ -1,0 +1,1 @@
+{"type":"minecraft:sub","left":{"type":"minecraft:mul","inputs":[{"type":"minecraft:storage","storage":"math:","path":"internal.noise.hash.q2","fallback":0.0},0.0004889975550122249]},"right":1.0}

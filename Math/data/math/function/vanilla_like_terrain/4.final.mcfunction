@@ -1,0 +1,9 @@
+data modify storage math: internal.noise.terrain.top_alpha set compute default float math:.common/noise/terrain/top_alpha
+data modify storage math: internal.noise.terrain.top_slide set compute default float math:.common/noise/terrain/top_slide
+data modify storage math: internal.noise.terrain.bottom_alpha set compute default float math:.common/noise/terrain/bottom_alpha
+data modify storage math: internal.noise.terrain.slides set compute default float math:.common/noise/terrain/slides
+data modify storage math: internal.noise.terrain.squeeze_input set compute default float math:.common/noise/terrain/squeeze_input
+data modify storage math: internal.noise.terrain.squeeze set compute default float math:.common/noise/terrain/squeeze
+data modify storage math: internal.noise.terrain.final_density set compute default float math:.common/noise/terrain/final_density
+data modify storage math: internal.noise.work.value set from storage math: internal.noise.terrain.final_density
+data modify storage math: ans set compute default float math:.common/noise/remap

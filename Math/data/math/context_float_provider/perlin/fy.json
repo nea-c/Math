@@ -1,1 +1,0 @@
-{"type":"minecraft:sub","left":"math:.common/noise/y","right":{"type":"minecraft:floor","input":"math:.common/noise/y"}}

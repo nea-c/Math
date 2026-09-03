@@ -1,1 +1,0 @@
-{"type":"mul","inputs":[{"type":"mul","inputs":[{"type":"mul","inputs":["math:perlin/fx","math:perlin/fx"]},"math:perlin/fx"]},{"type":"add","inputs":[{"type":"mul","inputs":[6.0,{"type":"mul","inputs":["math:perlin/fx","math:perlin/fx"]}]},{"type":"mul","inputs":[-15.0,"math:perlin/fx"]},10.0]}]}

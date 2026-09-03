@@ -1,0 +1,1 @@
+{"type":"minecraft:min","inputs":[{"type":"minecraft:storage","storage":"math:","path":"internal.noise.terrain.sloped_cheese","fallback":0.0},{"type":"minecraft:mul","inputs":[5.0,{"type":"minecraft:storage","storage":"math:","path":"internal.noise.terrain.entrance","fallback":0.0}]}]}

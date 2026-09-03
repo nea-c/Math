@@ -1,1 +1,0 @@
-{"type":"mul","inputs":[{"type":"storage","storage":"math:","path":"c","fallback":0.0},{"type":"storage","storage":"math:","path":"frequency","fallback":1.0}]}

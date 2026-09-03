@@ -1,1 +1,0 @@
-{"type":"max","inputs":[-1.0,{"type":"min","inputs":[1.0,{"type":"div","left":{"type":"add","inputs":["math:octave_perlin/octave_0","math:octave_perlin/octave_1","math:octave_perlin/octave_2","math:octave_perlin/octave_3"]},"right":4}]}]}

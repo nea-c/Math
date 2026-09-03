@@ -1,0 +1,1 @@
+{"type":"minecraft:add","inputs":[{"type":"minecraft:storage","storage":"math:","path":"internal.noise.simplex_input.y","fallback":0.0},0.414213562]}

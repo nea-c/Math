@@ -1,1 +1,0 @@
-{"type":"minecraft:div","left":{"type":"minecraft:add","inputs":["math:double_perlin/half0_octave_0","math:double_perlin/half0_octave_1","math:double_perlin/half0_octave_2","math:double_perlin/half0_octave_3"]},"right":1.875}
