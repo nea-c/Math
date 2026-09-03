@@ -1,0 +1,94 @@
+{
+  "type": "number_dispatcher",
+  "cases": [
+    {
+      "condition": {
+        "type": "float_value_check",
+        "value": "math:log/sqrt/0",
+        "test": {
+          "min": 0.5,
+          "max": 2.0
+        }
+      },
+      "value": "math:log/sqrt/0"
+    },
+    {
+      "condition": {
+        "type": "float_value_check",
+        "value": "math:log/sqrt/1",
+        "test": {
+          "min": 0.5,
+          "max": 2.0
+        }
+      },
+      "value": "math:log/sqrt/1"
+    },
+    {
+      "condition": {
+        "type": "float_value_check",
+        "value": "math:log/sqrt/2",
+        "test": {
+          "min": 0.5,
+          "max": 2.0
+        }
+      },
+      "value": "math:log/sqrt/2"
+    },
+    {
+      "condition": {
+        "type": "float_value_check",
+        "value": "math:log/sqrt/3",
+        "test": {
+          "min": 0.5,
+          "max": 2.0
+        }
+      },
+      "value": "math:log/sqrt/3"
+    },
+    {
+      "condition": {
+        "type": "float_value_check",
+        "value": "math:log/sqrt/4",
+        "test": {
+          "min": 0.5,
+          "max": 2.0
+        }
+      },
+      "value": "math:log/sqrt/4"
+    },
+    {
+      "condition": {
+        "type": "float_value_check",
+        "value": "math:log/sqrt/5",
+        "test": {
+          "min": 0.5,
+          "max": 2.0
+        }
+      },
+      "value": "math:log/sqrt/5"
+    },
+    {
+      "condition": {
+        "type": "float_value_check",
+        "value": "math:log/sqrt/6",
+        "test": {
+          "min": 0.5,
+          "max": 2.0
+        }
+      },
+      "value": "math:log/sqrt/6"
+    },
+    {
+      "condition": {
+        "type": "float_value_check",
+        "value": "math:log/sqrt/7",
+        "test": {
+          "min": 0.5,
+          "max": 2.0
+        }
+      },
+      "value": "math:log/sqrt/7"
+    }
+  ],
+  "default": "math:log/sqrt/8"
+}

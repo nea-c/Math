@@ -1,0 +1,70 @@
+{
+  "type": "number_dispatcher",
+  "cases": [
+    {
+      "condition": {
+        "type": "float_value_check",
+        "value": "math:log/sqrt/0",
+        "test": {"min": 0.5, "max": 2.0}
+      },
+      "value": 1.0
+    },
+    {
+      "condition": {
+        "type": "float_value_check",
+        "value": "math:log/sqrt/1",
+        "test": {"min": 0.5, "max": 2.0}
+      },
+      "value": 2.0
+    },
+    {
+      "condition": {
+        "type": "float_value_check",
+        "value": "math:log/sqrt/2",
+        "test": {"min": 0.5, "max": 2.0}
+      },
+      "value": 4.0
+    },
+    {
+      "condition": {
+        "type": "float_value_check",
+        "value": "math:log/sqrt/3",
+        "test": {"min": 0.5, "max": 2.0}
+      },
+      "value": 8.0
+    },
+    {
+      "condition": {
+        "type": "float_value_check",
+        "value": "math:log/sqrt/4",
+        "test": {"min": 0.5, "max": 2.0}
+      },
+      "value": 16.0
+    },
+    {
+      "condition": {
+        "type": "float_value_check",
+        "value": "math:log/sqrt/5",
+        "test": {"min": 0.5, "max": 2.0}
+      },
+      "value": 32.0
+    },
+    {
+      "condition": {
+        "type": "float_value_check",
+        "value": "math:log/sqrt/6",
+        "test": {"min": 0.5, "max": 2.0}
+      },
+      "value": 64.0
+    },
+    {
+      "condition": {
+        "type": "float_value_check",
+        "value": "math:log/sqrt/7",
+        "test": {"min": 0.5, "max": 2.0}
+      },
+      "value": 128.0
+    }
+  ],
+  "default": 256.0
+}

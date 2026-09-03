@@ -1,0 +1,15 @@
+{
+  "type": "div",
+  "left": {
+    "type": "sub",
+    "left": "math:log/y",
+    "right": 1.0
+  },
+  "right": {
+    "type": "add",
+    "inputs": [
+      "math:log/y",
+      1.0
+    ]
+  }
+}
