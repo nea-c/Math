@@ -1,1 +1,0 @@
-{"type":"min","inputs":[{"type":"storage","storage":"math:","path":"internal.noise.terrain.cave_shape","fallback":0.0},{"type":"storage","storage":"math:","path":"internal.noise.terrain.entrance","fallback":0.0},{"type":"storage","storage":"math:","path":"internal.noise.terrain.spaghetti","fallback":0.0}]}

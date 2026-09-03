@@ -1,1 +1,0 @@
-{"type":"add","inputs":[{"type":"storage","storage":"math:","path":"internal.noise.terrain.cave_layer_term","fallback":0.0},{"type":"storage","storage":"math:","path":"internal.noise.terrain.cave_cheese_term","fallback":0.0},{"type":"storage","storage":"math:","path":"internal.noise.terrain.cave_surface_term","fallback":0.0}]}

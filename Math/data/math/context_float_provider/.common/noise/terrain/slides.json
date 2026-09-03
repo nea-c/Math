@@ -1,1 +1,0 @@
-{"type":"add","inputs":[0.1171875,{"type":"mul","inputs":[{"type":"storage","storage":"math:","path":"internal.noise.terrain.bottom_alpha","fallback":0.0},{"type":"sub","left":{"type":"storage","storage":"math:","path":"internal.noise.terrain.top_slide","fallback":0.0},"right":0.1171875}]}]}

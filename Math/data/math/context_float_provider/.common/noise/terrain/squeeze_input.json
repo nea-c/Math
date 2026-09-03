@@ -1,1 +1,0 @@
-{"type":"max","inputs":[-1.0,{"type":"min","inputs":[1.0,{"type":"mul","inputs":[0.64,{"type":"storage","storage":"math:","path":"internal.noise.terrain.slides","fallback":0.0}]}]}]}

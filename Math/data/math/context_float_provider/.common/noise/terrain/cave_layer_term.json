@@ -1,1 +1,0 @@
-{"type":"mul","inputs":[4.0,{"type":"mul","inputs":[{"type":"storage","storage":"math:","path":"internal.noise.terrain.cave_layer","fallback":0.0},{"type":"storage","storage":"math:","path":"internal.noise.terrain.cave_layer","fallback":0.0}]}]}

@@ -1,1 +1,0 @@
-{"type":"add","inputs":[{"type":"mul","inputs":[4.0,{"type":"storage","storage":"math:","path":"internal.noise.terrain.sloped_quarter_negative","fallback":0.0}]},{"type":"storage","storage":"math:","path":"internal.noise.terrain.base3d","fallback":0.0}]}

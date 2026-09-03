@@ -1,1 +1,0 @@
-{"type":"sub","left":0.465,"right":{"type":"mul","inputs":[0.165,{"type":"storage","storage":"math:","path":"internal.noise.terrain.ridge_signed","fallback":0.0}]}}

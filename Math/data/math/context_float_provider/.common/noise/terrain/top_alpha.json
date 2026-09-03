@@ -1,1 +1,0 @@
-{"type":"max","inputs":[0.0,{"type":"min","inputs":[1.0,{"type":"div","left":{"type":"sub","left":256.0,"right":{"type":"storage","storage":"math:","path":"b","fallback":0.0}},"right":16.0}]}]}

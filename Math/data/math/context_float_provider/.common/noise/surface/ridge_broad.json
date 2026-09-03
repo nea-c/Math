@@ -1,1 +1,0 @@
-{"type":"sub","left":{"type":"mul","inputs":[2.0,{"type":"storage","storage":"math:","path":"internal.noise.surface.ridge_peak","fallback":0.0}]},"right":{"type":"mul","inputs":[{"type":"storage","storage":"math:","path":"internal.noise.surface.ridge_peak","fallback":0.0},{"type":"storage","storage":"math:","path":"internal.noise.surface.ridge_peak","fallback":0.0}]}}

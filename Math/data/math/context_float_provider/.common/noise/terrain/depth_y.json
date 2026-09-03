@@ -1,1 +1,0 @@
-{"type":"sub","left":1.5,"right":{"type":"mul","inputs":[3.0,{"type":"storage","storage":"math:","path":"internal.noise.terrain.depth_t","fallback":0.0}]}}

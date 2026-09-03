@@ -1,1 +1,0 @@
-{"type":"sub","left":1.0,"right":{"type":"max","inputs":[0.0,{"type":"min","inputs":[1.0,{"type":"div","left":{"type":"abs","input":{"type":"storage","storage":"math:","path":"internal.noise.terrain.ridges","fallback":0.0}},"right":0.15}]}]}}
