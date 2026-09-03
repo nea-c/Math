@@ -1,1 +1,0 @@
-{"type":"max","inputs":[-64.0,{"type":"min","inputs":[320.0,{"type":"add","inputs":[{"type":"storage","storage":"math:","path":"internal.noise.surface.candidate","fallback":0.0},{"type":"storage","storage":"math:","path":"internal.noise.surface.correction","fallback":0.0}]}]}]}

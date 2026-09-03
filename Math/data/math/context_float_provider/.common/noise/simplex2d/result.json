@@ -1,0 +1,1 @@
+{"type":"mul","inputs":[{"type":"add","inputs":[{"type":"storage","storage":"math:","path":"internal.noise.simplex2d.c0","fallback":0.0},{"type":"storage","storage":"math:","path":"internal.noise.simplex2d.c1","fallback":0.0},{"type":"storage","storage":"math:","path":"internal.noise.simplex2d.c2","fallback":0.0}]},70.0]}

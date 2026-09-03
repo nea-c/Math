@@ -1,0 +1,9 @@
+data modify storage math: internal.noise.simplex2d_work.li set compute default float math:.common/noise/simplex2d/corner_i
+data modify storage math: internal.noise.simplex2d_work.lj set compute default float math:.common/noise/simplex2d/corner_j
+data modify storage math: internal.noise.simplex2d_work.dx set compute default float math:.common/noise/simplex2d/corner_dx
+data modify storage math: internal.noise.simplex2d_work.dz set compute default float math:.common/noise/simplex2d/corner_dz
+data modify storage math: internal.noise.simplex2d_hash.q0 set compute default float math:.common/noise/simplex2d/hash_q0
+data modify storage math: internal.noise.simplex2d_hash.q1 set compute default float math:.common/noise/simplex2d/hash_q1
+data modify storage math: internal.noise.simplex2d_work.dot set compute default float math:.common/noise/simplex2d/gradient
+data modify storage math: internal.noise.simplex2d_work.atten set compute default float math:.common/noise/simplex2d/atten
+data modify storage math: internal.noise.simplex2d_work.contribution set compute default float math:.common/noise/simplex2d/contribution

@@ -1,0 +1,1 @@
+{"type":"mul","inputs":[-3.0,{"type":"add","inputs":[-0.3333333333333333,{"type":"abs","input":{"type":"add","inputs":[-0.6666666666666666,{"type":"abs","input":{"type":"storage","storage":"math:","path":"internal.noise.surface.ridges","fallback":0.0}}]}}]}]}

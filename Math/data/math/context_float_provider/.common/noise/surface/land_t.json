@@ -1,0 +1,1 @@
+{"type":"max","inputs":[0.0,{"type":"min","inputs":[1.0,{"type":"div","left":{"type":"add","inputs":[{"type":"storage","storage":"math:","path":"internal.noise.surface.continents","fallback":0.0},0.18]},"right":0.32}]}]}

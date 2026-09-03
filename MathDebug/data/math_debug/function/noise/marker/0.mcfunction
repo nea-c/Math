@@ -12,12 +12,12 @@ forceload add ~ ~ ~16 ~16
 data modify storage math: a set compute default float {type:"add",inputs:[{type:"storage",storage:"_",path:"_.x"},{type:"storage",storage:"_",path:"_.offset_x"}]}
 data modify storage math: b set compute default float {type:"add",inputs:[{type:"storage",storage:"_",path:"_.z"},{type:"storage",storage:"_",path:"_.offset_z"}]}
 data modify storage math: c set value 1
-data modify storage math: frequency set value 0.02
+data modify storage math: frequency set value 2
 data modify storage math: seed set value 13
 
 data modify storage math: min set value -50
 data modify storage math: max set value 20
-function #math:vanilla_like_surface
+function #math:vanilla_like_surface2
 
 data modify storage _ _.y set from storage math: ans
 
