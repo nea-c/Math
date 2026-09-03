@@ -15,6 +15,7 @@ data modify storage math: internal.noise.terrain.cave_layer set compute default 
 data modify storage math: internal.noise.terrain.cave_cheese set compute default float math:.common/noise/terrain/cave_cheese_approx
 data modify storage math: internal.noise.terrain.spaghetti_noise set compute default float math:.common/noise/terrain/spaghetti_noise_approx
 data modify storage math: internal.noise.terrain.noodle_noise set compute default float math:.common/noise/terrain/noodle_noise_approx
+data modify storage math: internal.noise.terrain.entrance_alpha set compute default float math:.common/noise/terrain/entrance_alpha
 data modify storage math: internal.noise.terrain.entrance_y set compute default float math:.common/noise/terrain/entrance_y
 data modify storage math: internal.noise.terrain.entrance set compute default float math:.common/noise/terrain/entrance
 data modify storage math: internal.noise.terrain.cave_layer_term set compute default float math:.common/noise/terrain/cave_layer_term
@@ -25,5 +26,9 @@ data modify storage math: internal.noise.terrain.spaghetti set compute default f
 data modify storage math: internal.noise.terrain.cave_main set compute default float math:.common/noise/terrain/cave_main
 data modify storage math: internal.noise.terrain.cave_low set compute default float math:.common/noise/terrain/cave_low
 data modify storage math: internal.noise.terrain.cave_branch_alpha set compute default float math:.common/noise/terrain/cave_branch_alpha
+data modify storage math: internal.noise.terrain.cave_raw set compute default float math:.common/noise/terrain/cave_raw
+data modify storage math: internal.noise.terrain.solid_gate set compute default float math:.common/noise/terrain/solid_gate
+data modify storage math: internal.noise.terrain.cave_y_gate set compute default float math:.common/noise/terrain/cave_y_gate
+data modify storage math: internal.noise.terrain.cave_gate set compute default float math:.common/noise/terrain/cave_gate
 data modify storage math: internal.noise.terrain.cave_combined set compute default float math:.common/noise/terrain/cave_combined
 data modify storage math: internal.noise.terrain.noodle set compute default float math:.common/noise/terrain/noodle

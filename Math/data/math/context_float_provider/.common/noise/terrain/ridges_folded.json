@@ -1,1 +1,1 @@
-{"type":"minecraft:mul","inputs":[-3.0,{"type":"minecraft:add","inputs":[-0.3333333333333333,{"type":"minecraft:abs","input":{"type":"minecraft:add","inputs":[-0.6666666666666666,{"type":"minecraft:abs","input":{"type":"minecraft:storage","storage":"math:","path":"internal.noise.terrain.ridges","fallback":0.0}}]}}]}]}
+{"type":"mul","inputs":[-3.0,{"type":"add","inputs":[-0.3333333333333333,{"type":"abs","input":{"type":"add","inputs":[-0.6666666666666666,{"type":"abs","input":{"type":"storage","storage":"math:","path":"internal.noise.terrain.ridges","fallback":0.0}}]}}]}]}

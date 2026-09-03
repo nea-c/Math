@@ -1,0 +1,1 @@
+{"type":"mul","inputs":[{"type":"storage","storage":"math:","path":"internal.noise.terrain.solid_gate","fallback":0.0},{"type":"storage","storage":"math:","path":"internal.noise.terrain.cave_y_gate","fallback":0.0}]}

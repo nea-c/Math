@@ -1,0 +1,1 @@
+{"type":"mul","inputs":[{"type":"storage","storage":"math:","path":"internal.noise.terrain.land","fallback":0.0},0.03]}

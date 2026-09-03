@@ -1,1 +1,1 @@
-{"type":"minecraft:floor","input":{"type":"minecraft:storage","storage":"math:","path":"internal.noise.white.y","fallback":0.0}}
+{"type":"floor","input":{"type":"storage","storage":"math:","path":"internal.noise.white.y","fallback":0.0}}

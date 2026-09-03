@@ -1,0 +1,1 @@
+{"type":"max","inputs":[-1.0,{"type":"min","inputs":[1.0,{"type":"mul","inputs":[{"type":"storage","storage":"math:","path":"internal.noise.terrain.continents_raw","fallback":0.0},3.2]}]}]}

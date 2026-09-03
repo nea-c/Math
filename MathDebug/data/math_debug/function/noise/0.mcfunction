@@ -4,7 +4,7 @@ scoreboard players set #2 value 2
 
 execute store result score #gametime value run time query gametime
 scoreboard players operation #gametime value %= #2 value
-execute unless score #gametime value matches 0 run \
+# execute unless score #gametime value matches 0 run \
   return fail
 
 

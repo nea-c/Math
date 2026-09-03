@@ -1,1 +1,1 @@
-{"type":"minecraft:add","inputs":[-0.075,{"type":"minecraft:mul","inputs":[1.5,{"type":"minecraft:abs","input":{"type":"minecraft:storage","storage":"math:","path":"internal.noise.terrain.noodle_noise","fallback":0.0}}]}]}
+{"type":"add","inputs":[-0.075,{"type":"mul","inputs":[1.5,{"type":"abs","input":{"type":"storage","storage":"math:","path":"internal.noise.terrain.noodle_noise","fallback":0.0}}]}]}

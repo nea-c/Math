@@ -1,1 +1,1 @@
-{"type":"minecraft:max","inputs":[0.0,{"type":"minecraft:min","inputs":[1.0,{"type":"minecraft:div","left":{"type":"minecraft:add","inputs":[{"type":"minecraft:storage","storage":"math:","path":"b","fallback":0.0},64.0]},"right":24.0}]}]}
+{"type":"max","inputs":[0.0,{"type":"min","inputs":[1.0,{"type":"div","left":{"type":"add","inputs":[{"type":"storage","storage":"math:","path":"b","fallback":0.0},64.0]},"right":24.0}]}]}

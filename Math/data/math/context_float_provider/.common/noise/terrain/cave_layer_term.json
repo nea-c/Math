@@ -1,1 +1,1 @@
-{"type":"minecraft:mul","inputs":[4.0,{"type":"minecraft:mul","inputs":[{"type":"minecraft:storage","storage":"math:","path":"internal.noise.terrain.cave_layer","fallback":0.0},{"type":"minecraft:storage","storage":"math:","path":"internal.noise.terrain.cave_layer","fallback":0.0}]}]}
+{"type":"mul","inputs":[4.0,{"type":"mul","inputs":[{"type":"storage","storage":"math:","path":"internal.noise.terrain.cave_layer","fallback":0.0},{"type":"storage","storage":"math:","path":"internal.noise.terrain.cave_layer","fallback":0.0}]}]}

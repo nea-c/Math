@@ -1,0 +1,1 @@
+{"type":"max","inputs":[0.0,{"type":"min","inputs":[1.0,{"type":"div","left":{"type":"sub","left":{"type":"storage","storage":"math:","path":"internal.noise.terrain.sloped_cheese","fallback":0.0},"right":0.4},"right":0.9}]}]}

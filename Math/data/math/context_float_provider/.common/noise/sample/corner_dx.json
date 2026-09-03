@@ -1,1 +1,1 @@
-{"type":"minecraft:sub","left":{"type":"minecraft:storage","storage":"math:","path":"internal.noise.sample.fx","fallback":0.0},"right":{"type":"minecraft:storage","storage":"math:","path":"internal.noise.sample_work.dx","fallback":0.0}}
+{"type":"sub","left":{"type":"storage","storage":"math:","path":"internal.noise.sample.fx","fallback":0.0},"right":{"type":"storage","storage":"math:","path":"internal.noise.sample_work.dx","fallback":0.0}}

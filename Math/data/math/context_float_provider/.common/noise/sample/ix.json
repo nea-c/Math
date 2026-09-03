@@ -1,1 +1,1 @@
-{"type":"minecraft:floor","input":"math:.common/noise/sample/shifted_x"}
+{"type":"floor","input":"math:.common/noise/sample/shifted_x"}

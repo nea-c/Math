@@ -1,1 +1,1 @@
-{"type":"minecraft:mul","inputs":[{"type":"minecraft:storage","storage":"math:","path":"internal.noise.base_x","fallback":0.0},0.5]}
+{"type":"mul","inputs":[{"type":"storage","storage":"math:","path":"internal.noise.base_x","fallback":0.0},0.5]}

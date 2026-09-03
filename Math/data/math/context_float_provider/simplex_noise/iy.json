@@ -1,1 +1,1 @@
-{"type":"minecraft:floor","input":{"type":"minecraft:add","inputs":[{"type":"minecraft:storage","storage":"math:","path":"internal.noise.simplex.y","fallback":0.0},{"type":"minecraft:storage","storage":"math:","path":"internal.noise.simplex.skew","fallback":0.0}]}}
+{"type":"floor","input":{"type":"add","inputs":[{"type":"storage","storage":"math:","path":"internal.noise.simplex.y","fallback":0.0},{"type":"storage","storage":"math:","path":"internal.noise.simplex.skew","fallback":0.0}]}}
