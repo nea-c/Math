@@ -1,0 +1,177 @@
+{
+  "type": "add",
+  "inputs": [
+    {
+      "type": "mul",
+      "inputs": [
+        {
+          "type": "sub",
+          "left": {
+            "type": "storage",
+            "storage": "math:perlin/input",
+            "path": "x",
+            "fallback": 0.0
+          },
+          "right": "math:perlin/cell/x1"
+        },
+        {
+          "type": "cos",
+          "input": {
+            "type": "mul",
+            "inputs": [
+              {
+                "type": "sub",
+                "left": {
+                  "type": "mul",
+                  "inputs": [
+                    {
+                      "type": "sin",
+                      "input": {
+                        "type": "add",
+                        "inputs": [
+                          {
+                            "type": "mul",
+                            "inputs": [
+                              "math:perlin/cell/x1",
+                              127.1
+                            ]
+                          },
+                          {
+                            "type": "mul",
+                            "inputs": [
+                              "math:perlin/cell/y1",
+                              311.7
+                            ]
+                          }
+                        ]
+                      }
+                    },
+                    43758.5453
+                  ]
+                },
+                "right": {
+                  "type": "floor",
+                  "input": {
+                    "type": "mul",
+                    "inputs": [
+                      {
+                        "type": "sin",
+                        "input": {
+                          "type": "add",
+                          "inputs": [
+                            {
+                              "type": "mul",
+                              "inputs": [
+                                "math:perlin/cell/x1",
+                                127.1
+                              ]
+                            },
+                            {
+                              "type": "mul",
+                              "inputs": [
+                                "math:perlin/cell/y1",
+                                311.7
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      43758.5453
+                    ]
+                  }
+                }
+              },
+              6.283185307179586
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "type": "mul",
+      "inputs": [
+        {
+          "type": "sub",
+          "left": {
+            "type": "storage",
+            "storage": "math:perlin/input",
+            "path": "y",
+            "fallback": 0.0
+          },
+          "right": "math:perlin/cell/y1"
+        },
+        {
+          "type": "sin",
+          "input": {
+            "type": "mul",
+            "inputs": [
+              {
+                "type": "sub",
+                "left": {
+                  "type": "mul",
+                  "inputs": [
+                    {
+                      "type": "sin",
+                      "input": {
+                        "type": "add",
+                        "inputs": [
+                          {
+                            "type": "mul",
+                            "inputs": [
+                              "math:perlin/cell/x1",
+                              127.1
+                            ]
+                          },
+                          {
+                            "type": "mul",
+                            "inputs": [
+                              "math:perlin/cell/y1",
+                              311.7
+                            ]
+                          }
+                        ]
+                      }
+                    },
+                    43758.5453
+                  ]
+                },
+                "right": {
+                  "type": "floor",
+                  "input": {
+                    "type": "mul",
+                    "inputs": [
+                      {
+                        "type": "sin",
+                        "input": {
+                          "type": "add",
+                          "inputs": [
+                            {
+                              "type": "mul",
+                              "inputs": [
+                                "math:perlin/cell/x1",
+                                127.1
+                              ]
+                            },
+                            {
+                              "type": "mul",
+                              "inputs": [
+                                "math:perlin/cell/y1",
+                                311.7
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      43758.5453
+                    ]
+                  }
+                }
+              },
+              6.283185307179586
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

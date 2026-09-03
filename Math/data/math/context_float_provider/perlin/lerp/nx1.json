@@ -1,0 +1,17 @@
+{
+  "type": "add",
+  "inputs": [
+    "math:perlin/corner/n01",
+    {
+      "type": "mul",
+      "inputs": [
+        {
+          "type": "sub",
+          "left": "math:perlin/corner/n11",
+          "right": "math:perlin/corner/n01"
+        },
+        "math:perlin/fade/u"
+      ]
+    }
+  ]
+}

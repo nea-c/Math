@@ -1,0 +1,10 @@
+{
+  "type": "sub",
+  "left": {
+    "type": "storage",
+    "storage": "math:",
+    "path": "b",
+    "fallback": 0.0
+  },
+  "right": "math:perlin/cell/y0"
+}

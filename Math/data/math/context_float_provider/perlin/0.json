@@ -1,0 +1,17 @@
+{
+  "type": "add",
+  "inputs": [
+    "math:perlin/lerp/nx0",
+    {
+      "type": "mul",
+      "inputs": [
+        {
+          "type": "sub",
+          "left": "math:perlin/lerp/nx1",
+          "right": "math:perlin/lerp/nx0"
+        },
+        "math:perlin/fade/v"
+      ]
+    }
+  ]
+}
