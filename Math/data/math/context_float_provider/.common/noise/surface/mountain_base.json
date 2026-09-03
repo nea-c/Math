@@ -1,0 +1,1 @@
+{"type":"mul","inputs":[{"type":"storage","storage":"math:","path":"internal.noise.surface.land","fallback":0.0},{"type":"storage","storage":"math:","path":"internal.noise.surface.low_erosion","fallback":0.0}]}

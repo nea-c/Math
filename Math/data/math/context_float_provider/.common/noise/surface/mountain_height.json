@@ -1,0 +1,1 @@
+{"type":"mul","inputs":[{"type":"storage","storage":"math:","path":"internal.noise.surface.mountain_base","fallback":0.0},{"type":"add","inputs":[15.0,{"type":"mul","inputs":[35.0,{"type":"storage","storage":"math:","path":"internal.noise.surface.ridge_broad","fallback":0.0}]}]}]}
