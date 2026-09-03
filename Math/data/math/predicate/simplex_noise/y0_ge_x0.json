@@ -1,1 +1,1 @@
-{"type":"float_value_check","value":{"type":"storage","storage":"math:","path":"internal.noise.simplex.y0","fallback":0.0},"test":{"min":{"type":"storage","storage":"math:","path":"internal.noise.simplex.x0","fallback":0.0}}}
+{"value":{"type":"storage","storage":"math:","path":"internal.noise.simplex.y0","fallback":0.0},"test":{"min":{"type":"storage","storage":"math:","path":"internal.noise.simplex.x0","fallback":0.0}},"type":"float_value_check"}

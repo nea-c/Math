@@ -1,0 +1,1 @@
+{"type":"max","inputs":[-64.0,{"type":"sub","left":{"type":"storage","storage":"math:","path":"internal.noise.surface.estimate","fallback":0.0},"right":64.0}]}

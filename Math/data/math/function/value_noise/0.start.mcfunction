@@ -1,4 +1,4 @@
-data remove storage math: ans
+data remove storage math: internal.noise
 data modify storage math: internal.noise.value.x set compute default float math:.common/noise/input_x
 data modify storage math: internal.noise.value.ix set compute default float math:value_noise/ix
 data modify storage math: internal.noise.value.fx set compute default float math:value_noise/fx
@@ -86,4 +86,4 @@ data modify storage math: internal.noise.work.t set from storage math: internal.
 data modify storage math: internal.noise.value.result set compute default float math:.common/noise/lerp
 data modify storage math: internal.noise.work.value set from storage math: internal.noise.value.result
 data modify storage math: ans set compute default float math:.common/noise/remap
-data remove storage math: internal
+data remove storage math: internal.noise

@@ -33,6 +33,7 @@ data modify storage math: internal.noise.terrain.rolling set compute default flo
 data modify storage math: internal.noise.terrain.hills set compute default float math:.common/noise/terrain/hills
 data modify storage math: internal.noise.terrain.continent_spline set compute default float math:.common/noise/terrain/continent_spline
 data modify storage math: internal.noise.terrain.offset set compute default float math:.common/noise/terrain/offset
+data modify storage math: internal.noise.terrain.factor set compute default float math:.common/noise/terrain/factor
 data modify storage math: internal.noise.terrain.ridge_signed set compute default float math:.common/noise/terrain/ridge_signed
 data modify storage math: internal.noise.terrain.jagged_sign set compute default float math:.common/noise/terrain/jagged_sign
 data modify storage math: internal.noise.terrain.jaggedness set compute default float math:.common/noise/terrain/jaggedness

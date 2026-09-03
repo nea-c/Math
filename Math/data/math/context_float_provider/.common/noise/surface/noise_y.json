@@ -1,0 +1,1 @@
+{"type":"mul","inputs":[{"type":"storage","storage":"math:","path":"internal.noise.surface.y","fallback":0.0},{"type":"storage","storage":"math:","path":"internal.noise.surface.y_scale","fallback":1.0}]}

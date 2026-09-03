@@ -17,7 +17,7 @@ data modify storage math: seed set value 13
 
 data modify storage math: min set value -50
 data modify storage math: max set value 20
-function #math:vanilla_like_terrain2
+function #math:vanilla_like_surface
 
 data modify storage _ _.y set compute default float {type:"mul",inputs:[{type:"storage",storage:"math:",path:"ans"},2]}
 
