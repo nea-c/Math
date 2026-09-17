@@ -1,10 +1,10 @@
 # Math
 
-四則演算、三角関数、補間、クォータニオン変換などの数値計算を提供するライブラリデータパック。
+四則演算、三角関数、補間、Noise、クォータニオン変換などの数値計算を提供するライブラリデータパック。
 
 ## 最新
 
-r1
+r2
 
 ## 動作要件
 
@@ -39,14 +39,17 @@ data get storage math: ans
 
 | フィールド | 用途 |
 | :- | :- |
-| `a` | 単項入力、または左オペランド |
-| `b` | 右オペランド |
-| `min`, `max` | `clamp` の下限と上限。補間APIでは `max` を終了tickとして使用 |
+| `a` | 単項入力、左オペランド、またはNoise APIのX座標 |
+| `b` | 右オペランド、またはNoise APIのY座標 |
+| `c` | Noise APIのZ座標 |
+| `min`, `max` | `clamp` の下限と上限。補間APIでは `max` を終了tick、Noise APIでは出力範囲として使用 |
 | `t` | 補間量、または経過tick |
 | `curve` | `bezier` の制御点 `[x1,y1,x2,y2]` |
 | `amplitude`, `period` | `elastic` の振幅倍率と1周期のtick数 |
 | `oscillations`, `damping` | `elastic_decay` の振動回数と減衰率 |
-| `frequency`, `decay` | `bounce_decay` の跳ねる回数と減衰率 |
+| `bounces`, `decay` | `bounce_decay` の跳ねる回数と減衰率 |
+| `frequency` | Noise APIの周波数 |
+| `seed` | Noise APIのシード値 |
 | `rotation` | クォータニオン `[x,y,z,w]` |
 | `ans` | 計算結果 |
 
@@ -163,6 +166,43 @@ function #math:bounce_decay
 data get storage math: ans
 ```
 
+#### Noise
+
+3次元座標から決定論的なNoiseを生成します。同じ入力とシード値には常に同じ結果を返します。
+
+すべてのNoise APIで、座標は `a`, `b`, `c`、周波数は `frequency`、シード値は `seed` に指定します。座標には周波数が乗算されます。出力は `min` 以上 `max` 以下へ再マッピングされます。
+
+| フィールド | 既定値 |
+| :- | -: |
+| `a`, `b`, `c` | `0.0f` |
+| `frequency` | `1.0f` |
+| `seed` | `0.0f` |
+| `min` | `-1.0f` |
+| `max` | `1.0f` |
+
+| functionタグ | 計算内容 | 有効入力 |
+| :- | :- | :- |
+| `#math:white_noise` | 単位格子ごとに一定のランダム値を返すWhite Noise | すべての指定値が有限、`min <= max`で、座標と周波数の積および再マッピング結果が有限floatに収まる |
+| `#math:value_noise` | 格子点のランダム値を滑らかに補間するValue Noise | 同上 |
+| `#math:simplex_noise` | Simplex Noise | 同上 |
+| `#math:perlin` | Perlin Noise | 同上 |
+| `#math:octave_perlin` | 3オクターブを合成したPerlin Noise | 同上 |
+| `#math:double_perlin` | 周波数の異なる2組のNoiseを合成したDouble Perlin Noise | 同上 |
+| `#math:fbm` | 4オクターブを合成したFractal Brownian Motion | 同上 |
+
+```mcfunction
+# 座標(12, 4, -8)のFBMを0から100の範囲で取得する
+data modify storage math: a set value 12.0f
+data modify storage math: b set value 4.0f
+data modify storage math: c set value -8.0f
+data modify storage math: frequency set value 0.05f
+data modify storage math: seed set value 1234.0f
+data modify storage math: min set value 0.0f
+data modify storage math: max set value 100.0f
+function #math:fbm
+data get storage math: ans
+```
+
 #### クォータニオン
 
 `#math:quaternion_to_axis_angle` は `rotation:[x,y,z,w]` をaxis-angle形式へ変換します。
@@ -190,6 +230,11 @@ data get storage math: ans
 [MIT License](LICENSE) に基づく。
 
 ## 更新履歴
+
+### r2
+
+- White、Value、Simplex、Perlin Noise APIを追加
+- Octave Perlin、Double Perlin、FBM APIを追加
 
 ### r1
 
