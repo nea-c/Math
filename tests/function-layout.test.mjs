@@ -9,7 +9,7 @@ import {
 } from "../tools/function-layout.mjs";
 
 test("function layout defines the complete public API", () => {
-  assert.equal(PUBLIC_FUNCTION_NAMES.length, 48);
+  assert.equal(PUBLIC_FUNCTION_NAMES.length, 50);
   assert.equal(PUBLIC_FUNCTION_PATHS.bezier, "bezier/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.bounce, "bounce/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.bounce_decay, "bounce_decay/0.start");
@@ -29,6 +29,8 @@ test("function layout defines the complete public API", () => {
   assert.equal(PUBLIC_FUNCTION_PATHS.atan, "atan/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.atan2, "atan2/0.start");
   assert.equal(PUBLIC_FUNCTION_PATHS.quaternion_to_axis_angle, "quaternion_to_axis_angle/0.start");
+  assert.equal(PUBLIC_FUNCTION_PATHS.axis_angle_to_quaternion, "axis_angle_to_quaternion/0.start");
+  assert.equal(PUBLIC_FUNCTION_PATHS.quaternion_compose, "quaternion_compose/0.start");
   assert.deepEqual(publicTag("div"), { values: ["math:div/0.start"] });
 });
 

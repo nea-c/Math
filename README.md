@@ -51,6 +51,8 @@ data get storage math: ans
 | `frequency` | Noise APIの周波数 |
 | `seed` | Noise APIのシード値 |
 | `rotation` | クォータニオン `[x,y,z,w]` |
+| `axis`, `angle` | axis-angle形式の回転軸 `[x,y,z]` と角度（ラジアン） |
+| `rotation_a`, `rotation_b` | 合成するクォータニオン `[x,y,z,w]` |
 | `ans` | 計算結果 |
 
 ### API一覧
@@ -205,6 +207,8 @@ data get storage math: ans
 
 #### クォータニオン
 
+クォータニオンは `[x,y,z,w]`、axis-angleは回転軸 `[x,y,z]` とラジアン単位の角度で表します。
+
 `#math:quaternion_to_axis_angle` は `rotation:[x,y,z,w]` をaxis-angle形式へ変換します。
 
 ```mcfunction
@@ -221,9 +225,25 @@ data get storage math: ans
 
 入力は安全に正規化されるため、正規化済みである必要はありません。角度はクォータニオンの符号を保った `0` 以上 `2π` 以下となり、`q` と `-q` は同一視されません。回転軸を一意に決められない場合は `+Y` を返します。
 
+`#math:axis_angle_to_quaternion` は逆に、`axis` と `angle` をクォータニオンへ変換します。
+
+```mcfunction
+# Y軸まわりに90度回転するクォータニオンを得る
+data modify storage math: axis set value [0.0f,1.0f,0.0f]
+data modify storage math: angle set value 1.5707964f
+function #math:axis_angle_to_quaternion
+data get storage math: ans
+```
+
+`#math:quaternion_compose` は `rotation_a` を適用してから `rotation_b` を適用する回転を返します。クォータニオン積は交換できないため、適用順を逆にすると通常は異なる回転になります。内部では Hamilton積 `rotation_b × rotation_a` を計算します。
+
 | functionタグ | 入力 | 計算内容 | 有効入力 |
 | :- | :- | :- | :- |
 | `#math:quaternion_to_axis_angle` | `rotation` | `rotation:[x,y,z,w]` をaxis-angle形式へ変換 | `rotation`が有限float 4要素の`[x,y,z,w]`で、全要素が同時に0ではない |
+| `#math:axis_angle_to_quaternion` | `axis`, `angle` | axis-angle形式をクォータニオン `[x,y,z,w]` へ変換 | `axis`が有限float 3要素で全要素が同時に0ではなく、`angle`が有限 |
+| `#math:quaternion_compose` | `rotation_a`, `rotation_b` | Aを適用してからBを適用する回転を合成 | 両入力が有限float 4要素で、それぞれの全要素が同時に0ではない |
+
+3つのAPIはいずれも入力を安全に正規化します。`axis_angle_to_quaternion` と `quaternion_compose` の結果は正規化済みクォータニオンです。
 
 ## ライセンス
 
@@ -235,6 +255,8 @@ data get storage math: ans
 
 - White、Value、Simplex、Perlin Noise APIを追加
 - Octave Perlin、Double Perlin、FBM APIを追加
+- axis-angleからクォータニオンへの変換APIを追加
+- クォータニオンの回転合成APIを追加
 
 ### r1
 

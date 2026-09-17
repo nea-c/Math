@@ -116,3 +116,98 @@ test("quaternion conversion leaves zero and component arity handling to vanilla 
     assert.equal(result.storage["math:"].error, "stale_error");
   }
 });
+
+test("axis-angle conversion normalizes the axis and uses the half-angle quaternion formula", () => {
+  const axis = [0, 2, 0];
+  const angle = Math.fround(Math.PI / 2);
+  const result = runFunction("axis_angle_to_quaternion", {
+    axis,
+    angle,
+    ans: 91,
+    error: "stale_error",
+  });
+
+  assert.equal(result.returned, undefined);
+  assert.deepEqual(result.storage["math:"].axis, axis);
+  assert.equal(result.storage["math:"].angle, angle);
+  assert.equal(result.storage["math:"].error, "stale_error");
+  assert.equal(result.storage["math:"].internal, undefined);
+
+  const expected = [0, Math.SQRT1_2, 0, Math.SQRT1_2];
+  const actual = result.storage["math:"].ans;
+  assert.equal(actual.length, 4);
+  for (let index = 0; index < 4; index += 1) {
+    assert.equal(result.numericTags.get(storageFieldKey("math:", `ans[${index}]`)), "float");
+    assert.ok(Math.abs(actual[index] - expected[index]) <= 8 * 2 ** -23,
+      `component ${index}: ${actual[index]} vs ${expected[index]}`);
+  }
+});
+
+test("quaternion composition applies rotation A and then rotation B", () => {
+  const sine45 = Math.fround(Math.SQRT1_2);
+  const rotationA = [Math.fround(2 * sine45), 0, 0, Math.fround(2 * sine45)];
+  const rotationB = [0, Math.fround(3 * sine45), 0, Math.fround(3 * sine45)];
+  const result = runFunction("quaternion_compose", {
+    rotation_a: rotationA,
+    rotation_b: rotationB,
+    ans: 91,
+    error: "stale_error",
+  });
+
+  assert.equal(result.returned, undefined);
+  assert.deepEqual(result.storage["math:"].rotation_a, rotationA);
+  assert.deepEqual(result.storage["math:"].rotation_b, rotationB);
+  assert.equal(result.storage["math:"].error, "stale_error");
+  assert.equal(result.storage["math:"].internal, undefined);
+
+  const expected = [0.5, 0.5, -0.5, 0.5];
+  const actual = result.storage["math:"].ans;
+  assert.equal(actual.length, 4);
+  for (let index = 0; index < 4; index += 1) {
+    assert.equal(result.numericTags.get(storageFieldKey("math:", `ans[${index}]`)), "float");
+    assert.ok(Math.abs(actual[index] - expected[index]) <= 12 * 2 ** -23,
+      `component ${index}: ${actual[index]} vs ${expected[index]}`);
+  }
+});
+
+test("axis-angle conversion safely normalizes axes across the binary32 range", () => {
+  for (const axis of [
+    [finiteLimit, finiteLimit, 0],
+    [smallestFloat, smallestFloat, 0],
+  ]) {
+    const result = runFunction("axis_angle_to_quaternion", {
+      axis,
+      angle: Math.fround(Math.PI),
+    });
+    const [x, y, z, w] = result.storage["math:"].ans;
+    assert.ok(Math.abs(x - Math.SQRT1_2) <= 12 * 2 ** -23, `${axis} x`);
+    assert.ok(Math.abs(y - Math.SQRT1_2) <= 12 * 2 ** -23, `${axis} y`);
+    assert.equal(z, 0);
+    assert.ok(Math.abs(w) <= 12 * 2 ** -23, `${axis} w`);
+  }
+});
+
+test("axis-angle conversion preserves every component of a non-symmetric axis", () => {
+  const result = runFunction("axis_angle_to_quaternion", {
+    axis: [1, -2, 3],
+    angle: Math.fround(Math.PI),
+  });
+  const expected = [0.2672612419124244, -0.5345224838248488, 0.8017837257372732, 0];
+  for (let index = 0; index < 4; index += 1) {
+    assert.ok(Math.abs(result.storage["math:"].ans[index] - expected[index]) <= 12 * 2 ** -23,
+      `component ${index}`);
+  }
+  assert.ok(Math.abs(Math.hypot(...result.storage["math:"].ans) - 1) <= 12 * 2 ** -23);
+});
+
+test("quaternion composition safely normalizes scaled rotations across the binary32 range", () => {
+  const result = runFunction("quaternion_compose", {
+    rotation_a: [finiteLimit, 0, 0, finiteLimit],
+    rotation_b: [0, smallestFloat, 0, smallestFloat],
+  });
+  const expected = [0.5, 0.5, -0.5, 0.5];
+  for (let index = 0; index < 4; index += 1) {
+    assert.ok(Math.abs(result.storage["math:"].ans[index] - expected[index]) <= 12 * 2 ** -23,
+      `component ${index}`);
+  }
+});

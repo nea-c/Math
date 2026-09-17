@@ -1,8 +1,8 @@
 export const PUBLIC_FUNCTION_NAMES = Object.freeze([
-  "abs", "acos", "acos_deg", "add", "asin", "asin_deg", "atan", "atan2", "atan2_deg", "atan_deg", "bezier", "bounce", "bounce_decay", "ceil", "clamp", "cos", "cos_deg", "cube",
+  "abs", "acos", "acos_deg", "add", "asin", "asin_deg", "atan", "atan2", "atan2_deg", "atan_deg", "axis_angle_to_quaternion", "bezier", "bounce", "bounce_decay", "ceil", "clamp", "cos", "cos_deg", "cube",
   "deg", "div", "e", "elastic", "elastic_decay", "exp", "floor", "lerp", "log", "max",
   "min", "mod", "mul", "pi", "pow", "rad", "reciprocal",
-  "quaternion_to_axis_angle", "remainder", "round", "sign", "sin", "sin_deg", "square",
+  "quaternion_compose", "quaternion_to_axis_angle", "remainder", "round", "sign", "sin", "sin_deg", "square",
   "sqrt", "sub", "tan", "tan_deg", "tau", "truncate",
 ]);
 

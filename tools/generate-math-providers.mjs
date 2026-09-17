@@ -188,6 +188,10 @@ const publicDamping = storage("math:", "damping");
 const publicBounces = storage("math:", "bounces");
 const publicDecay = storage("math:", "decay");
 const publicRotation = Array.from({ length: 4 }, (_, index) => storage("math:", `rotation[${index}]`));
+const publicAxis = Array.from({ length: 3 }, (_, index) => storage("math:", `axis[${index}]`));
+const publicAngle = storage("math:", "angle");
+const publicRotationA = Array.from({ length: 4 }, (_, index) => storage("math:", `rotation_a[${index}]`));
+const publicRotationB = Array.from({ length: 4 }, (_, index) => storage("math:", `rotation_b[${index}]`));
 const quaternionComponents = publicRotation;
 const quaternionScaledRaw = Array.from({ length: 4 }, (_, index) => internalStorage(`w_quaternion_scaled_raw_${index}`));
 const quaternionScaled = Array.from({ length: 4 }, (_, index) => internalStorage(`w_quaternion_scaled_${index}`));
@@ -1551,6 +1555,76 @@ emitFunction(FUNCTION_PATHS.quaternionScalar, [
   }
   lines.push("return 1");
   emitFunction(FUNCTION_PATHS.quaternionFinish, lines);
+}
+
+function unqualifiedProviderTypes(value) {
+  if (Array.isArray(value)) return value.map(unqualifiedProviderTypes);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value).map(([key, child]) => [
+    key,
+    key === "type" && typeof child === "string" ? child.replace(/^minecraft:/, "") : unqualifiedProviderTypes(child),
+  ]));
+}
+
+const computeUnqualifiedInline = (target, provider) =>
+  `data modify storage math: ${target} set compute default float ${JSON.stringify(unqualifiedProviderTypes(provider))}`;
+
+function safelyNormalizeInline(prefix, components, lines) {
+  const maximumValue = internalStorage(`${prefix}_maximum`);
+  const scaled = components.map((_, index) => internalStorage(`${prefix}_scaled_${index}`));
+  const lengthValue = internalStorage(`${prefix}_length`);
+  const normalized = components.map((_, index) => internalStorage(`${prefix}_${index}`));
+
+  lines.push(computeUnqualifiedInline(`internal.${prefix}_maximum`, maximum(...components.map(absolute))));
+  for (let index = 0; index < components.length; index += 1) {
+    lines.push(computeUnqualifiedInline(`internal.${prefix}_scaled_${index}`, divide(components[index], maximumValue)));
+  }
+  lines.push(computeUnqualifiedInline(`internal.${prefix}_length`, squareRoot(sum(
+    ...scaled.map(component => product(component, component)),
+  ))));
+  for (let index = 0; index < components.length; index += 1) {
+    lines.push(computeUnqualifiedInline(`internal.${prefix}_${index}`, divide(scaled[index], lengthValue)));
+  }
+  return normalized;
+}
+
+{
+  const lines = [];
+  const axis = safelyNormalizeInline("axis_angle", publicAxis, lines);
+  const halfAngle = product(publicAngle, 0.5);
+  const halfAngleSine = internalStorage("axis_angle_sine");
+  lines.push(computeUnqualifiedInline("internal.axis_angle_sine", sine(halfAngle)));
+  lines.push("data modify storage math: ans set value [0.0f,0.0f,0.0f,1.0f]");
+  for (let index = 0; index < 3; index += 1) {
+    lines.push(computeUnqualifiedInline(`ans[${index}]`, product(axis[index], halfAngleSine)));
+  }
+  lines.push(computeUnqualifiedInline("ans[3]", cosine(halfAngle)));
+  emitDirectPublicFunction("axis_angle_to_quaternion", lines);
+}
+
+{
+  const lines = [];
+  const a = safelyNormalizeInline("compose_a", publicRotationA, lines);
+  const b = safelyNormalizeInline("compose_b", publicRotationB, lines);
+  const raw = Array.from({ length: 4 }, (_, index) => internalStorage(`compose_raw_${index}`));
+  const productComponents = [
+    sum(product(b[3], a[0]), product(b[0], a[3]), product(b[1], a[2]), product(-1, b[2], a[1])),
+    sum(product(b[3], a[1]), product(-1, b[0], a[2]), product(b[1], a[3]), product(b[2], a[0])),
+    sum(product(b[3], a[2]), product(b[0], a[1]), product(-1, b[1], a[0]), product(b[2], a[3])),
+    sum(product(b[3], a[3]), product(-1, b[0], a[0]), product(-1, b[1], a[1]), product(-1, b[2], a[2])),
+  ];
+  for (let index = 0; index < 4; index += 1) {
+    lines.push(computeUnqualifiedInline(`internal.compose_raw_${index}`, productComponents[index]));
+  }
+  const resultLength = internalStorage("compose_result_length");
+  lines.push(computeUnqualifiedInline("internal.compose_result_length", squareRoot(sum(
+    ...raw.map(component => product(component, component)),
+  ))));
+  lines.push("data modify storage math: ans set value [0.0f,0.0f,0.0f,1.0f]");
+  for (let index = 0; index < 4; index += 1) {
+    lines.push(computeUnqualifiedInline(`ans[${index}]`, divide(raw[index], resultLength)));
+  }
+  emitDirectPublicFunction("quaternion_compose", lines);
 }
 
 emitFunction(FUNCTION_PATHS.log, [
